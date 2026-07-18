@@ -42,6 +42,7 @@ with workflow.unsafe.imports_passed_through():
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         AgentSnapshotBeginRunEnvelope,
+    REPOSITORY_ACTIVITY_NAMES,
     )
     from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
         extract_model_error_from_details,
@@ -175,6 +176,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     str(metadata.get("codebase_name", "unknown"))
                     for metadata in codebase_metadata_list
                 ],
+                repository_activity_names=list(REPOSITORY_ACTIVITY_NAMES),
             )
             await workflow.execute_activity(
                 RepositoryAgentSnapshotActivity.persist_agent_snapshot_begin_run,

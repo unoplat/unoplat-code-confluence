@@ -46,7 +46,7 @@ from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler
 
 def build_call_expression_validator_agent(
     context: AgentAssemblyContext,
-) -> AgentBuildResult[CallExpressionValidationAgentOutput]:
+) -> AgentBuildResult[AgentDependencies, CallExpressionValidationAgentOutput]:
     function_tools: list[Tool[AgentDependencies]] = [
         build_upsert_framework_feature_validation_evidence_tool(),
         build_set_framework_feature_validation_status_tool(),
@@ -94,14 +94,15 @@ def build_call_expression_validator_agent(
         toolsets=tuple(toolsets),
         capabilities=capabilities,
         output_type=CallExpressionValidationAgentOutput,
-        output_retries=2,
+        retries={"output": 2},
+        end_strategy="early",
         model_settings=context.model_settings,
-        event_stream_handler=event_stream_handler,
     )
 
     return AgentBuildResult(
         agent=agent,
         function_tool_names=tuple(tool.name for tool in function_tools),
+        event_stream_handler=event_stream_handler,
         toolset_ids=(
             CALL_EXPRESSION_VALIDATOR_CONSOLE_TOOLSET_ID,
             CALL_EXPRESSION_VALIDATOR_LOCAL_WEB_SEARCH_TOOLSET_ID,

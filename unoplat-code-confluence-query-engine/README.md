@@ -60,11 +60,12 @@ Run the **"test-agents-md-agent"** request to start the AI analysis of your code
 
 ## What You'll Get
 
-The tool generates detailed markdown documentation including:
-- **Project Structure**: Key directories and configuration files
-- **Business Logic**: Core functionality and domain models  
-- **Framework Analysis**: Technologies and libraries used
-- **Development Workflow**: Build processes, testing, and deployment setup
+The tool generates and maintains markdown documentation including:
+- **Development Workflow**: Build, test, lint, type-check, and development commands in `AGENTS.md`
+- **Dependency Guide**: Dependency purpose and usage in `dependencies_overview.md`
+- **Business Domain**: Domain summary in `AGENTS.md` with evidence in `business_domain_references.md`
+- **App Interfaces**: Inbound and outbound interface inventory in `app_interfaces.md`
+- **Architecture**: A validated Mermaid architecture diagram in `architecture.md` when external interfaces are detected
 
 ## Troubleshooting
 

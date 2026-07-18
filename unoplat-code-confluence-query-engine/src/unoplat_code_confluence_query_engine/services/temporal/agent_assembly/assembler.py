@@ -7,9 +7,6 @@ from pydantic_ai.durable_exec.temporal import TemporalAgent
 from pydantic_ai.models import Model
 from pydantic_ai.settings import ModelSettings
 
-from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
-    AgentDependencies,
-)
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
 )
@@ -30,6 +27,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.searc
     resolve_search_runtime_policy,
 )
 
+DepsT = TypeVar("DepsT")
 OutputT = TypeVar("OutputT")
 
 
@@ -68,7 +66,7 @@ def build_search_runtime_policy(
 
 def resolve_temporal_activity_bundle(
     *,
-    build_result: AgentBuildResult[OutputT],
+    build_result: AgentBuildResult[DepsT, OutputT],
     context: AgentAssemblyContext,
 ) -> ResolvedTemporalActivityConfig:
     """Resolve the Temporal activity config bundle for one built agent."""
@@ -86,13 +84,14 @@ def resolve_temporal_activity_bundle(
 
 def build_temporal_agent(
     *,
-    build_result: AgentBuildResult[OutputT],
+    build_result: AgentBuildResult[DepsT, OutputT],
     activity_config: ResolvedTemporalActivityConfig,
-) -> TemporalAgent[AgentDependencies, OutputT]:
+) -> TemporalAgent[DepsT, OutputT]:
     """Build one TemporalAgent from a concrete built agent and config."""
 
     return TemporalAgent(
         build_result.agent,
+        event_stream_handler=build_result.event_stream_handler,
         activity_config=activity_config.activity_config,
         model_activity_config=activity_config.model_activity_config,
         toolset_activity_config=activity_config.toolset_activity_config,
@@ -101,9 +100,9 @@ def build_temporal_agent(
 
 
 def assemble_temporal_agent(
-    builder: Callable[[AgentAssemblyContext], AgentBuildResult[OutputT]],
+    builder: Callable[[AgentAssemblyContext], AgentBuildResult[DepsT, OutputT]],
     context: AgentAssemblyContext,
-) -> TemporalAgent[AgentDependencies, OutputT]:
+) -> TemporalAgent[DepsT, OutputT]:
     """Build one concrete agent for durable execution."""
 
     build_result = builder(context)
@@ -120,7 +119,7 @@ def assemble_temporal_agent(
 def assemble_enabled_temporal_agents(
     agent_builders: dict[
         AgentType,
-        Callable[[AgentAssemblyContext], AgentBuildResult[Any]],
+        Callable[[AgentAssemblyContext], AgentBuildResult[Any, Any]],
     ],
     context: AgentAssemblyContext,
 ) -> dict[AgentType, TemporalAgent[Any, Any]]:

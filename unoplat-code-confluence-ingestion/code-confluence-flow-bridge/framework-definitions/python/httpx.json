@@ -1,0 +1,62 @@
+{
+  "python": {
+    "httpx": {
+      "docs_url": "https://www.python-httpx.org/",
+      "description": "HTTPX synchronous and asynchronous HTTP client construction and requests.",
+      "capabilities": {
+        "http_client": {
+          "description": "Outbound HTTP requests made through HTTPX clients and public request helpers.",
+          "operations": {
+            "http_client": {
+              "description": "Construct an HTTPX synchronous or asynchronous client.",
+              "docs_url": "https://www.python-httpx.org/api/#client",
+              "absolute_paths": [
+                "httpx.Client",
+                "httpx.AsyncClient"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Constructor calls require direct-import, alias, or module-qualified provenance resolving to httpx.Client or httpx.AsyncClient; unrelated local Client classes are rejected."
+            },
+            "http_request": {
+              "description": "Send an outbound request through an HTTPX top-level request helper.",
+              "docs_url": "https://www.python-httpx.org/api/#helper-functions",
+              "absolute_paths": [
+                "httpx.request",
+                "httpx.get",
+                "httpx.options",
+                "httpx.head",
+                "httpx.post",
+                "httpx.put",
+                "httpx.patch",
+                "httpx.delete",
+                "httpx.stream"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Top-level request calls require exact HTTPX import or module provenance, including aliases."
+            },
+            "client_request": {
+              "description": "Send or stream an outbound request through an HTTPX Client or AsyncClient receiver.",
+              "docs_url": "https://www.python-httpx.org/api/#asyncclient",
+              "absolute_paths": [
+                "httpx.Client",
+                "httpx.AsyncClient"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "match_policy": "import_guarded_regex",
+                "callee_regex": "^(?:(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:Client|AsyncClient)|(?:[A-Za-z_][A-Za-z0-9_]*\\.)+(?:request|get|options|head|post|put|patch|delete|send|stream))$"
+              },
+              "base_confidence": 0.49,
+              "notes": "Treat httpx.Client and httpx.AsyncClient constructor calls as low-confidence discovery seeds for client requests, not as request operations themselves. Trace the created receiver, including attributes such as self.client, through exports, imports, parameter annotations, or assignments. Reject the constructor seed after discovery and reject unrelated objects exposing generic request, get, post, send, or stream methods."
+            }
+          }
+        }
+      }
+    }
+  }
+}

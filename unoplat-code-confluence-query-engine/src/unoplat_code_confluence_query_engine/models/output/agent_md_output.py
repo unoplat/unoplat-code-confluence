@@ -82,6 +82,12 @@ class OutboundKind(str, Enum):
     Other = "other"
 
 
+class BidirectionalKind(str, Enum):
+    """Kind of interface whose architecture includes two-way communication."""
+
+    REALTIME_SYNC = "realtime_sync"
+
+
 class ArtifactType(str, Enum):
     """Type of codebase."""
 
@@ -235,6 +241,27 @@ class OutboundConstruct(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class BidirectionalConstruct(BaseModel):
+    """A two-way interface boundary represented once with detected source evidence."""
+
+    kind: BidirectionalKind = Field(
+        ..., description="Kind of bidirectional interface construct"
+    )
+    library: Optional[str] = Field(
+        ...,
+        description="Library/Framework used for the bidirectional construct if applicable.",
+    )
+    match_pattern: Dict[str, List[str]] = Field(
+        ...,
+        description=(
+            "relative w.r.t codebase path - File path as key with corresponding list of "
+            "match patterns where the bidirectional construct is used"
+        ),
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class InternalConstruct(BaseModel):
     """Internal framework feature construct (non-inbound/outbound)."""
 
@@ -273,9 +300,20 @@ class Interfaces(BaseModel):
         ),
     )
 
+    bidirectional_constructs: List[BidirectionalConstruct] = Field(
+        default_factory=list,
+        description=(
+            "Two-way technical boundaries represented once with detected source "
+            "evidence (for example, realtime synchronization)."
+        ),
+    )
+
     internal_constructs: List[InternalConstruct] = Field(
         default_factory=list,
-        description="Internal framework features that are neither inbound nor outbound constructs",
+        description=(
+            "Internal framework features that are neither inbound, outbound, nor "
+            "bidirectional constructs"
+        ),
     )
 
 
@@ -355,6 +393,10 @@ class RepositoryAgentMdOutputSnapshot(BaseModel):
     codebases: Dict[str, CodebaseAgentMdOutputSnapshot] = Field(
         default_factory=dict,
         description="Per-codebase agent output snapshots keyed by codebase name",
+    )
+    repository_activity_progress: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Named repository-level activity completion percentages",
     )
 
     model_config = ConfigDict(extra="allow")

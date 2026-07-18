@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Dict, List, Literal, Optional
 
 from loguru import logger
@@ -10,6 +11,7 @@ import tree_sitter
 from unoplat_code_confluence_commons.base_models import (
     AnnotationLikeInfo,
     CallExpressionInfo,
+    CallExpressionMatchPolicy,
     Concept,
     Detection,
     FeatureSpec,
@@ -65,6 +67,7 @@ CallMatchKind = Literal[
     "import_alias_exact",
     "module_member_exact",
     "root_module_member_exact",
+    "import_guarded_regex",
 ]
 
 
@@ -94,6 +97,7 @@ NO_CALL_MATCH_EVIDENCE = CallMatchEvidence(
 )
 
 CALL_EXPRESSION_MATCH_POLICY_VERSION = "v1_import_bound"
+IMPORT_GUARDED_REGEX_POLICY_VERSION = "v2_import_guarded_regex"
 
 
 def _resolve_call_expression_confidence(spec: FeatureSpec) -> float:
@@ -105,6 +109,7 @@ def _build_call_expression_metadata(
     *,
     spec: FeatureSpec,
     call_match_evidence: CallMatchEvidence,
+    policy_version: str = CALL_EXPRESSION_MATCH_POLICY_VERSION,
 ) -> dict[str, object]:
     """Build the metadata dict attached to every CallExpressionInfo detection.
 
@@ -122,7 +127,7 @@ def _build_call_expression_metadata(
         "match_confidence": _resolve_call_expression_confidence(spec),
         "call_match_kind": call_match_evidence.match_kind,
         "matched_absolute_path": call_match_evidence.matched_absolute_path,
-        "call_match_policy_version": CALL_EXPRESSION_MATCH_POLICY_VERSION,
+        "call_match_policy_version": policy_version,
     }
     if call_match_evidence.matched_alias is not None:
         metadata["matched_alias"] = call_match_evidence.matched_alias
@@ -140,8 +145,9 @@ def _matches_callee(
        imported directly (e.g. ``from flask import Flask`` → callee ``Flask``).
     2. **module_member_exact** – the parent module was imported and the callee
        uses attribute access (e.g. ``import flask.app`` → ``flask.app.Flask``).
-    3. **root_module_member_exact** – only the root package was imported
-       (e.g. ``import flask`` → ``flask.Flask``).
+    3. **root_module_member_exact** – only the root package was imported and
+       the callee spells out the full remaining path suffix
+       (e.g. ``import gql`` → ``gql.client.Client``).
 
     Args:
         callee_text: The raw text of the callee node extracted from the AST.
@@ -182,11 +188,12 @@ def _matches_callee(
                     matched_alias=module_alias,
                 )
 
-        # Strategy 3: root package import (e.g. `import flask` → `flask.Flask`)
+        # Strategy 3: root package import with full path suffix (e.g. `import gql` → `gql.client.Client`)
         root_module = path_parts[0]
         if root_module in import_aliases:
             root_module_alias = import_aliases[root_module]
-            if callee_text == f"{root_module_alias}.{short_name}":
+            expected_callee = ".".join([root_module_alias, *path_parts[1:]])
+            if callee_text == expected_callee:
                 return CallMatchEvidence(
                     matched=True,
                     match_kind="root_module_member_exact",
@@ -195,6 +202,16 @@ def _matches_callee(
                 )
 
     return NO_CALL_MATCH_EVIDENCE
+
+
+def _has_import_bound_callee_prefix(
+    callee_text: str, import_aliases: Dict[str, str]
+) -> bool:
+    """Return whether a dotted callee starts with an imported local binding."""
+    return any(
+        callee_text.startswith(f"{local_binding}.")
+        for local_binding in import_aliases.values()
+    )
 
 
 def _matches_superclass(
@@ -385,11 +402,20 @@ class PythonTreeSitterFrameworkDetector:
     ) -> List[Detection]:
         """Process tree-sitter matches for function/constructor call expressions.
 
-        Each match is validated against the file's import aliases via
-        ``_matches_callee`` to confirm the callee actually refers to the
-        expected framework symbol (not just a name collision).
+        By default each match is validated against the file's import aliases via
+        ``_matches_callee``. Features that explicitly opt into
+        ``import_guarded_regex`` accept regex-selected calls after the feature
+        import guard. They also accept exact imported aliases when the resolved
+        absolute path satisfies the regex, allowing bare direct-import aliases
+        without weakening receiver-call matching.
         """
         detections: List[Detection] = []
+        construct_query = spec.construct_query_typed
+        match_policy = (
+            construct_query.match_policy
+            if construct_query is not None
+            else CallExpressionMatchPolicy.MATCH_CALLEE
+        )
 
         for _pattern_index, captures in matches:
             call_expression = self._first_capture(captures, "call_expression")
@@ -400,11 +426,52 @@ class PythonTreeSitterFrameworkDetector:
                 continue
 
             callee_text = _extract_node_text(context.source_bytes, callee)
-            call_match_evidence = _matches_callee(
-                callee_text, spec.absolute_paths, context.import_aliases
-            )
-            if not call_match_evidence.matched:
-                continue
+            if match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX:
+                callee_regex = (
+                    construct_query.callee_regex
+                    if construct_query is not None
+                    else None
+                )
+                if callee_regex is None:
+                    continue
+                if re.search(callee_regex, callee_text) is not None:
+                    exact_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not exact_evidence.matched
+                        and _has_import_bound_callee_prefix(
+                            callee_text, context.import_aliases
+                        )
+                    ):
+                        continue
+                    call_match_evidence = CallMatchEvidence(
+                        matched=True,
+                        match_kind="import_guarded_regex",
+                        matched_absolute_path="",
+                        matched_alias=None,
+                    )
+                    policy_version = IMPORT_GUARDED_REGEX_POLICY_VERSION
+                else:
+                    call_match_evidence = _matches_callee(
+                        callee_text, spec.absolute_paths, context.import_aliases
+                    )
+                    if (
+                        not call_match_evidence.matched
+                        or re.search(
+                            callee_regex, call_match_evidence.matched_absolute_path
+                        )
+                        is None
+                    ):
+                        continue
+                    policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
+            else:
+                call_match_evidence = _matches_callee(
+                    callee_text, spec.absolute_paths, context.import_aliases
+                )
+                if not call_match_evidence.matched:
+                    continue
+                policy_version = CALL_EXPRESSION_MATCH_POLICY_VERSION
 
             match_text = _extract_node_text(context.source_bytes, call_expression)
             args_text = (
@@ -426,6 +493,7 @@ class PythonTreeSitterFrameworkDetector:
                     metadata=_build_call_expression_metadata(
                         spec=spec,
                         call_match_evidence=call_match_evidence,
+                        policy_version=policy_version,
                     ),
                 )
             )

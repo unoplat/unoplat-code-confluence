@@ -2,6 +2,7 @@
 
 from pydantic import ValidationError
 from unoplat_code_confluence_commons.base_models import (
+    CallExpressionMatchPolicy,
     Concept,
     ConstructQueryConfig,
     Detection,
@@ -29,6 +30,69 @@ def test_construct_query_config_accepts_function_export_regex_keys() -> None:
     assert config.export_name_regex == "^(GET|POST)$"
 
 
+def test_construct_query_config_defaults_to_match_callee_policy() -> None:
+    config = ConstructQueryConfig.model_validate({})
+
+    assert config.match_policy == CallExpressionMatchPolicy.MATCH_CALLEE
+
+
+def test_construct_query_config_accepts_import_guarded_regex_policy() -> None:
+    config = ConstructQueryConfig.model_validate(
+        {"match_policy": "import_guarded_regex", "callee_regex": r"\\.execute$"}
+    )
+
+    assert config.match_policy == CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX
+
+
+def test_construct_query_config_rejects_invalid_match_policy() -> None:
+    try:
+        ConstructQueryConfig.model_validate({"match_policy": "receiver_inference"})
+    except ValidationError as exc:
+        assert "match_policy" in str(exc)
+    else:
+        raise AssertionError("Expected invalid match_policy to fail")
+
+
+def test_import_guarded_regex_policy_requires_callee_regex() -> None:
+    try:
+        ConstructQueryConfig.model_validate(
+            {"match_policy": "import_guarded_regex"}
+        )
+    except ValidationError as exc:
+        assert "requires a non-empty callee_regex" in str(exc)
+    else:
+        raise AssertionError("Expected missing callee_regex to fail")
+
+
+def test_import_guarded_regex_policy_rejects_blank_callee_regex() -> None:
+    try:
+        ConstructQueryConfig.model_validate(
+            {"match_policy": "import_guarded_regex", "callee_regex": "   "}
+        )
+    except ValidationError as exc:
+        assert "requires a non-empty callee_regex" in str(exc)
+    else:
+        raise AssertionError("Expected blank callee_regex to fail")
+
+
+def test_feature_spec_rejects_match_policy_for_non_call_expression() -> None:
+    try:
+        FeatureSpec(
+            capability_key="rest_api",
+            operation_key="route_handler_export",
+            library="nextjs",
+            absolute_paths=["next/server.NextResponse"],
+            target_level=TargetLevel.FUNCTION,
+            concept=Concept.FUNCTION_DEFINITION,
+            locator_strategy=LocatorStrategy.DIRECT,
+            construct_query={"match_policy": "match_callee"},
+        )
+    except ValidationError as exc:
+        assert "supported only for CallExpression" in str(exc)
+    else:
+        raise AssertionError("Expected non-CallExpression match_policy to fail")
+
+
 def test_feature_spec_construct_query_typed_supports_new_regexes() -> None:
     spec = FeatureSpec(
         capability_key="rest_api",
@@ -50,6 +114,78 @@ def test_feature_spec_construct_query_typed_supports_new_regexes() -> None:
     assert typed.function_name_regex == "^(GET|POST)$"
     assert typed.export_name_regex == "^(GET|POST)$"
     assert spec.feature_key == "rest_api.route_handler_export"
+
+
+def test_construct_query_typed_setter_serializes_policy_as_json_string() -> None:
+    spec = FeatureSpec(
+        capability_key="relational_database",
+        operation_key="db_sql",
+        library="sqlalchemy",
+        absolute_paths=["sqlalchemy.orm.Session"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.CALL_EXPRESSION,
+        locator_strategy=LocatorStrategy.DIRECT,
+        base_confidence=0.49,
+    )
+
+    spec.construct_query_typed = ConstructQueryConfig(
+        match_policy=CallExpressionMatchPolicy.IMPORT_GUARDED_REGEX,
+        callee_regex=r"(?:^|\.)execute$",
+    )
+
+    assert spec.construct_query == {
+        "match_policy": "import_guarded_regex",
+        "callee_regex": r"(?:^|\.)execute$",
+    }
+    assert isinstance(spec.construct_query["match_policy"], str)
+
+
+def test_construct_query_typed_round_trip_does_not_inject_default_policy() -> None:
+    spec = FeatureSpec(
+        capability_key="rest_api",
+        operation_key="http_endpoint",
+        library="fastapi",
+        absolute_paths=["fastapi.FastAPI"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.ANNOTATION_LIKE,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+        construct_query={"annotation_name_regex": r"^(get|post)$"},
+    )
+
+    typed = spec.construct_query_typed
+    assert typed is not None
+    spec.construct_query_typed = typed
+
+    assert spec.construct_query == {"annotation_name_regex": r"^(get|post)$"}
+    assert "match_policy" not in spec.construct_query
+    revalidated = FeatureSpec.model_validate(spec.model_dump())
+    assert revalidated.construct_query == spec.construct_query
+
+
+def test_construct_query_typed_setter_omits_explicit_default_policy() -> None:
+    spec = FeatureSpec(
+        capability_key="relational_database",
+        operation_key="relationship",
+        library="sqlalchemy",
+        absolute_paths=["sqlalchemy.orm.relationship"],
+        target_level=TargetLevel.FUNCTION,
+        concept=Concept.CALL_EXPRESSION,
+        locator_strategy=LocatorStrategy.VARIABLE_BOUND,
+        base_confidence=0.61,
+    )
+
+    spec.construct_query_typed = ConstructQueryConfig(
+        match_policy=CallExpressionMatchPolicy.MATCH_CALLEE,
+        callee_regex=r"^relationship$",
+    )
+
+    assert spec.construct_query == {"callee_regex": r"^relationship$"}
+    revalidated = FeatureSpec.model_validate(spec.model_dump())
+    assert revalidated.construct_query_typed is not None
+    assert (
+        revalidated.construct_query_typed.match_policy
+        == CallExpressionMatchPolicy.MATCH_CALLEE
+    )
 
 
 def test_feature_spec_requires_base_confidence_for_call_expression() -> None:

@@ -20,10 +20,13 @@ from unoplat_code_confluence_query_engine.models.output.engineering_workflow_out
     EngineeringWorkflowAgentOutput,
 )
 from unoplat_code_confluence_query_engine.models.repository.framework_feature_validation_models import (
-    CallExpressionValidationAgentOutput,
+    DiscoveredFrameworkFeatureUsagesUpsertResult,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
     AgentDependencies,
+)
+from unoplat_code_confluence_query_engine.models.runtime.architecture_agent_dependencies import (
+    ArchitectureAgentDependencies,
 )
 from unoplat_code_confluence_query_engine.services.temporal.activity_retry_config import (
     TemporalAgentRetryConfig,
@@ -44,6 +47,7 @@ class TemporalAgentRegistry(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    architecture: TemporalAgent[ArchitectureAgentDependencies, str] | None = None
     development_workflow_guide: (
         TemporalAgent[AgentDependencies, EngineeringWorkflowAgentOutput] | None
     ) = None
@@ -51,11 +55,15 @@ class TemporalAgentRegistry(BaseModel):
         None
     )
     business_domain_guide: TemporalAgent[AgentDependencies, str] | None = None
-    call_expression_validator: (
-        TemporalAgent[AgentDependencies, CallExpressionValidationAgentOutput] | None
+    call_expression_discoverer: (
+        TemporalAgent[
+            AgentDependencies,
+            DiscoveredFrameworkFeatureUsagesUpsertResult,
+        ]
+        | None
     ) = None
 
-    def iter_agents(self) -> Iterator[TemporalAgent[AgentDependencies, Any]]:
+    def iter_agents(self) -> Iterator[TemporalAgent[Any, Any]]:
         """Yield all enabled temporal agents."""
         for field_name in type(self).model_fields:
             agent = getattr(self, field_name)
@@ -123,7 +131,9 @@ def create_temporal_agents(
         True,
         True,
     )
-    effective_agents = enabled_agents if enabled_agents is not None else DEFAULT_ENABLED_AGENT_TYPES
+    effective_agents = (
+        enabled_agents if enabled_agents is not None else DEFAULT_ENABLED_AGENT_TYPES
+    )
     assembled_agents = assemble_enabled_temporal_agents(
         agent_builders=build_enabled_agent_builders(effective_agents),
         context=assembly_context,
@@ -182,7 +192,9 @@ def initialize_temporal_agents(
     _cached_usage_limits = UsageLimits(request_limit=effective_limit)
 
     resolved_agents = _resolve_enabled_agents(settings.enabled_agents)
-    logger.info("Resolved enabled agents from settings: {}", [a.value for a in resolved_agents])
+    logger.info(
+        "Resolved enabled agents from settings: {}", [a.value for a in resolved_agents]
+    )
 
     _temporal_agents = create_temporal_agents(
         model,

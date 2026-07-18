@@ -56,6 +56,16 @@ def resolve_repository_root(metadata: CodebaseMetadata) -> str:
     return str(repository_root)
 
 
+def resolve_common_repository_root(metadata_list: list[CodebaseMetadata]) -> str:
+    """Resolve the one repository root shared by a non-empty metadata list."""
+    if not metadata_list:
+        raise ValueError("Cannot resolve repository root without codebase metadata")
+    roots = {resolve_repository_root(metadata) for metadata in metadata_list}
+    if len(roots) != 1:
+        raise ValueError(f"Codebases do not share one repository root: {sorted(roots)!r}")
+    return roots.pop()
+
+
 def _normalize_codebase_name_parts(codebase_name: str) -> tuple[str, ...]:
     raw = codebase_name.strip()
     if raw in {"", "."}:

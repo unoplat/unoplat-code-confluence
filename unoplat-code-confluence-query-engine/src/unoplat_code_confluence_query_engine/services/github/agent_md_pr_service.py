@@ -1,4 +1,4 @@
-"""Reusable service for publishing AGENTS.md artifacts as a pull request.
+"""Reusable service for publishing managed markdown artifacts as a pull request.
 
 Shared by the manual API endpoint (``POST /v1/repository-agent-md-pr``) and the
 automatic publish activity at the end of ``RepositoryAgentWorkflow``. Raises
@@ -41,8 +41,12 @@ from unoplat_code_confluence_query_engine.services.repository.repository_metadat
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     APP_INTERFACES_ARTIFACT,
+    ARCHITECTURE_ARTIFACT,
     BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
     DEPENDENCY_OVERVIEW_ARTIFACT,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_backend_paths import (
+    resolve_common_repository_root,
 )
 
 
@@ -74,12 +78,14 @@ class AgentMdPrGithubError(AgentMdPrError):
     """GitHub API failed with a non-auth error (network, 5xx, bad response)."""
 
 
-MANAGED_MARKDOWN_ARTIFACTS: tuple[str, ...] = (
+CODEBASE_MANAGED_MARKDOWN_ARTIFACTS: tuple[str, ...] = (
     "AGENTS.md",
     DEPENDENCY_OVERVIEW_ARTIFACT,
     BUSINESS_DOMAIN_REFERENCES_ARTIFACT,
     APP_INTERFACES_ARTIFACT,
 )
+
+REPOSITORY_MANAGED_MARKDOWN_ARTIFACTS: tuple[str, ...] = (ARCHITECTURE_ARTIFACT,)
 
 
 def _get_mapping_field(
@@ -100,17 +106,18 @@ def _get_codebase_file_rel_path(codebase_name: str, file_relative: str) -> str:
     return f"{clean}/{file_relative}"
 
 
-def _collect_changed_managed_markdown_files(codebase_root: Path) -> list[Path]:
-    """Return existing managed markdown artifacts changed in the git working tree.
+def _collect_changed_managed_markdown_files(
+    root: Path,
+    managed_artifacts: tuple[str, ...],
+) -> list[Path]:
+    """Return existing managed artifacts changed under ``root`` in the git tree.
 
     The workflow now has direct artifact owners instead of section-updater run
-    records. Publishing therefore discovers files from the fixed managed target
+    records. Publishing therefore discovers files from the supplied scoped target
     set and lets git working-tree status decide which ones are candidates.
     """
     existing_targets = [
-        artifact
-        for artifact in MANAGED_MARKDOWN_ARTIFACTS
-        if (codebase_root / artifact).is_file()
+        artifact for artifact in managed_artifacts if (root / artifact).is_file()
     ]
     if not existing_targets:
         return []
@@ -120,7 +127,7 @@ def _collect_changed_managed_markdown_files(codebase_root: Path) -> list[Path]:
             [
                 "git",
                 "-C",
-                str(codebase_root),
+                str(root),
                 "status",
                 "--porcelain",
                 "--",
@@ -135,26 +142,26 @@ def _collect_changed_managed_markdown_files(codebase_root: Path) -> list[Path]:
         logger.warning(
             "Unable to inspect git status for managed markdown in '{}': {}. "
             "Falling back to existing managed artifacts.",
-            codebase_root,
+            root,
             status_error,
         )
-        return [codebase_root / artifact for artifact in existing_targets]
+        return [root / artifact for artifact in existing_targets]
 
     if status_result.returncode != 0:
         logger.warning(
             "git status failed for managed markdown in '{}': {}. "
             "Falling back to existing managed artifacts.",
-            codebase_root,
+            root,
             status_result.stderr.strip(),
         )
-        return [codebase_root / artifact for artifact in existing_targets]
+        return [root / artifact for artifact in existing_targets]
 
     changed_artifacts = _parse_changed_artifacts_from_porcelain(
         status_result.stdout,
         set(existing_targets),
     )
     return [
-        codebase_root / artifact
+        root / artifact
         for artifact in existing_targets
         if artifact in changed_artifacts
     ]
@@ -167,10 +174,10 @@ def _parse_changed_artifacts_from_porcelain(
     """Parse `git status --porcelain` output for known managed artifacts.
 
     Git porcelain output reports paths relative to the repository root, even when
-    the status command is executed with ``git -C`` from a codebase subdirectory.
-    Managed artifacts are direct children of the codebase root, so normalize each
-    porcelain path to its filename before comparing against the expected artifact
-    names and return those bare artifact names.
+    the status command is executed with ``git -C`` from a nested discovery root.
+    Managed artifacts are direct children of that root, so normalize each porcelain
+    path to its filename before comparing against the expected artifact names and
+    return those bare artifact names.
     """
     changed: set[str] = set()
     for raw_line in porcelain_output.splitlines():
@@ -236,7 +243,7 @@ async def publish_agent_md_pr(
     repo_name: str,
     repository_workflow_run_id: str,
 ) -> tuple[PrMetadata, bool]:
-    """Publish AGENTS.md artifacts as a PR for a workflow run (one-shot per run).
+    """Publish managed markdown artifacts as a PR for a workflow run (one-shot per run).
 
     One-shot semantics: the first successful publish for a run persists
     ``pr_metadata``; subsequent calls return the existing metadata with
@@ -325,10 +332,16 @@ async def publish_agent_md_pr(
             raise AgentMdPrNotFoundError(detail) from metadata_error
         raise AgentMdPrInternalError(detail) from metadata_error
 
+    codebase_metadata = ruleset_metadata.codebase_metadata
     codebase_path_map = {
-        metadata.codebase_name: metadata.codebase_path
-        for metadata in ruleset_metadata.codebase_metadata
+        metadata.codebase_name: metadata.codebase_path for metadata in codebase_metadata
     }
+    try:
+        repository_root_path = Path(resolve_common_repository_root(codebase_metadata))
+    except ValueError as path_error:
+        raise AgentMdPrInternalError(
+            f"Failed to resolve common repository root: {path_error}"
+        ) from path_error
 
     files_to_publish: list[tuple[str, str]] = []
     seen_rel_paths: set[str] = set()
@@ -343,7 +356,8 @@ async def publish_agent_md_pr(
 
         codebase_root_path = Path(codebase_root)
         changed_managed_files = _collect_changed_managed_markdown_files(
-            codebase_root_path
+            codebase_root_path,
+            CODEBASE_MANAGED_MARKDOWN_ARTIFACTS,
         )
         if not changed_managed_files:
             logger.info(
@@ -370,6 +384,24 @@ async def publish_agent_md_pr(
             seen_rel_paths.add(rel_path)
 
             files_to_publish.append((rel_path, local_content))
+
+    changed_repository_files = _collect_changed_managed_markdown_files(
+        repository_root_path,
+        REPOSITORY_MANAGED_MARKDOWN_ARTIFACTS,
+    )
+    for local_path in changed_repository_files:
+        try:
+            local_content = local_path.read_text(encoding="utf-8")
+        except OSError as read_error:
+            raise AgentMdPrInternalError(
+                f"Failed to read managed artifact at {local_path}: {read_error}"
+            ) from read_error
+
+        rel_path = ARCHITECTURE_ARTIFACT
+        if rel_path in seen_rel_paths:
+            continue
+        seen_rel_paths.add(rel_path)
+        files_to_publish.append((rel_path, local_content))
 
     if not files_to_publish:
         no_files_meta = PrMetadata(

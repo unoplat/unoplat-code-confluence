@@ -8,6 +8,9 @@ from temporalio import workflow
 with workflow.unsafe.imports_passed_through():
     from loguru import logger
 
+    from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
+        Interfaces,
+    )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
     )
@@ -30,8 +33,8 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
         persist_codebase_snapshot_patch,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.call_expression_validation_runner import (
-        run_call_expression_validation,
+    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.call_expression_discovery_runner import (
+        run_call_expression_discovery,
     )
     from unoplat_code_confluence_query_engine.utils.framework_feature_language_support import (
         is_app_interfaces_supported,
@@ -47,8 +50,8 @@ async def run_app_interfaces_agent(
     programming_language_metadata: dict[str, object],
     agent_stats: list[UsageStatistics],
     agent_errors: list[dict[str, object]],
-) -> None:
-    """Build app interfaces and render the canonical reference file when supported."""
+) -> Interfaces | None:
+    """Build, render, and return app interfaces when the language is supported."""
     _ = programming_language_metadata
 
     if not is_app_interfaces_supported(codebase_metadata.codebase_programming_language):
@@ -59,8 +62,8 @@ async def run_app_interfaces_agent(
         return
 
     try:
-        candidate_payloads = await workflow.execute_activity(
-            AppInterfacesActivity.fetch_low_confidence_call_expression_candidates,
+        discovery_targets = await workflow.execute_activity(
+            AppInterfacesActivity.fetch_call_expression_discovery_targets,
             args=[
                 codebase_metadata.codebase_path,
                 codebase_metadata.codebase_programming_language,
@@ -69,13 +72,13 @@ async def run_app_interfaces_agent(
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
 
-        await run_call_expression_validation(
+        await run_call_expression_discovery(
             temporal_agents=temporal_agents,
             codebase_metadata=codebase_metadata,
             repository_qualified_name=repository_qualified_name,
             repository_workflow_run_id=repository_workflow_run_id,
             codebase_workflow_run_id=codebase_workflow_run_id,
-            candidate_payloads=candidate_payloads,
+            targets=discovery_targets,
             agent_stats=agent_stats,
             agent_errors=agent_errors,
         )
@@ -130,6 +133,7 @@ async def run_app_interfaces_agent(
             "[workflow] app_interfaces_agent completed for {}",
             codebase_metadata.codebase_name,
         )
+        return app_interfaces_result
     except Exception as e:
         raise_if_temporal_cancellation(e)
         logger.error(
@@ -151,3 +155,4 @@ async def run_app_interfaces_agent(
             codebase_metadata.codebase_name,
         )
         agent_errors.append(app_interfaces_error)
+        return None

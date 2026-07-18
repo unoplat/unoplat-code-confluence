@@ -66,6 +66,7 @@ RUN useradd --uid ${APP_UID} --create-home --shell /usr/sbin/nologin ${APP_USER}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PUPPETEER_SKIP_DOWNLOAD=true \
     PATH="/opt/poetry/bin:/app/.venv/bin:$PATH"
 
 # Install runtime dependencies needed for local execute workflows
@@ -75,7 +76,10 @@ RUN apt-get update && \
         build-essential \
         ca-certificates \
         curl \
+        chromium \
         eza \
+        fonts-liberation \
+        fonts-noto-color-emoji \
         git \
         ripgrep \
         unzip \
@@ -93,7 +97,9 @@ COPY --from=node-stage /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     ln -sf ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack && \
-    corepack enable
+    corepack enable && \
+    npm install --global @mermaid-js/mermaid-cli@11.16.0 && \
+    mmdc --version
 
 WORKDIR /app
 

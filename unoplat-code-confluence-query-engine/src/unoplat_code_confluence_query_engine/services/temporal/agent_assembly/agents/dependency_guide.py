@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic_ai import Agent, Tool
-from pydantic_ai.capabilities import AbstractCapability, HistoryProcessor
+from pydantic_ai.capabilities import AbstractCapability, ProcessHistory
 from pydantic_ai.toolsets.abstract import AbstractToolset
 
 from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
@@ -43,7 +43,7 @@ from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler
 
 def build_dependency_guide_agent(
     context: AgentAssemblyContext,
-) -> AgentBuildResult[DependencyGuideEntry]:
+) -> AgentBuildResult[AgentDependencies, DependencyGuideEntry]:
     function_tools: list[Tool[AgentDependencies]] = []
     search_capability = resolve_search_capability(
         allow_builtin_web_search=True,
@@ -75,7 +75,7 @@ def build_dependency_guide_agent(
 
     capabilities: list[AbstractCapability[AgentDependencies]] = [
         console_capability,
-        HistoryProcessor(compact_temporal_agent_history),
+        ProcessHistory(compact_temporal_agent_history),
     ]
     if search_capability is not None:
         capabilities.append(search_capability)
@@ -89,14 +89,15 @@ def build_dependency_guide_agent(
         toolsets=tuple(toolsets),
         capabilities=capabilities,
         output_type=DependencyGuideEntry,
-        output_retries=2,
+        retries={"output": 2},
+        end_strategy="early",
         model_settings=context.model_settings,
-        event_stream_handler=event_stream_handler,
     )
 
     return AgentBuildResult(
         agent=agent,
         function_tool_names=tuple(tool.name for tool in function_tools),
+        event_stream_handler=event_stream_handler,
         toolset_ids=(
             DEPENDENCY_GUIDE_CONSOLE_TOOLSET_ID,
             DEPENDENCY_GUIDE_LOCAL_WEB_SEARCH_TOOLSET_ID,
