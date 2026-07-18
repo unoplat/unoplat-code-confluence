@@ -8,7 +8,14 @@ No inbound constructs detected.
 
 ## Outbound Constructs
 
-No outbound constructs detected.
+### http_client (httpx)
+
+- `src/unoplat_code_confluence_openmetadata/client.py`: L33: httpx.Client( base_url=config.normalized_query_engine_base_url, timeout=httpx.Timeout(config.timeout_seconds), )
+- `src/unoplat_code_confluence_openmetadata/client.py`: L47: self._client.get( SNAPSHOT_ENDPOINT_PATH, params=params, )
+
+## Bidirectional Constructs
+
+No bidirectional constructs detected.
 
 ## Internal Constructs
 

@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-Unoplat Code Confluence CLI manages a local Docker Compose deployment for repository-aware AI code assistance, including Flow Bridge, a query engine, and a frontend. It registers and refreshes Git repositories, verifies repository and model-provider credentials, tracks GitHub release manifests and installed state, and initiates AGENTS.md-generation workflows that raise pull requests.
+Unoplat Code Confluence CLI manages a local Docker Compose deployment for repository-aware AI code assistance, coordinating Flow Bridge, a query engine, and a frontend. It registers and refreshes Git repositories, verifies repository and model-provider credentials, tracks GitHub release manifests and installed state, and starts AGENTS.md generation workflows that raise pull requests.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-cli/src/unoplat_code_confluence_cli/backend/flow_bridge_client.py`

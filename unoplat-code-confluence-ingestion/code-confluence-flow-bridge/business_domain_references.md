@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This service is a GitHub repository-ingestion and code-intelligence platform. It inventories repositories and codebases, parses Python and TypeScript source structure and imports, detects package managers and workspace layouts, and collects project metadata for downstream processing. It also manages GitHub App onboarding plus Temporal workflow status, error issues, and user feedback for the ingestion lifecycle.
+This service provides GitHub repository ingestion and code intelligence for software projects. It inventories repositories, codebases, packages, files, imports, dependencies, package-manager/workspace metadata, and Python/TypeScript source structure for downstream processing. It also manages GitHub App onboarding and tracks repository and codebase workflows, failures, issues, and agent feedback.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src/code_confluence_flow_bridge/engine/programming_language/common/language_service.py`
