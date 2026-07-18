@@ -91,7 +91,7 @@ async def run_call_expression_discovery(
                     usage_limits=get_cached_usage_limits(),
                     metadata=build_agent_run_metadata(deps),
                 )
-                agent_stats.append(extract_usage_statistics(result.usage()))
+                agent_stats.append(extract_usage_statistics(result.usage))
             except Exception as error:
                 raise_if_temporal_cancellation(error)
                 logger.error(
