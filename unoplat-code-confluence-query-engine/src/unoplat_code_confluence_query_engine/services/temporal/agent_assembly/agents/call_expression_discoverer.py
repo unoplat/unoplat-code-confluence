@@ -57,12 +57,13 @@ def build_call_expression_discoverer_agent(
         tools=tuple(function_tools),
         capabilities=[console_capability],
         output_type=DiscoveredFrameworkFeatureUsagesUpsertResult,
-        output_retries=2,
+        retries={"output": 2},
+        end_strategy="early",
         model_settings=context.model_settings,
-        event_stream_handler=event_stream_handler,
     )
     return AgentBuildResult(
         agent=agent,
         function_tool_names=tuple(tool.name for tool in function_tools),
+        event_stream_handler=event_stream_handler,
         toolset_ids=(CALL_EXPRESSION_DISCOVERER_CONSOLE_TOOLSET_ID,),
     )
