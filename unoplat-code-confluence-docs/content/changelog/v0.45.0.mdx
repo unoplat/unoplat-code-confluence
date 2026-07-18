@@ -1,0 +1,45 @@
+---
+title: "Release v0.45.0"
+description: "Evidence-grounded repository architecture diagrams, granular workflow progress, bidirectional interface detection, and expanded framework coverage"
+version: "0.45.0"
+releaseDate: "2026-07-18"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.45.0"
+---
+
+## Highlights
+
+This release adds evidence-grounded repository architecture diagrams, makes generation progress more transparent, improves app-interface analysis, and expands framework detection across Python and TypeScript projects.
+
+## What's New
+
+### Repository Architecture Diagrams
+
+- Generates or updates a repository-root `architecture.md` with one focused Mermaid architecture diagram
+- Starts from fresh `app_interfaces.md` evidence, including source anchors for detected application boundaries
+- Uses those anchors to focus additional reading on related source sections and relevant deployment evidence instead of beginning with a broad repository rescan
+- Runs when the current workflow detects an external boundary and validates the rendered diagram before completion
+
+### Granular Generation Progress
+
+- The app now shows overall repository progress alongside progress for individual repository activities
+- Makes long-running documentation generation easier to follow from the live progress view
+
+### Clearer Application Boundaries
+
+- Added bidirectional interface constructs for realtime-sync integrations
+- Generated `app_interfaces.md` artifacts now distinguish inbound, outbound, bidirectional, and internal constructs
+- Replaced call-expression validation with discovery and persisted usage evidence at the operation level for more accurate interface analysis
+
+### Expanded Framework Detection
+
+- Added Python coverage for Temporal, gql, HTTPX, HTTPX2, Click, ghapi, and Pydantic AI
+- Expanded SQLAlchemy database-operation detection
+- Added TypeScript coverage for Axios and TanStack React DB realtime sync
+- Promoted framework-definition schema v4.1, including call-expression match policies
+
+## Bug Fixes
+
+- Improved Python import alias and qualified-import resolution
+- Improved TypeScript import-guarded and descendant-import matching
+- Validated agent snapshot codebases before rendering them in the frontend
+- Fixed regressions introduced by dependency upgrades

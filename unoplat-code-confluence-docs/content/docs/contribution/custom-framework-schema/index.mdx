@@ -191,12 +191,19 @@ The following capability families are taken from [`custom-framework-lib-schema-v
   |----------|---------------|
   | **App interfaces / entrypoints** | `rest_api`, `graphql_api`, `rpc_server`, `websocket_server`, `sse_server`, `webhook_receiver`, `webhook_sender`, `cli_command`, `scheduler`, `background_worker`, `file_watcher`, `mqtt_server`, `tcp_server`, `udp_server` |
   | **Clients / integrations** | `http_client`, `graphql_client`, `rpc_client`, `websocket_client`, `email_service`, `message_broker`, `job_queue`, `change_data_capture` |
+  | **Bidirectional integrations** | `realtime_sync` |
   | **Data / storage** | `relational_database`, `document_database`, `key_value_store`, `wide_column_store`, `graph_database`, `multi_model_database`, `vector_store`, `file_storage`, `object_storage` |
   | **Security / config / ops** | `authentication`, `authorization`, `configuration`, `secret_management`, `observability`, `telemetry`, `logging` |
   | **AI / platform / modeling** | `llm_inference`, `mcp_server`, `mcp_client`, `data_model`, `web_component` |
 
   </Accordion>
 </Accordions>
+
+<Callout type="info" title="How capabilities feed architecture">
+  Framework operations classified by this enum are normalized into **inbound**, **outbound**, **bidirectional**, or **internal** interface constructs. `app_interfaces.md` preserves those constructs with source anchors, and repository architecture generation starts from the fresh interface artifacts produced by the current run.
+
+  Capability families and downstream interface kinds are related taxonomies, but they are intentionally not a one-to-one list: a capability or one of its operations can map to a normalized architectural role.
+</Callout>
 
 ### Operation Definition Structure
 

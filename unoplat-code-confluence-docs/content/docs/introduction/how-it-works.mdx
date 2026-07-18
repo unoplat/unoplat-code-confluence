@@ -1,8 +1,65 @@
 ---
 title: How it works
-description: "Technical overview of Unoplat Code Confluence architecture"
+description: "How repository evidence becomes engineering workflow, dependency, business-domain, and architecture context"
 ---
 
-# How it works
+import { Cards, Card } from 'fumadocs-ui/components/card';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Brain, GitBranch, Package, Settings } from 'lucide-react';
 
-**Coming Soon**
+Unoplat Code Confluence turns repository evidence into focused, reusable context for developers and coding agents. Framework-aware discovery identifies relevant files, constructs, and source spans first; generation then works from that evidence instead of beginning with an unrestricted repository-wide search.
+
+<Cards>
+  <Card icon={<Settings />} title="Engineering Workflow">
+    Verified repository commands and configuration for everyday development.
+  </Card>
+  <Card icon={<Package />} title="Dependency Guide">
+    A concise explanation of the packages the codebase depends on.
+  </Card>
+  <Card icon={<Brain />} title="Business Domain">
+    A source-backed summary of the domain represented by detected data models.
+  </Card>
+  <Card icon={<GitBranch />} title="Repository Architecture">
+    A validated, high-level diagram grounded in detected application boundaries.
+  </Card>
+</Cards>
+
+## Engineering Workflow
+
+The workflow guide inspects package-manager scripts and relevant configuration files to identify the canonical **install**, **build**, **development**, **test**, **lint**, and **type-check** commands. It records the working directory and configuration source when available and explicitly marks stages for which no command was detected.
+
+The result is written to the managed **Engineering Workflow** section of each codebase's `AGENTS.md`. If that section already agrees with current repository evidence, it is preserved rather than rewritten.
+
+## Dependency Guide
+
+Detected dependencies are normalized into a current codebase inventory. Existing entries are reused when a dependency has not changed; only new dependencies require additional research. Public packages are described from official or vendor-authored documentation, while dependencies that cannot be verified confidently are conservatively identified as internal.
+
+The validated result is written to `dependencies_overview.md`, with `AGENTS.md` linking to it as the detailed dependency reference.
+
+## Business Domain
+
+Business-domain generation starts from detected data-model identifiers and their exact source spans. It reads each identified span and nearby context, then synthesizes a concise description of the dominant domain and the main concepts represented by those models.
+
+The summary is written to the managed **Business Domain** section of `AGENTS.md`. A deterministic companion file, `business_domain_references.md`, preserves the supporting model identifiers and line-level source links so readers can trace the summary back to code.
+
+## Repository Architecture
+
+Architecture generation builds on fresh interface evidence produced for the current repository run. Framework and library operations are first classified by the [published DIDS capability enum](/docs/contribution/custom-framework-schema#published-capability-enum), then normalized into architectural roles. Each codebase's `app_interfaces.md` records the resulting **inbound**, **outbound**, **bidirectional**, and **internal** constructs as codebase-relative anchors in this form:
+
+```text
+path: L<line>: <match_text>
+```
+
+These anchors provide a focused starting point for modeling application boundaries. The architecture process reads only the listed fresh `app_interfaces.md` artifacts, then inspects related source sections and relevant deployment evidence when needed. It runs when fresh evidence includes an external boundary, avoiding an architecture claim when the required foundation is absent.
+
+The result is a repository-root `architecture.md` containing one focused Mermaid `architecture-beta` diagram. Before completion, the diagram is rendered and its SVG is inspected; the current artifact is accepted only after validation succeeds.
+
+<Callout type="info" title="Precision and token efficiency by design">
+  Source spans narrow business-domain reading to detected models. Fresh interface anchors narrow architecture analysis to relevant boundaries and code. Dependency deltas reuse unchanged entries, while no-change checks preserve accurate workflow content. Deterministic rendering and final validation keep the published artifacts stable and verifiable.
+
+  Together, these mechanisms reduce unnecessary model input and repeated repository exploration. Actual token usage varies with repository structure, detected evidence, and the configured model.
+</Callout>
+
+<Callout type="warn" title="Alpha">
+  Unoplat Code Confluence is in active development. Generated context should be reviewed alongside the linked source evidence, especially for frameworks or application patterns that are not yet covered.
+</Callout>
