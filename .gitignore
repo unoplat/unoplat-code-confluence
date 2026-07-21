@@ -8,7 +8,10 @@
 **/docs/
 **/product-features/
 **/backups/
-**/.zed/
+# Local Zed debug configs stay private; shared editor settings are committed
+**/.zed/**
+!**/.zed/
+!**/.zed/settings.json
 **/WARP.md
 **/*.dot
 **/*_report.json

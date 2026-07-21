@@ -1,0 +1,39 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": [
+        "pyrefly",
+        "ruff",
+        "!basedpyright",
+        "!pyright",
+        "!pylsp",
+        "!ty"
+      ],
+      "format_on_save": "on",
+      "formatter": {
+        "language_server": {
+          "name": "ruff"
+        }
+      },
+      "code_actions_on_format": {
+        "source.organizeImports.ruff": true,
+        "source.fixAll.ruff": true
+      }
+    }
+  },
+  "lsp": {
+    "pyrefly": {
+      "binary": {
+        "path": "unoplat-code-confluence-query-engine/.venv/bin/pyrefly",
+        "arguments": ["lsp"]
+      }
+    },
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "configurationPreference": "filesystemFirst"
+        }
+      }
+    }
+  }
+}
