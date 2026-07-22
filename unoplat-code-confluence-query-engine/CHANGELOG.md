@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.48.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.1...unoplat-code-confluence-query-engine-v0.48.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* **call-expression:** deny JS/TS test filenames from discovery ([fb26ca7](https://github.com/unoplat/unoplat-code-confluence/commit/fb26ca7d907120dfa6b2aa1268c9d5a87281ad70))
+* **call-expression:** hide test paths from discovery ([1938f64](https://github.com/unoplat/unoplat-code-confluence/commit/1938f6413f63126425b866c57e1b74cae17de945))
+* **call-expression:** require persistence retries for proven spans ([2c7e2bc](https://github.com/unoplat/unoplat-code-confluence/commit/2c7e2bc778d994bfd7970209fd334151838a6350))
+* **call-expression:** skip invalid usage spans ([a4126e8](https://github.com/unoplat/unoplat-code-confluence/commit/a4126e8a8b40fc8197a3f351dc15b1759d45d4ee))
+
 ## [0.48.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.0...unoplat-code-confluence-query-engine-v0.48.1) (2026-07-18)
 
 
