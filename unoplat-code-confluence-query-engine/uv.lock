@@ -3497,7 +3497,7 @@ dependencies = [
 
 [[package]]
 name = "unoplat-code-confluence-query-engine"
-version = "0.48.1"
+version = "0.48.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
