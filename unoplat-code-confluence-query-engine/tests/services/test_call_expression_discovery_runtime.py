@@ -29,7 +29,17 @@ _PRODUCTION_MAIN = Path("src/main.py")
 _TEST_MAIN = Path("tests/test_main.py")
 _TEST_DATA_COPY = Path("tests/test_data/copied.py")
 _SPEC_FILE = Path("src/example.spec.ts")
-_DENIED_RELATIVE_PATHS = (_TEST_MAIN, _TEST_DATA_COPY, _SPEC_FILE)
+_JS_EXACT_TEST = Path("test.ts")
+_JS_PREFIX_TEST = Path("src/test_foo.ts")
+_JS_SUFFIX_TEST = Path("src/foo_test.ts")
+_DENIED_RELATIVE_PATHS = (
+    _TEST_MAIN,
+    _TEST_DATA_COPY,
+    _SPEC_FILE,
+    _JS_EXACT_TEST,
+    _JS_PREFIX_TEST,
+    _JS_SUFFIX_TEST,
+)
 
 
 def _build_metadata(codebase_path: Path) -> CodebaseMetadata:
@@ -56,6 +66,9 @@ def discovery_repo(tmp_path: Path) -> Path:
     (codebase_root / _TEST_MAIN).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
     (codebase_root / _TEST_DATA_COPY).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
     (codebase_root / _SPEC_FILE).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
+    (codebase_root / _JS_EXACT_TEST).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
+    (codebase_root / _JS_PREFIX_TEST).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
+    (codebase_root / _JS_SUFFIX_TEST).write_text(f"{_MATCH_LINE}\n", encoding="utf-8")
     return codebase_root
 
 
@@ -197,6 +210,9 @@ def test_dependency_guide_backend_remains_unfiltered_readonly(
     assert any(_ends_with_relative(path, _TEST_MAIN) for path in match_paths)
     assert any(_ends_with_relative(path, _TEST_DATA_COPY) for path in match_paths)
     assert any(_ends_with_relative(path, _SPEC_FILE) for path in match_paths)
+    assert any(_ends_with_relative(path, _JS_EXACT_TEST) for path in match_paths)
+    assert any(_ends_with_relative(path, _JS_PREFIX_TEST) for path in match_paths)
+    assert any(_ends_with_relative(path, _JS_SUFFIX_TEST) for path in match_paths)
 
     test_contents = backend.read(_TEST_MAIN.as_posix())
     assert isinstance(test_contents, str)

@@ -169,6 +169,15 @@ _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS: tuple[str, ...] = (
     "ts",
     "tsx",
 )
+_CALL_EXPRESSION_JS_TS_TEST_FILENAMES: tuple[str, ...] = tuple(
+    name
+    for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
+    for name in (
+        f"test.{ext}",
+        f"test_*.{ext}",
+        f"*_test.{ext}",
+    )
+)
 CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = [
     pattern
     for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
@@ -176,6 +185,10 @@ CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = [
 ] + [
     pattern
     for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
+    for pattern in (filename, f"**/{filename}")
+] + [
+    pattern
+    for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
     for pattern in (filename, f"**/{filename}")
 ] + [
     pattern
