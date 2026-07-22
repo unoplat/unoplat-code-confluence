@@ -15,7 +15,7 @@ def build_upsert_discovered_framework_feature_usages_tool() -> Tool[AgentDepende
     return Tool(
         upsert_discovered_framework_feature_usages,
         takes_ctx=True,
-        max_retries=3,
+        max_retries=10,
         docstring_format="google",
         require_parameter_descriptions=True,
     )
