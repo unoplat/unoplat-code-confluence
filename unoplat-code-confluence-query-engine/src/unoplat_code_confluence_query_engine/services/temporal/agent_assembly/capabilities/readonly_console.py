@@ -151,6 +151,52 @@ SAFE_SOURCE_NAME_OVERRIDES: list[str] = [
     for ext in _SOURCE_CODE_EXTENSIONS
 ]
 
+_CALL_EXPRESSION_TEST_DIRECTORY_NAMES: tuple[str, ...] = (
+    "tests",
+    "test",
+    "__tests__",
+    "test_data",
+)
+_CALL_EXPRESSION_PYTHON_TEST_FILENAMES: tuple[str, ...] = (
+    "test_*.py",
+    "*_test.py",
+    "conftest.py",
+)
+_CALL_EXPRESSION_JS_TS_TEST_SUFFIXES: tuple[str, ...] = ("test", "spec")
+_CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS: tuple[str, ...] = (
+    "js",
+    "jsx",
+    "ts",
+    "tsx",
+)
+_CALL_EXPRESSION_JS_TS_TEST_FILENAMES: tuple[str, ...] = tuple(
+    name
+    for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
+    for name in (
+        f"test.{ext}",
+        f"test_*.{ext}",
+        f"*_test.{ext}",
+    )
+)
+CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = [
+    pattern
+    for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
+    for pattern in (name, f"{name}/**", f"**/{name}", f"**/{name}/**")
+] + [
+    pattern
+    for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
+    for pattern in (filename, f"**/{filename}")
+] + [
+    pattern
+    for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
+    for pattern in (filename, f"**/{filename}")
+] + [
+    pattern
+    for suffix in _CALL_EXPRESSION_JS_TS_TEST_SUFFIXES
+    for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
+    for pattern in (f"*.{suffix}.{ext}", f"**/*.{suffix}.{ext}")
+]
+
 
 COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
     "**--help",
@@ -188,6 +234,30 @@ def _read_permissions() -> OperationPermissions:
     return OperationPermissions(
         default="allow",
         rules=[
+            *_allow_rules(
+                SAFE_SOURCE_NAME_OVERRIDES,
+                "Allow source files whose names collide with secret tokens",
+            ),
+            *_deny_rules(SECRETS_PATTERNS, "Protect sensitive files"),
+        ],
+    )
+
+
+def _call_expression_discovery_path_permissions() -> OperationPermissions:
+    """Production-only path permissions for call-expression discovery.
+
+    First-match-wins order:
+    1. Deny test directories and test filenames.
+    2. Allow source files whose names collide with secret tokens.
+    3. Deny secret-bearing paths.
+    """
+    return OperationPermissions(
+        default="allow",
+        rules=[
+            *_deny_rules(
+                CALL_EXPRESSION_TEST_PATH_PATTERNS,
+                "Hide test paths from call-expression discovery",
+            ),
             *_allow_rules(
                 SAFE_SOURCE_NAME_OVERRIDES,
                 "Allow source files whose names collide with secret tokens",
@@ -245,6 +315,18 @@ READONLY_CONSOLE_RULESET = PermissionRuleset(
     glob=OperationPermissions(default="allow"),
     grep=OperationPermissions(default="allow"),
     ls=OperationPermissions(default="allow"),
+)
+
+
+CALL_EXPRESSION_DISCOVERY_RULESET = PermissionRuleset(
+    default="deny",
+    read=_call_expression_discovery_path_permissions(),
+    write=OperationPermissions(default="deny"),
+    edit=OperationPermissions(default="deny"),
+    execute=OperationPermissions(default="deny"),
+    glob=_call_expression_discovery_path_permissions(),
+    grep=_call_expression_discovery_path_permissions(),
+    ls=_call_expression_discovery_path_permissions(),
 )
 
 
@@ -519,6 +601,18 @@ def build_readonly_console_capability(toolset_id: str) -> LocalConsoleCapability
         toolset_id=toolset_id,
         include_execute=False,
         permissions=READONLY_CONSOLE_RULESET,
+        descriptions=COMMON_TOOL_DESCRIPTIONS,
+    )
+
+
+def build_call_expression_discovery_console_capability(
+    toolset_id: str,
+) -> LocalConsoleCapability:
+    """Create a production-only console for call-expression discovery."""
+    return build_local_console_capability(
+        toolset_id=toolset_id,
+        include_execute=False,
+        permissions=CALL_EXPRESSION_DISCOVERY_RULESET,
         descriptions=COMMON_TOOL_DESCRIPTIONS,
     )
 

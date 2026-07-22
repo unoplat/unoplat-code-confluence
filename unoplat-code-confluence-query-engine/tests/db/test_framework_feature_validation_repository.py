@@ -99,6 +99,9 @@ def test_call_expression_interface_inclusion_is_completed_only() -> None:
     )
 
 
-def test_validator_is_not_assembled() -> None:
-    assert "call_expression_validator" not in {agent.value for agent in AgentType}
+def test_call_expression_discoverer_is_assembled_without_validator() -> None:
+    agent_values = {agent.value for agent in AgentType}
+    assert "call_expression_discoverer" in agent_values
+    assert AgentType.CALL_EXPRESSION_DISCOVERER in AGENT_BUILDERS
+    assert "call_expression_validator" not in agent_values
     assert all("validator" not in builder.__name__ for builder in AGENT_BUILDERS.values())

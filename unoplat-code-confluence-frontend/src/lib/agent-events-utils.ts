@@ -12,7 +12,7 @@ export const AgentType = {
   DEVELOPMENT_WORKFLOW: "development_workflow_guide",
   DEPENDENCY: "dependency_guide",
   BUSINESS_DOMAIN: "business_domain_guide",
-  APP_INTERFACE_VALIDATOR: "call_expression_validator",
+  CALL_EXPRESSION_DISCOVERER: "call_expression_discoverer",
   APP_INTERFACES: "app_interfaces_agent",
 } as const;
 
@@ -21,7 +21,9 @@ export const AgentType = {
  * Used to consolidate related events into a single display group.
  */
 const AGENT_ALIASES: Record<string, string> = {
-  app_interface_validator: "call_expression_validator",
+  // Historical alias from the retired call_expression_validator agent.
+  call_expression_validator: "call_expression_discoverer",
+  app_interface_validator: "call_expression_discoverer",
   dependency_guide_item: "dependency_guide",
 };
 
@@ -47,8 +49,8 @@ export const AGENT_REGISTRY: Record<
     displayName: "Business Domain Guide",
     order: 3,
   },
-  [AgentType.APP_INTERFACE_VALIDATOR]: {
-    displayName: "App Interface Validator",
+  [AgentType.CALL_EXPRESSION_DISCOVERER]: {
+    displayName: "Call Expression Discoverer",
     order: 4,
   },
   [AgentType.APP_INTERFACES]: {

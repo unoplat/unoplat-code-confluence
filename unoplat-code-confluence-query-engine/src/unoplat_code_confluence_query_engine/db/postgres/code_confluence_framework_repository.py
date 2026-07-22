@@ -685,21 +685,54 @@ async def db_upsert_discovered_framework_feature_usages(
         resolved_span_keys: set[tuple[str, int, int]] = set()
 
         for usage in request.usages:
-            resolved_file_path = _resolve_discovered_file_path(
-                codebase_path,
-                usage.file_path,
-            )
+            try:
+                resolved_file_path = _resolve_discovered_file_path(
+                    codebase_path,
+                    usage.file_path,
+                )
+            except ValueError as exc:
+                logger.error(
+                    "Skipping discovered usage with path outside codebase: "
+                    "submitted_path={} start_line={} end_line={} reason={}",
+                    usage.file_path,
+                    usage.start_line,
+                    usage.end_line,
+                    str(exc),
+                )
+                continue
             resolved_span_key = (
                 resolved_file_path,
                 usage.start_line,
                 usage.end_line,
             )
             if resolved_span_key in resolved_span_keys:
-                raise ValueError(
-                    "discovered usage spans must be unique after path resolution"
+                logger.error(
+                    "Skipping duplicate discovered usage span after path resolution: "
+                    "file_path={} start_line={} end_line={} submitted_path={}",
+                    resolved_file_path,
+                    usage.start_line,
+                    usage.end_line,
+                    usage.file_path,
                 )
+                continue
             resolved_span_keys.add(resolved_span_key)
-            await _require_codebase_file(session, codebase_path, resolved_file_path)
+            try:
+                await _require_codebase_file(
+                    session,
+                    codebase_path,
+                    resolved_file_path,
+                )
+            except ValueError as exc:
+                logger.error(
+                    "Skipping discovered usage with unregistered codebase file: "
+                    "file_path={} start_line={} end_line={} submitted_path={} reason={}",
+                    resolved_file_path,
+                    usage.start_line,
+                    usage.end_line,
+                    usage.file_path,
+                    str(exc),
+                )
+                continue
             identity = FrameworkFeatureUsageIdentity(
                 file_path=resolved_file_path,
                 feature_language=target.feature_language,

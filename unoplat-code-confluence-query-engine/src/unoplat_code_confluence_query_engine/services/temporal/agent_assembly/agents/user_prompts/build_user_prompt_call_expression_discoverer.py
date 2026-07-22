@@ -13,11 +13,15 @@ def build_call_expression_discoverer_instructions() -> str:
         "Absolute paths, construct-query metadata, and existing spans are optional hints; an empty span list must not skip discovery.\n\n"
         "Rules\n"
         "- Search only inside the supplied codebase path. Trace related instances through assignments, exports, imports, aliases, attributes, and dependency injection.\n"
+        "- Test and test-utility paths/files are out of scope.\n"
         "- Accept only proven final calls whose receiver resolves to the configured framework value and whose callee matches this operation. Reject constructors, factories, configuration calls, lookalike receivers, mocks, repositories, routers, maps, caches, and helpers.\n"
         "- Set final_confidence for every proven file/span. Do not write or infer evidence_json.\n"
-        "- Call upsert_discovered_framework_feature_usages at most once, with the supplied exact FrameworkFeatureIdentity and all distinct proven spans. Do not use sibling operations.\n"
+        "- Do not use sibling operations.\n"
         "- Supplied spans that cannot be proven remain unchanged (pending/needs_review).\n"
-        "- If no span is proven, do not call the tool and return created_count=0 and updated_count=0. Otherwise return the exact tool result."
+        "- If no production span exists: do not call the upsert tool; return created_count=0 and updated_count=0.\n"
+        "- If at least one production span is proven: call upsert_discovered_framework_feature_usages at least once using the exact supplied FrameworkFeatureIdentity and all distinct proven production spans.\n"
+        "- If the tool raises ModelRetry: correct only rejected/malformed paths or spans, retain the other proven production spans, and retry.\n"
+        "- After success, return the exact tool result."
     )
 
 

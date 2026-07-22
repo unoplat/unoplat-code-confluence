@@ -12,7 +12,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
     build_call_expression_discoverer_instructions,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
-    build_readonly_console_capability,
+    build_call_expression_discovery_console_capability,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     CALL_EXPRESSION_DISCOVERER_CONSOLE_TOOLSET_ID,
@@ -31,12 +31,12 @@ from unoplat_code_confluence_query_engine.services.temporal.event_stream_handler
 
 def build_call_expression_discoverer_agent(
     context: AgentAssemblyContext,
-) -> AgentBuildResult[DiscoveredFrameworkFeatureUsagesUpsertResult]:
+) -> AgentBuildResult[AgentDependencies, DiscoveredFrameworkFeatureUsagesUpsertResult]:
     """Build the readonly, discovery-only call-expression agent."""
     function_tools: list[Tool[AgentDependencies]] = [
         build_upsert_discovered_framework_feature_usages_tool()
     ]
-    console_capability = build_readonly_console_capability(
+    console_capability = build_call_expression_discovery_console_capability(
         CALL_EXPRESSION_DISCOVERER_CONSOLE_TOOLSET_ID
     )
     console_toolset = console_capability.get_toolset()
