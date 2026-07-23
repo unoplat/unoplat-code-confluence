@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.46.0...unoplat-code-confluence-docs-v0.46.1) (2026-07-18)
+
+
+### Bug Fixes
+
+* **schema:** publish realtime_sync capability enum ([3bf59cd](https://github.com/unoplat/unoplat-code-confluence/commit/3bf59cd7af4395c747e043efa13b8a678fa66106))
+
 ## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.45.0...unoplat-code-confluence-docs-v0.46.0) (2026-07-15)
 
 

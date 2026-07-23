@@ -22,6 +22,7 @@ from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_m
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
     ARCHITECTURE_ARTIFACT,
+    CALL_EXPRESSION_DISCOVERY_RULESET,
     MARKDOWN_READ_WRITE_EXECUTE_RULESET,
     MARKDOWN_READ_WRITE_RULESET,
     READ_AND_EXECUTE_RULESET,
@@ -63,6 +64,7 @@ class ClampedTimeoutLocalBackend(LocalBackend):
 
 AgentBackendKind = Literal[
     "readonly_local",
+    "call_expression_discovery_local",
     "execute_local",
     "markdown_local",
     "markdown_execute_local",
@@ -70,7 +72,7 @@ AgentBackendKind = Literal[
 
 _AGENT_BACKEND_KIND: dict[str, AgentBackendKind] = {
     "business_domain_guide": "markdown_local",
-    "call_expression_discoverer": "readonly_local",
+    "call_expression_discoverer": "call_expression_discovery_local",
     "dependency_guide": "readonly_local",
     "dependency_guide_item": "readonly_local",
     "development_workflow_guide": "markdown_execute_local",
@@ -144,6 +146,12 @@ def resolve_agent_backend(
             metadata,
             enable_execute=False,
             permissions=READONLY_CONSOLE_RULESET,
+        )
+    if kind == "call_expression_discovery_local":
+        return _build_local_backend(
+            metadata,
+            enable_execute=False,
+            permissions=CALL_EXPRESSION_DISCOVERY_RULESET,
         )
     if kind == "execute_local":
         return _build_local_backend(

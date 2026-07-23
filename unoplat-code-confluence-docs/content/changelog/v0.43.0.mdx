@@ -1,0 +1,38 @@
+---
+title: "Release v0.43.0"
+description: "Simplified repository onboarding, an expanded ucc CLI, health checks, and more reliable Git repository setup"
+version: "0.43.0"
+releaseDate: "2026-06-27"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.43.0"
+---
+
+## Highlights
+
+This release simplifies adding repositories from the web app and CLI, adds operational readiness checks, and makes Git-based setup more reliable. It also improves the repository workflow that generates and publishes AGENTS.md documentation.
+
+## What's New
+
+### Simpler Repository Onboarding
+
+- Replaced the previous ingestion experience with a streamlined **Add Repository** flow in the web app
+- Added a lightweight repository endpoint that accepts a Git URL and derives the repository identity automatically
+- Supports provider browser URLs, so a `.git` suffix is no longer required
+
+### Expanded `ucc` CLI
+
+- Renamed the CLI entry point to `ucc`
+- Added commands for repository management, refreshes, setup status, and readiness checks
+- Added liveness and readiness probes for the flow bridge and query engine services
+
+### More Reliable Generated Documentation
+
+- Added managed-section extraction to preserve generated documentation safely during updates
+- Propagated workflow operations through Temporal for more consistent repository runs
+- Improved the automated AGENTS.md publishing workflow
+
+## Bug Fixes
+
+- Prevented a race condition when the same repository is added concurrently
+- Use `127.0.0.1` instead of `localhost` for default local service URLs
+- Restored a missing frontend request-configuration import
+- Improved workflow trace handling and updated CLI guidance

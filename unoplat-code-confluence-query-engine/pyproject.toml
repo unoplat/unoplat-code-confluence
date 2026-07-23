@@ -1,6 +1,6 @@
 [project]
 name = "unoplat-code-confluence-query-engine"
-version = "0.48.0"
+version = "0.48.2"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -16,7 +16,7 @@ dependencies = [
     "loguru>=0.7.3",
     "markdown-it-py>=4.0.0",
     "pydantic-ai[bedrock,cohere,duckduckgo,groq,huggingface,mistral,temporal,web-fetch,xai]>=2.12.0,<3",
-    "pydantic-ai-backend[docker]>=0.2.15,<0.3",
+    "pydantic-ai-backend[docker]>=0.2.16,<0.3",
     "pydantic-ai-skills>=1.2.0,<2",
     "qs-codec>=1.1.1",
     "sqlalchemy[asyncio]>=2.0.0",

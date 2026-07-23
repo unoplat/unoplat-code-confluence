@@ -115,7 +115,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.48.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.48.2
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql

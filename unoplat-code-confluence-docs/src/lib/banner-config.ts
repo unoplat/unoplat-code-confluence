@@ -28,9 +28,9 @@ export interface BannerConfig {
 
 export const bannerConfig: BannerConfig = {
   enabled: true,
-  id: "v0-42-0",
-  message: "Release v0.42.0 adds automatic AGENTS.md pull-request publishing, git-URL-only repository ingestion, and grouped CLI service commands.",
-  linkUrl: "/changelog#v0.42.0",
+  id: "v0-45-0",
+  message: "Release v0.45.0 adds source-anchored repository architecture diagrams designed for precision and token efficiency, plus expanded framework detection.",
+  linkUrl: "/changelog#v0.45.0",
   linkText: "Read release notes",
   variant: "rainbow",
 };
