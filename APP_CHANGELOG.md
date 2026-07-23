@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.45.0...unoplat-code-confluence-v0.45.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **call-expression:** deny JS/TS test filenames from discovery ([fb26ca7](https://github.com/unoplat/unoplat-code-confluence/commit/fb26ca7d907120dfa6b2aa1268c9d5a87281ad70))
+* **call-expression:** hide test paths from discovery ([1938f64](https://github.com/unoplat/unoplat-code-confluence/commit/1938f6413f63126425b866c57e1b74cae17de945))
+* **call-expression:** require persistence retries for proven spans ([2c7e2bc](https://github.com/unoplat/unoplat-code-confluence/commit/2c7e2bc778d994bfd7970209fd334151838a6350))
+* **call-expression:** skip invalid usage spans ([a4126e8](https://github.com/unoplat/unoplat-code-confluence/commit/a4126e8a8b40fc8197a3f351dc15b1759d45d4ee))
+* **ci:** refresh package uv lockfiles before python lock checks run ([881d10c](https://github.com/unoplat/unoplat-code-confluence/commit/881d10c80825d373ce1959e149e7a3fd484bf270))
+* **ci:** refresh package uv lockfiles before python lock checks run ([39a5c21](https://github.com/unoplat/unoplat-code-confluence/commit/39a5c2190d924fe67bec5766f7294b41f055452f))
+* **schema:** publish realtime_sync capability enum ([3bf59cd](https://github.com/unoplat/unoplat-code-confluence/commit/3bf59cd7af4395c747e043efa13b8a678fa66106))
+* **temporal:** migrate call discoverer retry configuration ([579847a](https://github.com/unoplat/unoplat-code-confluence/commit/579847a5f122cb457ef092080940df896cb493b0))
+* **temporal:** read usage from RunResult property ([78f0ff5](https://github.com/unoplat/unoplat-code-confluence/commit/78f0ff5303f375fbcfd794e10f9a6855100b2d28))
+
 ## [0.45.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.44.0...unoplat-code-confluence-v0.45.0) (2026-07-18)
 
 
