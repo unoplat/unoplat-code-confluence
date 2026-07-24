@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This service is an AI-assisted codebase analysis and repository automation engine. It manages AI provider, OAuth, and tool/MCP configuration while launching Temporal workflows that inspect repositories, validate framework usage, track agent events and LLM costs, and generate structured engineering, dependency, interface, and business-logic guidance. It produces and updates AGENTS.md artifacts and pull requests, with feature flags and feedback supporting operation of the agent runtime.
+This service is an AI-assisted codebase analysis and repository automation engine. It configures LLM providers, OAuth connections, tools and MCP servers; orchestrates Temporal agent workflows across repositories; and tracks events, progress, and LLM usage costs. Its primary outputs are structured codebase metadata, dependency and engineering-workflow guidance, framework/interface evidence, business-domain summaries, and generated AGENTS.md pull requests.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/api/v1/endpoints/ai_model_config.py`
@@ -66,7 +66,7 @@ This service is an AI-assisted codebase analysis and repository automation engin
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py#L282-L317`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py#L320-L347`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py#L350-L382`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py#L385-L398`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/agent_md_output.py#L385-L402`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/engineering_workflow_output.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/output/engineering_workflow_output.py#L20-L37`
@@ -92,6 +92,9 @@ This service is an AI-assisted codebase analysis and repository automation engin
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/agent_dependencies.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/agent_dependencies.py#L18-L59`
+
+### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/architecture_agent_dependencies.py`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/architecture_agent_dependencies.py#L15-L31`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/dependency_guide_target.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/models/runtime/dependency_guide_target.py#L6-L15`
@@ -132,20 +135,23 @@ This service is an AI-assisted codebase analysis and repository automation engin
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/activity_policies.py#L25-L43`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/capabilities/readonly_console.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/capabilities/readonly_console.py#L328-L351`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/capabilities/readonly_console.py#L504-L577`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/runtime.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/runtime.py#L24-L31`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/runtime.py#L35-L40`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/runtime.py#L23-L30`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/runtime.py#L34-L40`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/search.py`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/agent_assembly/search.py#L26-L29`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/temporal_agents.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/temporal_agents.py#L42-L81`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/temporal_agents.py#L45-L85`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L13-L30`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L33-L51`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L54-L78`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L81-L91`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L23-L28`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L31-L35`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L38-L55`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L58-L80`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L83-L89`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L92-L116`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/services/temporal/workflow_envelopes.py#L119-L129`
