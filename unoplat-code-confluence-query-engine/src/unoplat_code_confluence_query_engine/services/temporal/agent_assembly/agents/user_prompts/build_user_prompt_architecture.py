@@ -24,18 +24,18 @@ There are three separate tool families. Do not mix them:
    - Never treat `write_file`, `edit_file`, `read_file`, or `execute` as skill
      scripts or skill resources.
 
-2. Architecture Diagrams skill tools (guidance only):
+2. Architecture Diagrams skill tools:
    - Call `load_skill` with skill_name exactly `architecture-diagrams` before
      authoring and again during final review.
-   - This skill is documentation guidance only. It has no scripts and no
-     resources. Do not invent skill script or resource names, and do not call
-     `run_skill_script` or `read_skill_resource`.
+   - Follow the skill's instructions, including reading its required resources
+     with `read_skill_resource`.
+   - This skill has no scripts. Do not call `run_skill_script`.
 
 3. Validation tool:
    - The no-argument `validate_architecture` tool is the required final
      validation signal: it reads the current on-disk artifact, renders its
-     extracted Mermaid diagram, inspects the SVG, and returns the digest that
-     passed.
+     extracted Mermaid diagram, inspects the SVG, returns the digest that
+     passed, and attaches the exact rendered PNG for visual inspection.
 
 Inspect only repository deployment evidence and the fresh `app_interfaces.md`
 paths explicitly listed in the task prompt. Never use an unlisted interface
@@ -87,25 +87,30 @@ contents, and continue the task with other evidence.
 </diagram_contract>
 
 <required_workflow>
-1. Load the Architecture Diagrams skill before drafting. Inspect all and only the
-   listed fresh `app_interfaces.md` paths, relevant repository evidence, and any
-   existing `architecture.md`.
+1. Load and follow the Architecture Diagrams skill before drafting, including
+   its required visual guidance. Inspect all and only the listed fresh
+   `app_interfaces.md` paths, relevant repository evidence, and any existing
+   `architecture.md`.
 2. Make the final write or no-change decision for the one owned artifact. Re-read the
    complete artifact after a write.
-3. Load the Architecture Diagrams skill again during review. Verify the complete
+3. Revisit the Architecture Diagrams skill during review and verify the complete
    artifact against the evidence, the one-fence contract, built-in-only icon rule,
-   official architecture-beta syntax, labels, groups, edges, ports, and alignment.
+   official architecture-beta syntax, labels, groups, edges, ports, alignment, and
+   the visual acceptance criteria.
 4. After every final write or no-change decision, call `validate_architecture` with
    no arguments. Raw `mmdc` console commands are supplemental only: Mermaid can exit
    zero while returning an SVG error page, so console exit status is not the final
    validation signal.
-5. If `validate_architecture` fails, repair only `architecture.md`, re-read the full
-   artifact, repeat the review (including loading the skill again), and call
-   `validate_architecture` again. Never finish after a failed validation call.
-6. Finish only after `validate_architecture` confirms that the current on-disk
-   `architecture.md` digest passed. If you edit the artifact after a successful call,
-   call the tool again. Return a concise plain-text completion statement that includes
-   the confirmed digest.
+5. Inspect the PNG attached by `validate_architecture` against every visual acceptance
+   criterion defined by the skill. Do not judge layout from Mermaid source alone.
+6. If `validate_architecture` fails or any visual criterion fails, repair only
+   `architecture.md`, re-read the full artifact, repeat the review, call
+   `validate_architecture` again, and inspect the new PNG. Never finish after a failed
+   validation call or failed visual review.
+7. Finish only after the latest `validate_architecture` digest has both deterministic
+   validation and a passed visual review of its attached PNG. If you edit the artifact
+   after a successful call, validate and visually review again. Return a concise
+   plain-text completion statement that includes the confirmed digest.
 </required_workflow>
 """
 

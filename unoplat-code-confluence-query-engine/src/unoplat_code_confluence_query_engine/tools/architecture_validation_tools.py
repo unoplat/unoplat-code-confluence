@@ -7,11 +7,12 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import tempfile
 from xml.etree import ElementTree
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
-from pydantic_ai import ModelRetry, RunContext
+from pydantic_ai import BinaryContent, ModelRetry, RunContext, ToolReturn
 
 from unoplat_code_confluence_query_engine.models.runtime.architecture_agent_dependencies import (
     ArchitectureAgentDependencies,
@@ -21,8 +22,10 @@ ARCHITECTURE_ARTIFACT = "architecture.md"
 DEFAULT_MMDC_EXECUTABLE = "mmdc"
 DEFAULT_PUPPETEER_CONFIG_PATH = Path("/app/puppeteer-config.json")
 MAX_ARCHITECTURE_MARKDOWN_BYTES = 256 * 1024
+MAX_ARCHITECTURE_PNG_BYTES = 2 * 1024 * 1024
 MMDC_TIMEOUT_SECONDS = 30
 MAX_RENDER_DIAGNOSTIC_CHARACTERS = 600
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 BUILTIN_ARCHITECTURE_ICONS = frozenset(
     {"cloud", "database", "disk", "internet", "server"}
 )
@@ -37,15 +40,18 @@ _MERMAID_SYNTAX_ERROR_MARKERS = (
 )
 
 
-def validate_architecture(ctx: RunContext[ArchitectureAgentDependencies]) -> str:
+def validate_architecture(
+    ctx: RunContext[ArchitectureAgentDependencies],
+) -> ToolReturn[str]:
     """Validate the current repository-root architecture artifact with Mermaid.
 
     Returns:
-        A success confirmation containing the SHA-256 digest of the exact
-        ``architecture.md`` content that passed structural and render checks.
+        A ``ToolReturn`` whose return value confirms the SHA-256 digest of the
+        exact ``architecture.md`` content that passed structural and render
+        checks, with the rendered diagram PNG attached as model-facing content.
 
     Raises:
-        ModelRetry: If the artifact contract or rendered SVG validation fails.
+        ModelRetry: If the artifact contract or rendered output validation fails.
     """
     repository_root = Path(ctx.deps.repository_root)
     artifact_path = repository_root / ARCHITECTURE_ARTIFACT
@@ -68,11 +74,25 @@ def validate_architecture(ctx: RunContext[ArchitectureAgentDependencies]) -> str
         puppeteer_config_path=DEFAULT_PUPPETEER_CONFIG_PATH,
         timeout_seconds=MMDC_TIMEOUT_SECONDS,
     )
+    png_bytes = _render_png(
+        diagram_text,
+        artifact_directory=artifact_path.parent,
+        mmdc_executable=DEFAULT_MMDC_EXECUTABLE,
+        puppeteer_config_path=DEFAULT_PUPPETEER_CONFIG_PATH,
+        timeout_seconds=MMDC_TIMEOUT_SECONDS,
+        max_png_bytes=MAX_ARCHITECTURE_PNG_BYTES,
+    )
 
     content_digest = hashlib.sha256(markdown_bytes).hexdigest()
-    return (
+    confirmation = (
         "architecture.md validation passed for the current on-disk content "
         f"(sha256={content_digest})."
+    )
+    return ToolReturn(
+        return_value=confirmation,
+        content=[
+            BinaryContent(data=png_bytes, media_type="image/png"),
+        ],
     )
 
 
@@ -151,14 +171,12 @@ def _validate_builtin_icons(diagram_text: str) -> None:
         )
 
 
-def _render_and_validate_svg(
-    diagram_text: str,
+def _resolve_mmdc(
     *,
-    artifact_directory: Path,
     mmdc_executable: str,
     puppeteer_config_path: Path,
     timeout_seconds: int,
-) -> None:
+) -> str:
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
     if not puppeteer_config_path.is_file():
@@ -173,6 +191,60 @@ def _render_and_validate_svg(
             f"Mermaid CLI '{mmdc_executable}' is unavailable. Install the packaged "
             "mmdc executable."
         )
+    return resolved_mmdc
+
+
+def _run_mmdc(
+    command: list[str],
+    *,
+    diagram_text: str,
+    working_directory: Path,
+    timeout_seconds: int,
+    failure_label: str,
+) -> subprocess.CompletedProcess[bytes]:
+    try:
+        result = subprocess.run(
+            command,
+            cwd=working_directory,
+            check=False,
+            input=diagram_text.encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        diagnostic = _concise_diagnostic(exc.stderr)
+        message = f"{failure_label} timed out after {timeout_seconds} seconds."
+        if diagnostic:
+            message += f" {diagnostic}"
+        raise ModelRetry(message) from exc
+    except OSError as exc:
+        raise ModelRetry(
+            f"{failure_label} could not start: {exc.strerror or exc}."
+        ) from exc
+
+    if result.returncode != 0:
+        diagnostic = _concise_diagnostic(result.stderr or result.stdout)
+        message = f"{failure_label} failed (exit {result.returncode})."
+        if diagnostic:
+            message += f" {diagnostic}"
+        raise ModelRetry(message)
+    return result
+
+
+def _render_and_validate_svg(
+    diagram_text: str,
+    *,
+    artifact_directory: Path,
+    mmdc_executable: str,
+    puppeteer_config_path: Path,
+    timeout_seconds: int,
+) -> None:
+    resolved_mmdc = _resolve_mmdc(
+        mmdc_executable=mmdc_executable,
+        puppeteer_config_path=puppeteer_config_path,
+        timeout_seconds=timeout_seconds,
+    )
 
     command = [
         resolved_mmdc,
@@ -186,35 +258,87 @@ def _render_and_validate_svg(
         str(puppeteer_config_path),
         "--quiet",
     ]
-    try:
-        result = subprocess.run(
+    result = _run_mmdc(
+        command,
+        diagram_text=diagram_text,
+        working_directory=artifact_directory,
+        timeout_seconds=timeout_seconds,
+        failure_label="Mermaid SVG render",
+    )
+    _validate_svg_output(result.stdout, stderr=result.stderr)
+
+
+def _render_png(
+    diagram_text: str,
+    *,
+    artifact_directory: Path,
+    mmdc_executable: str,
+    puppeteer_config_path: Path,
+    timeout_seconds: int,
+    max_png_bytes: int,
+) -> bytes:
+    if max_png_bytes <= 0:
+        raise ValueError("max_png_bytes must be positive")
+
+    resolved_mmdc = _resolve_mmdc(
+        mmdc_executable=mmdc_executable,
+        puppeteer_config_path=puppeteer_config_path,
+        timeout_seconds=timeout_seconds,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="unoplat-architecture-png-") as temp_dir:
+        png_path = Path(temp_dir) / "architecture.png"
+        command = [
+            resolved_mmdc,
+            "--input",
+            "-",
+            "--output",
+            str(png_path),
+            "--outputFormat",
+            "png",
+            "--puppeteerConfigFile",
+            str(puppeteer_config_path),
+            "--quiet",
+        ]
+        _run_mmdc(
             command,
-            cwd=artifact_directory,
-            check=False,
-            input=diagram_text.encode("utf-8"),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=timeout_seconds,
+            diagram_text=diagram_text,
+            working_directory=artifact_directory,
+            timeout_seconds=timeout_seconds,
+            failure_label="Mermaid PNG render",
         )
-    except subprocess.TimeoutExpired as exc:
-        diagnostic = _concise_diagnostic(exc.stderr)
-        message = f"Mermaid render timed out after {timeout_seconds} seconds."
-        if diagnostic:
-            message += f" {diagnostic}"
-        raise ModelRetry(message) from exc
+        return _read_bounded_png(png_path, max_png_bytes=max_png_bytes)
+
+
+def _read_bounded_png(png_path: Path, *, max_png_bytes: int) -> bytes:
+    try:
+        if not png_path.is_file():
+            raise ModelRetry(
+                "Mermaid PNG render completed without producing an output image."
+            )
+        with png_path.open("rb") as png_file:
+            png_bytes = png_file.read(max_png_bytes + 1)
+    except ModelRetry:
+        raise
     except OSError as exc:
         raise ModelRetry(
-            f"Mermaid renderer could not start: {exc.strerror or exc}."
+            f"Mermaid PNG output could not be read: {exc.strerror or exc}."
         ) from exc
 
-    if result.returncode != 0:
-        diagnostic = _concise_diagnostic(result.stderr or result.stdout)
-        message = f"Mermaid render failed (exit {result.returncode})."
+    if not png_bytes:
+        raise ModelRetry("Mermaid PNG render produced an empty image file.")
+    if len(png_bytes) > max_png_bytes:
+        raise ModelRetry(
+            "Mermaid PNG render exceeded the safe size cap "
+            f"({max_png_bytes} bytes)."
+        )
+    if not png_bytes.startswith(PNG_SIGNATURE):
+        diagnostic = _concise_diagnostic(png_bytes)
+        message = "Mermaid PNG render did not produce a valid PNG signature."
         if diagnostic:
             message += f" {diagnostic}"
         raise ModelRetry(message)
-
-    _validate_svg_output(result.stdout, stderr=result.stderr)
+    return png_bytes
 
 
 def _validate_svg_output(svg_bytes: bytes, *, stderr: bytes = b"") -> None:

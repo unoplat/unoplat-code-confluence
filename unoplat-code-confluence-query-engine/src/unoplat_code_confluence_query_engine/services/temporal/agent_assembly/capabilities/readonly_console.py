@@ -10,7 +10,7 @@ Supports local-console profiles for:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, override
 
 from pydantic_ai.exceptions import SkipToolExecution
 from pydantic_ai.messages import ToolCallPart
@@ -178,24 +178,29 @@ _CALL_EXPRESSION_JS_TS_TEST_FILENAMES: tuple[str, ...] = tuple(
         f"*_test.{ext}",
     )
 )
-CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = [
-    pattern
-    for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
-    for pattern in (name, f"{name}/**", f"**/{name}", f"**/{name}/**")
-] + [
-    pattern
-    for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
-    for pattern in (filename, f"**/{filename}")
-] + [
-    pattern
-    for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
-    for pattern in (filename, f"**/{filename}")
-] + [
-    pattern
-    for suffix in _CALL_EXPRESSION_JS_TS_TEST_SUFFIXES
-    for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
-    for pattern in (f"*.{suffix}.{ext}", f"**/*.{suffix}.{ext}")
-]
+CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = (
+    [
+        pattern
+        for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
+        for pattern in (name, f"{name}/**", f"**/{name}", f"**/{name}/**")
+    ]
+    + [
+        pattern
+        for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
+        for pattern in (filename, f"**/{filename}")
+    ]
+    + [
+        pattern
+        for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
+        for pattern in (filename, f"**/{filename}")
+    ]
+    + [
+        pattern
+        for suffix in _CALL_EXPRESSION_JS_TS_TEST_SUFFIXES
+        for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
+        for pattern in (f"*.{suffix}.{ext}", f"**/*.{suffix}.{ext}")
+    ]
+)
 
 
 COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
@@ -522,12 +527,14 @@ class LocalConsoleCapability(ConsoleCapability):
             descriptions=self.descriptions,
             permissions=self.permissions,
             max_retries=CONSOLE_TOOL_MAX_RETRIES,
+            image_support=True,
         )
         self._checker = PermissionChecker(
             ruleset=self.permissions,
             ask_fallback="deny",
         )
 
+    @override
     async def before_tool_execute(
         self,
         ctx: RunContext[Any],
@@ -551,6 +558,7 @@ class LocalConsoleCapability(ConsoleCapability):
                 "continue using allowed evidence."
             ) from error
 
+    @override
     async def prepare_tools(
         self,
         ctx: RunContext[Any],
