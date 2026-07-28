@@ -33,7 +33,19 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname,"./src"),
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    // Browser uses same-origin /electric/*; proxy to Electric so host port
+    // 3001 and CORS are not required. In Tilt/Compose, ELECTRIC_PROXY_TARGET
+    // points at the Compose service DNS name (http://electric:3000).
+    proxy: {
+      "/electric": {
+        target: process.env.ELECTRIC_PROXY_TARGET ?? "http://127.0.0.1:3001",
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/electric/, ""),
+      },
     },
   },
   build: {

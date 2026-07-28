@@ -22,7 +22,8 @@ export interface Env {
    */
   workflowOrchestratorUrl: string;
   /**
-   * Electric SQL base URL used for TanStack DB shape streams
+   * Same-origin Electric base path for TanStack DB shape streams.
+   * Proxied by Vite (dev) and Nginx (prod) to the Electric service.
    */
   electricBaseUrl: string;
   /**
@@ -42,7 +43,8 @@ export const env: Env = {
     import.meta.env.VITE_WORKFLOW_ORCHESTRATOR_URL || "http://127.0.0.1:8081",
   knowledgeGraphUrl:
     import.meta.env.VITE_KNOWLEDGE_GRAPH_URL || "http://127.0.0.1:7474",
-  electricBaseUrl:
-    import.meta.env.VITE_ELECTRIC_BASE_URL || "http://127.0.0.1:3001",
+  // Always same-origin. Do not read VITE_ELECTRIC_BASE_URL — host :3001 is
+  // fragile under Tilt/OrbStack and reintroduces CORS/port collisions.
+  electricBaseUrl: "/electric",
   debugSse: String(import.meta.env.VITE_DEBUG_SSE).toLowerCase() === "true",
 };
