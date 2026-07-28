@@ -16,7 +16,14 @@ Use this project-owned guide when creating or reviewing the repository-root
 `app_interfaces.md`; do not invent infrastructure, protocols, ownership
 boundaries, or dependencies.
 
-This skill is guidance only: it ships no skill scripts and no skill resources.
+This skill ships guidance plus one packaged visual-review reference. It has no
+skill scripts.
+
+## Required visual reference
+
+Read `references/intuitive-architecture-diagrams.md` before planning the diagram
+layout. Use the same reference to inspect the PNG returned by
+`validate_architecture` during final review.
 
 ## Artifact contract
 
@@ -258,13 +265,15 @@ align column <id-a> <id-b> ...
 
 ## Evidence, focus, and review workflow
 
-1. Load this skill before drafting. Read the current `app_interfaces.md`,
-   deployment/configuration evidence, relevant source sections, and any current
-   `architecture.md`.
+1. Load this skill and read its required visual reference before drafting. Read
+   the current `app_interfaces.md`, deployment/configuration evidence, relevant
+   source sections, and any current `architecture.md`.
 2. Identify inbound and outbound interfaces first, classify supported nodes by
    their primary canonical role, and then model only the supporting services and
    relationships that the evidence establishes. Omit empty roles; treat any
-   deployment or trust boundary as secondary structure only.
+   deployment or trust boundary as secondary structure only. Plan layout against
+   the visual reference: one reading direction, a straight primary path, and
+   role placement that keeps secondary edges off the main story.
 3. Prefer a small system-level diagram over an exhaustive inventory. Keep
    labels specific enough to distinguish components without adding unsupported
    technology claims.
@@ -276,17 +285,23 @@ align column <id-a> <id-b> ...
    edges.
 5. After the final write/no-change decision, call the no-argument
    `validate_architecture` tool. It extracts the diagram as direct Mermaid input,
-   streams it to `mmdc`, captures the rendered SVG from stdout, and inspects that
-   SVG for Mermaid's error-page markers. This matters because exit code zero alone
-   is not proof of a valid render.
-6. If validation fails, repair only `architecture.md`, re-read it, repeat the
-   review, and call `validate_architecture` again. Raw `mmdc` console commands are
-   useful supplemental probes, but their exit status is not the final signal.
-7. Load this skill again during final review. Confirm the final artifact against
-   repository evidence, the official `architecture-beta` forms, a built-in icon
-   on every service (so no empty dashed placeholders remain), fan-in/fan-out
-   junction necessity, and the successful validation digest. Do not edit the
-   artifact after the digest is confirmed without validating again.
+   streams it to `mmdc`, validates the rendered SVG for Mermaid error-page
+   markers, and returns a digest plus the exact rendered PNG. Exit code zero alone
+   is not proof of a valid or intuitive diagram.
+6. Inspect the attached PNG against every visual acceptance criterion in the
+   visual reference. Do not judge layout from Mermaid source alone.
+7. If structural validation fails or any visual criterion fails, repair only
+   `architecture.md`, re-read it, repeat the review, call `validate_architecture`
+   again, and inspect the new PNG. Raw `mmdc` console commands are useful
+   supplemental probes, but their exit status is not the final signal.
+8. Revisit this skill and the visual reference during final review. Confirm the
+   final artifact against repository evidence, the official `architecture-beta`
+   forms, a built-in icon on every service (so no empty dashed placeholders
+   remain), fan-in/fan-out junction necessity, the successful validation digest,
+   and a passed visual review of the latest PNG. Finish only when the latest
+   digest has both deterministic validation and an intuitive visual review. Do
+   not edit the artifact after the digest is confirmed without validating and
+   visually reviewing again.
 
 ## Reference
 
