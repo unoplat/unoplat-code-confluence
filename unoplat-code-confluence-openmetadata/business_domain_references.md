@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This project is an OpenMetadata ingestion connector for Code Confluence that converts repository-analysis snapshots into governed catalog assets. It models repositories and codebases along with engineering workflows, dependencies, business-logic evidence, and application interfaces, publishing them as API services, collections, endpoints, glossary terms, domains, and data products. The domain is developer tooling and software catalog governance: making source-code behavior and interface evidence discoverable in OpenMetadata.
+This project is an OpenMetadata ingestion connector for Code Confluence, a repository-analysis system that imports repository-agent snapshots into a metadata catalog. Its core data models describe repositories and codebases alongside programming-language metadata, engineering commands, dependency documentation, business-logic source references, and application interface constructs. The connector’s business focus is making source-code context and navigable development evidence available as governed OpenMetadata assets.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-openmetadata/src/unoplat_code_confluence_openmetadata/config.py`
