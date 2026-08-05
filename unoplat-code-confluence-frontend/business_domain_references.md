@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This frontend supports an AI-assisted code analysis and repository operations platform: users onboard GitHub/GitLab repositories, ingest them into workflows, and monitor codebase status, workflow runs, agent events, and generated Agent MD documentation. It also manages repository credentials, model and tool providers including OAuth, and feedback flows that rate agent output or application experience and can create GitHub issues.
+This frontend supports a code analysis and repository operations platform that onboards GitHub/GitLab repositories, ingests them through workflows, and presents AI-agent snapshots including engineering workflows, dependency guides, business-logic summaries, and interface scans. It also manages model and tool providers, OAuth and repository credentials, workflow status and agent events, and feedback flows that can create GitHub issues.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/agent-feedback/api.ts`
@@ -59,11 +59,11 @@ This frontend supports an AI-assisted code analysis and repository operations pl
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L94-L96`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L104-L106`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L124-L126`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L202-L204`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/schema.ts#L208-L210`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L11-L14`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L18-L27`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/repository-agent-snapshots/transformers.ts#L18-L28`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/tool-config/types.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/tool-config/types.ts#L35-L37`
@@ -86,7 +86,7 @@ This frontend supports an AI-assisted code analysis and repository operations pl
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/hooks/useSaveToolConfig.ts#L14-L16`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts#L313-L318`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-events-utils.ts#L315-L320`
 
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-md-to-markdown.ts`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/lib/agent-md-to-markdown.ts#L8-L10`

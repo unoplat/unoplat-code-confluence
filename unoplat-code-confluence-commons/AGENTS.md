@@ -30,23 +30,23 @@ This project uses Backlog.md MCP for all task and project management. Before cre
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `5ecdba39d57f50c5188a8e32b9dd4f52d01611fe` (2026-07-18). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `29472803c5188bd9b6c4aab5927632a203b7ca5d` (2026-08-05). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 
 ## Engineering Workflow
 ### Install
-- `uv sync` (config: `pyproject.toml`, `Taskfile.yml`)
+- `uv sync` (config: `pyproject.toml`; run from the codebase root)
 ### Build
-- `uv build` (config: `pyproject.toml`)
+- `uv build` (config: `pyproject.toml`; run from the codebase root)
 ### Dev
 - Not detected
 ### Test
-- `uv run pytest -v tests/` (config: `pyproject.toml`, `Taskfile.yml`)
+- `uv run pytest -v tests/` (config: `Taskfile.yml`; run from the codebase root)
 ### Lint
-- Not detected
+- `uvx ruff check` (config: `ruff.toml`; run from the codebase root)
 ### Type Check
-- `uv run --group dev pyrefly check src/` (config: `pyproject.toml`, `Taskfile.yml`)
+- `uv run --group dev pyrefly check src/` (config: `Taskfile.yml`; run from the codebase root)
 
 ## Dependency Guide
 See [`dependencies_overview.md`](./dependencies_overview.md) for the full dependency catalog and usage notes.
