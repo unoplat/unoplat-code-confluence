@@ -6,7 +6,14 @@ from collections.abc import AsyncIterable
 
 from pydantic_ai import Agent, AgentStreamEvent, RunContext, Tool
 from pydantic_ai.capabilities import AbstractCapability, ProcessHistory
+from pydantic_ai.messages import ToolCallPart
 from pydantic_ai.toolsets.abstract import AbstractToolset
+from pydantic_ai_harness.compaction import (
+    ClearToolResults,
+    DeduplicateFileReads,
+    SummarizingCompaction,
+    TieredCompaction,
+)
 
 from unoplat_code_confluence_query_engine.models.runtime.architecture_agent_dependencies import (
     ArchitectureAgentDependencies,
@@ -34,6 +41,18 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.tools
 from unoplat_code_confluence_query_engine.skills.architecture_diagrams_skill import (
     create_architecture_diagrams_toolset,
 )
+
+ARCHITECTURE_COMPACTION_TARGET_TOKENS = 80_000
+ARCHITECTURE_COMPACTION_KEEP_PAIRS = 3
+ARCHITECTURE_COMPACTION_KEEP_MESSAGES = 20
+
+
+def architecture_read_file_key(call: ToolCallPart) -> str | None:
+    """Map console read_file tool calls to a stable path key for dedupe."""
+    if call.tool_name != "read_file":
+        return None
+    path = call.args_as_dict().get("path")
+    return path if isinstance(path, str) else None
 
 
 async def architecture_event_stream_handler(
@@ -75,6 +94,23 @@ def build_architecture_agent(
     capabilities: list[AbstractCapability[ArchitectureAgentDependencies]] = [
         console_capability,
         ProcessHistory(compact_temporal_agent_history),
+        TieredCompaction(
+            tiers=[
+                DeduplicateFileReads(file_key=architecture_read_file_key),
+                ClearToolResults(
+                    max_tokens=1,
+                    keep_pairs=ARCHITECTURE_COMPACTION_KEEP_PAIRS,
+                ),
+                SummarizingCompaction(
+                    model=None,
+                    max_messages=1,
+                    keep_messages=ARCHITECTURE_COMPACTION_KEEP_MESSAGES,
+                    incremental=True,
+                    preserve_first_user_message=True,
+                ),
+            ],
+            target_tokens=ARCHITECTURE_COMPACTION_TARGET_TOKENS,
+        ),
     ]
     toolsets: list[AbstractToolset[ArchitectureAgentDependencies]] = [
         architecture_skill_toolset

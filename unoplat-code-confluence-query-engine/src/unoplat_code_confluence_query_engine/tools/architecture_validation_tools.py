@@ -42,13 +42,14 @@ _MERMAID_SYNTAX_ERROR_MARKERS = (
 
 def validate_architecture(
     ctx: RunContext[ArchitectureAgentDependencies],
-) -> ToolReturn[str]:
+) -> ToolReturn[list[str | BinaryContent]]:
     """Validate the current repository-root architecture artifact with Mermaid.
 
     Returns:
-        A ``ToolReturn`` whose return value confirms the SHA-256 digest of the
-        exact ``architecture.md`` content that passed structural and render
-        checks, with the rendered diagram PNG attached as model-facing content.
+        A ``ToolReturn`` whose return value is a list containing the SHA-256
+        digest confirmation for the exact ``architecture.md`` content that
+        passed structural and render checks, plus the rendered diagram PNG as
+        native tool-result multimodal content.
 
     Raises:
         ModelRetry: If the artifact contract or rendered output validation fails.
@@ -89,8 +90,8 @@ def validate_architecture(
         f"(sha256={content_digest})."
     )
     return ToolReturn(
-        return_value=confirmation,
-        content=[
+        return_value=[
+            confirmation,
             BinaryContent(data=png_bytes, media_type="image/png"),
         ],
     )
