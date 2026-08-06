@@ -7,23 +7,17 @@ description: >-
 
 # Mermaid Architecture Diagrams
 
-Architecture diagrams visualize the relationships among deployable services,
+Architecture diagrams visualize the relationships among clis,desktops,deployable services,
 external systems, data stores, and supporting resources. Mermaid introduced
 `architecture-beta` in v11.1.0. This project renders with Mermaid v11.16.0.
 
 Use this project-owned guide when creating or reviewing the repository-root
-`architecture.md`. Model only current repository evidence and
-`app_interfaces.md`; do not invent infrastructure, protocols, ownership
-boundaries, or dependencies.
+`architecture.md`. Model current repository evidence from inbound and outbound
+constructs in `app_interfaces.md`, relevant source or configuration, and deployment
+configuration. Do not invent infrastructure, protocols, ownership boundaries, or
+dependencies.
 
-This skill ships guidance plus one packaged visual-review reference. It has no
-skill scripts.
-
-## Required visual reference
-
-Read `references/intuitive-architecture-diagrams.md` before planning the diagram
-layout. Use the same reference to inspect the PNG returned by
-`validate_architecture` during final review.
+This skill ships guidance and has no skill scripts.
 
 ## Artifact contract
 
@@ -36,14 +30,10 @@ layout. Use the same reference to inspect the PNG returned by
   concise, reader-facing names.
 - **Every `service` declaration must attach exactly one built-in icon.** A bare
   `service <id>[<label>]` renders as an empty dashed placeholder rather than a
-  useful component glyph. Select the closest of the five built-ins; the icon is
-  a visual category, not an unsupported claim about the implementation.
-- Declare only components and connections justified by source, configuration,
-  deployment, or the current `app_interfaces.md` artifact.
-- The one-diagram contract means that a complex codebase must be represented by
-  a single, focused, high-level view. Do not add multiple detailed views to
-  `architecture.md`; omit unsupported implementation detail and rely on
-  `app_interfaces.md` for its line-level inventory.
+  useful component glyph. Select the closest of the five built-ins.
+- Declare components and connections justified by deployment evidence,
+  relevant source or configuration, and current inbound and outbound constructs
+  in `app_interfaces.md` across codebases.
 
 ## Role-oriented modeling
 
@@ -53,55 +43,35 @@ container runtime, codebase directory, or deployment manifest:
 
 | Canonical role | Classify here when the component's primary responsibility is | Examples |
 | --- | --- | --- |
-| Consumers and entry points | Initiating product use or exposing a user-facing invocation surface | Browser or automation actor, web frontend, CLI, SDK client, public entry point |
+| Consumers and entry points | Initiating product use or exposing a user-facing invocation surface | Web frontend, CLI |
 | Backend services | Implementing repository-owned application behavior | API, domain service, ingestion process, query service, worker |
 | Platform and infrastructure | Supporting execution, orchestration, communication, or persistence | Database, workflow orchestrator, queue, cache, object/file storage |
 | External services | Providing a capability or data source operated outside the system | GitHub API, LLM provider, MCP server, identity provider, third-party API |
 
-Use the first role whose primary-responsibility definition fits: an initiating
-actor or user-facing surface is a consumer/entry point; otherwise a
-repository-owned application process is a backend service; otherwise a runtime
-support or persistence dependency is platform/infrastructure; otherwise an
-outside capability provider is an external service. This keeps, for example, a
-managed database in infrastructure because persistence is its architectural
-role, while GitHub or an LLM provider remains external. When no role is
-supported by evidence, omit the component.
-
 Create only role groups that contain at least one supported node. Never emit an
 empty group or a group for a codebase whose current evidence contains no
 relevant executable, interface, external system, data store, or supporting
-resource. Role groups are the primary structure. A deployment, network, or
-trust boundary may appear only as evidence-backed secondary/nested structure
-when it does not replace or obscure the logical roles; otherwise explain that
-boundary in prose outside the Mermaid fence. In particular, one broad
-`Compose` group is not a useful primary architecture.
+resource. Role groups are the primary structure.
 
 Model independently meaningful runtime nodes rather than repository packaging:
 
-- Omit libraries, packages, shared source modules, and codebases with no
-  relevant constructs; they are not deployable architecture nodes.
-- Split independently executable APIs, workers, schedulers, and ingestion
-  processes when their inbound/outbound relationships differ materially.
-- Combine executables only when evidence establishes one architectural
-  responsibility and the combined node does not hide different callers,
-  dependencies, or data flows. Avoid ambiguous labels such as "API and worker"
-  when the two have distinct relationships.
+- Omit library dependencies, shared source modules, and codebases with no
+  relevant inbound or outbound constructs; they are not deployable architecture
+  nodes. A common data-model library is one example.
 
-Make the diagram's main story readable as **consumers and entry points → backend
-services → platform/infrastructure and external services**. This is a planning
-and layout objective, not permission to invent or reverse a relationship:
+Arrange the non-empty canonical groups from top to bottom: **consumers and entry
+points → backend services → platform and infrastructure → external services**.
+This is a planning and layout objective:
 
-- Add an edge only when current interface, source, configuration, or deployment
-  evidence establishes an interaction.
-- Co-location in Docker Compose, Kubernetes, or another deployment definition
-  establishes membership/deployment only; it does not by itself establish an
-  edge between the co-located components.
+- Establish interactions and their direction from current inbound/outbound
+  constructs, relevant source or configuration, or explicit deployment
+  connections. Co-location in Docker Compose or Kubernetes proves deployment
+  membership only; it does not establish an interaction.
+- Include evidence-backed infrastructure and external-service connections for
+  every application service, including platform dependencies shared by multiple services.
 - Preserve evidence-backed arrow direction. Do not reverse an arrow to force a
   preferred layout; use an undirected edge when direction is not established,
   as described below.
-- Keep secondary infrastructure-to-infrastructure or external-to-external
-  edges only when they are material to the system-level story and directly
-  supported by evidence.
 
 ## Syntax and building blocks
 
@@ -115,7 +85,7 @@ architecture-beta
     service api(server)[API] in public
     service data(database)[Application data] in private
 
-    api:R --> L:data
+    api:B --> T:data
 ```
 
 ### Groups
@@ -174,9 +144,11 @@ architecture-beta
     service worker_two(server)[Worker two]
     junction fan_out
 
-    dispatcher:R --> L:fan_out
-    fan_out:T --> B:worker_one
+    dispatcher:B --> T:fan_out
+    fan_out:B --> T:worker_one
     fan_out:B --> T:worker_two
+
+    align row worker_one worker_two
 ```
 
 Do not use a junction as a substitute for a labeled service, or for fan-out
@@ -192,7 +164,7 @@ Use them consistently as lightweight visual cues:
 
 | Component meaning | Built-in icon when appropriate |
 | --- | --- |
-| Executable application process or service | `server` |
+| Executable application process, service, or CLI | `server` |
 | Persisted, queryable data store | `database` |
 | Object, file, or filesystem-backed storage | `disk` |
 | Hosted or managed external service | `cloud` |
@@ -221,16 +193,19 @@ An edge connects two declared services or junctions. Specify ports explicitly:
 ```
 
 `T`, `B`, `L`, and `R` select the top, bottom, left, and right side of an
-endpoint. Choose ports that communicate the intended layout and avoid needless
-crossings.
+endpoint. Prefer a top-to-bottom layout: use `B --> T` for a directed edge
+from an upstream service to a downstream service, and use `B -- T` when its
+direction is not established. Choose other ports only when the supported
+topology or a rendered-layout repair requires them.
 
 | Form | Meaning |
 | --- | --- |
+| `a:B -- T:b` | Undirected vertical relationship (preferred layout) |
+| `a:B --> T:b` | Relationship directed from `a` to downstream `b` (preferred layout) |
+| `a:B <--> T:b` | Evidence-backed bidirectional vertical relationship |
 | `a:R -- L:b` | Undirected horizontal relationship |
-| `a:T -- B:b` | Undirected vertical relationship |
-| `a:R --> L:b` | Relationship directed from `a` to `b` |
-| `a:R <--> L:b` | Evidence-backed bidirectional relationship |
-| `a{group}:R --> L:b{group}` | Edge exiting/entering group boundaries |
+| `a:R --> L:b` | Horizontally arranged relationship directed from `a` to `b` |
+| `a{group}:B --> T:b{group}` | Vertical edge exiting/entering group boundaries |
 
 Use `--` when direction is not established. Add `>` at the receiving end, or
 `<` at the sending end, only where source/configuration/`app_interfaces.md`
@@ -241,8 +216,9 @@ valid only on a service that belongs to that group.
 syntax such as `-->|HTTPS|`. When a protocol (HTTPS, TCP, gRPC, a queue
 transport, and so on) is established and materially clarifies the diagram,
 communicate it with an evidence-backed endpoint label such as `[GitHub HTTPS
-API]`, or concise prose outside the Mermaid fence. Do not claim a protocol that
-the available evidence does not establish.
+API]` based on inbound and outbound constructs, or in concise prose outside the
+Mermaid fence. Do not claim a protocol that the available evidence does not
+establish.
 
 ## Alignment and layout
 
@@ -256,24 +232,21 @@ align column <id-a> <id-b> ...
 
 - Members must already be declared services or junctions; each directive needs
   at least two members and occupies its own line.
-- Use `align column` for siblings that connect to a common downstream node via
-  the same horizontal port pair, such as `R --> L:downstream`.
-- Use `align row` for siblings that connect to a common downstream node via the
-  same vertical port pair, such as `B --> T:downstream`.
+- Prefer `align row` for siblings that connect to a common downstream node via
+  the vertical port pair `B --> T:downstream`.
+- Use `align column` only when a supported horizontal arrangement is clearer,
+  such as siblings connected with `R --> L:downstream`.
 - Member order controls their order on the selected axis. It must not contradict
   edge directions or Mermaid may fail to render.
 
 ## Evidence, focus, and review workflow
 
-1. Load this skill and read its required visual reference before drafting. Read
-   the current `app_interfaces.md`, deployment/configuration evidence, relevant
-   source sections, and any current `architecture.md`.
+1. Load this skill before drafting. Read the current `app_interfaces.md`,
+   deployment/configuration evidence, relevant source sections, and any current
+   `architecture.md`.
 2. Identify inbound and outbound interfaces first, classify supported nodes by
-   their primary canonical role, and then model only the supporting services and
-   relationships that the evidence establishes. Omit empty roles; treat any
-   deployment or trust boundary as secondary structure only. Plan layout against
-   the visual reference: one reading direction, a straight primary path, and
-   role placement that keeps secondary edges off the main story.
+   their primary canonical role, and model only services and relationships that
+   the evidence establishes. Omit empty roles and plan the top-to-bottom layout.
 3. Prefer a small system-level diagram over an exhaustive inventory. Keep
    labels specific enough to distinguish components without adding unsupported
    technology claims.
@@ -283,19 +256,20 @@ align column <id-a> <id-b> ...
    built-in icon on every service** (no bare `service id[label]` declarations),
    built-in-only icons, group membership, ports, arrows, and evidence-backed
    edges.
-5. After the final write/no-change decision, call the no-argument
+5. After the final write, call the no-argument
    `validate_architecture` tool. It extracts the diagram as direct Mermaid input,
    streams it to `mmdc`, validates the rendered SVG for Mermaid error-page
    markers, and returns a digest plus the exact rendered PNG. Exit code zero alone
    is not proof of a valid or intuitive diagram.
-6. Inspect the attached PNG against every visual acceptance criterion in the
-   visual reference. Do not judge layout from Mermaid source alone.
-7. If structural validation fails or any visual criterion fails, repair only
-   `architecture.md`, re-read it, repeat the review, call `validate_architecture`
-   again, and inspect the new PNG. Raw `mmdc` console commands are useful
+6. Inspect the attached PNG for clarity, legibility, and an intuitive layout.
+   Do not judge layout from Mermaid source alone.
+7. If structural validation fails or any visual criterion fails, repair the
+   Mermaid diagram and prose in `architecture.md`, re-read it, repeat the review,
+   call `validate_architecture` again, and inspect the new PNG. Raw `mmdc` console
+   commands are useful
    supplemental probes, but their exit status is not the final signal.
-8. Revisit this skill and the visual reference during final review. Confirm the
-   final artifact against repository evidence, the official `architecture-beta`
+8. Revisit this skill during final review. Confirm the final artifact against
+   repository evidence, the official `architecture-beta`
    forms, a built-in icon on every service (so no empty dashed placeholders
    remain), fan-in/fan-out junction necessity, the successful validation digest,
    and a passed visual review of the latest PNG. Finish only when the latest
@@ -306,5 +280,4 @@ align column <id-a> <id-b> ...
 ## Reference
 
 - [Official Mermaid Architecture Diagram syntax](https://mermaid.js.org/syntax/architecture.html)
-- [Upstream architecture-diagrams reference](https://github.com/softaworks/agent-toolkit/blob/HEAD/skills/mermaid-diagrams/references/architecture-diagrams.md)
 - [Iconify](https://iconify.design) (Mermaid supports it generally, but it is prohibited for this project)
