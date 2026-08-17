@@ -1,4 +1,4 @@
-"""Mermaid Architecture Diagram skill factory using isolated discovery."""
+"""D2 architecture-diagram skill factory using isolated discovery."""
 
 from pathlib import Path
 
@@ -6,26 +6,23 @@ from pydantic_ai_skills import SkillsToolset
 
 ARCHITECTURE_DIAGRAMS_SKILLS_DIR = Path(__file__).parent / "architecture-diagrams"
 
-# Guidance skill with one packaged visual-review reference under
-# architecture-diagrams/references/. Script execution stays disabled; repository
-# I/O and Mermaid CLI remain on the separate local console tools.
+# Guidance and URL-only icon catalogs are loaded on demand. Skill script
+# execution stays disabled; the validator owns D2/ELK rendering.
 _ARCHITECTURE_SKILL_INSTRUCTION_TEMPLATE = """\
-You have access to one guidance skill for Mermaid architecture-beta diagrams.
+You have access to one guidance skill for D2 architecture diagrams.
 
 <available_skills>
 {skills_list}
 </available_skills>
 
-When authoring or reviewing architecture.md:
-1. Use `load_skill` with skill_name `architecture-diagrams` to read the full
-   diagram guidance before drafting and again during final review.
-2. Follow the skill's instructions, including its required visual reference and
-   inspection of the validation PNG.
-3. Follow that guidance when writing Mermaid architecture-beta syntax.
-4. Do NOT call skill script tools for this skill. Repository file reads/writes
-   and Mermaid CLI execution use the separate local console tools (`read_file`,
-   `write_file`, `edit_file`, `execute`, and related inspection tools), not
-   skill scripts.
+Runtime artifact ownership and tools are defined by the agent instructions.
+For authoring and visual review:
+1. Use `load_skill` with skill_name `architecture-diagrams` before drafting and
+   again at final review; follow the loaded skill.
+2. Before using a hosted icon, call `read_skill_resource` with skill_name
+   `architecture-diagrams` and an exact resource name listed by `load_skill`
+   (icon catalogs or `icons/README.md`).
+3. Do not call skill script tools.
 """
 
 

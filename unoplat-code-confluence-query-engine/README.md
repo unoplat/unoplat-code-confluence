@@ -65,7 +65,6 @@ The tool generates and maintains markdown documentation including:
 - **Dependency Guide**: Dependency purpose and usage in `dependencies_overview.md`
 - **Business Domain**: Domain summary in `AGENTS.md` with evidence in `business_domain_references.md`
 - **App Interfaces**: Inbound and outbound interface inventory in `app_interfaces.md`
-- **Architecture**: A validated Mermaid architecture diagram in `architecture.md` when external interfaces are detected
 
 ## Troubleshooting
 

@@ -11,7 +11,7 @@ from unoplat_code_confluence_query_engine.tools.architecture_validation_tools im
 
 
 def build_validate_architecture_tool() -> Tool[ArchitectureAgentDependencies]:
-    """Build the Architecture agent's explicit final self-validation tool."""
+    """Build the Architecture agent's no-argument D2/SVG self-validation tool."""
     return Tool(
         validate_architecture,
         takes_ctx=True,

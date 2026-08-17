@@ -16,8 +16,9 @@ RUN bun install --frozen-lockfile
 # Copy the runtime app so the container is bootable on the initial Tilt build.
 COPY . /app
 
-# Browser hits same-origin /electric; Vite proxies to the Compose service DNS
-# name on temporal-network (not host port 3001).
+# Browser hits same-origin /api, /query-engine, and /electric. Proxy targets
+# are set in tilt-docker-compose.yml so Vite reaches Compose service DNS names
+# (not host ports 8000/8001/3001). ELECTRIC_PROXY_TARGET remains a fallback.
 ENV ELECTRIC_PROXY_TARGET=http://electric:3000
 
 EXPOSE 5173

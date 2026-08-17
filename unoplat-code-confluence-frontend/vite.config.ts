@@ -37,14 +37,32 @@ export default defineConfig({
     },
   },
   server: {
-    // Browser uses same-origin /electric/*; proxy to Electric so host port
-    // 3001 and CORS are not required. In Tilt/Compose, ELECTRIC_PROXY_TARGET
-    // points at the Compose service DNS name (http://electric:3000).
+    // Browser uses same-origin /api, /query-engine, and /electric; Vite
+    // proxies to the backend services so host ports and CORS are not required.
+    // In Tilt/Compose, *_PROXY_TARGET points at Compose service DNS names.
     proxy: {
-      "/electric": {
-        target: process.env.ELECTRIC_PROXY_TARGET ?? "http://127.0.0.1:3001",
+      "/api": {
+        target:
+          process.env.API_PROXY_TARGET ??
+          "http://127.0.0.1:8000",
         changeOrigin: true,
-        rewrite: (requestPath) => requestPath.replace(/^\/electric/, ""),
+        rewrite: (requestPath) => requestPath.replace(/^\/api/, ""),
+      },
+      "/query-engine": {
+        target:
+          process.env.QUERY_ENGINE_PROXY_TARGET ??
+          "http://127.0.0.1:8001",
+        changeOrigin: true,
+        rewrite: (requestPath) =>
+          requestPath.replace(/^\/query-engine/, ""),
+      },
+      "/electric": {
+        target:
+          process.env.ELECTRIC_PROXY_TARGET ??
+          "http://127.0.0.1:3001",
+        changeOrigin: true,
+        rewrite: (requestPath) =>
+          requestPath.replace(/^\/electric/, ""),
       },
     },
   },

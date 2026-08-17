@@ -24,6 +24,7 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "sse-starlette>=3.0.0",
     "unoplat-code-confluence-commons>=0.25.0",
+    "gitpython>=3.1.59",
 ]
 
 [dependency-groups]

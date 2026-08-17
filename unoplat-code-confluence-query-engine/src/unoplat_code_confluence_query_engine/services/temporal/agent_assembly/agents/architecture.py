@@ -1,4 +1,4 @@
-"""Pydantic AI agent assembly for the repository architecture artifact."""
+"""Pydantic AI agent assembly for repository-root architecture.d2 authoring."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from pydantic_ai.toolsets.abstract import AbstractToolset
 from pydantic_ai_harness.compaction import (
     ClearToolResults,
     DeduplicateFileReads,
-    SummarizingCompaction,
     TieredCompaction,
 )
 
@@ -26,6 +25,9 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capab
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
     build_architecture_console_capability,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.streaming_summarizing_compaction import (
+    StreamingSummarizingCompaction,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     ARCHITECTURE_CONSOLE_TOOLSET_ID,
@@ -70,7 +72,12 @@ async def architecture_event_stream_handler(
 def build_architecture_agent(
     context: AgentAssemblyContext,
 ) -> AgentBuildResult[ArchitectureAgentDependencies, str]:
-    """Build the Architecture agent with scoped authoring and validation tools."""
+    """Build the Architecture agent with D2 source-only console and validation tools.
+
+    The console exposes read/search plus write/edit for ``architecture.d2`` only.
+    Shell execution is intentionally absent; rendering and validation go through
+    ``validate_architecture``.
+    """
     function_tools: list[Tool[ArchitectureAgentDependencies]] = [
         build_validate_architecture_tool(),
     ]
@@ -101,7 +108,7 @@ def build_architecture_agent(
                     max_tokens=1,
                     keep_pairs=ARCHITECTURE_COMPACTION_KEEP_PAIRS,
                 ),
-                SummarizingCompaction(
+                StreamingSummarizingCompaction(
                     model=None,
                     max_messages=1,
                     keep_messages=ARCHITECTURE_COMPACTION_KEEP_MESSAGES,

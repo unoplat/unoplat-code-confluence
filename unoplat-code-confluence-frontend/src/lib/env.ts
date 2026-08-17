@@ -36,9 +36,9 @@ export const env: Env = {
   /**
    * API Base URL for backend requests
    */
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || "/api",
   queryEngineUrl:
-    import.meta.env.VITE_QUERY_ENGINE_URL || "http://127.0.0.1:8001",
+    import.meta.env.VITE_QUERY_ENGINE_URL || "/query-engine",
   workflowOrchestratorUrl:
     import.meta.env.VITE_WORKFLOW_ORCHESTRATOR_URL || "http://127.0.0.1:8081",
   knowledgeGraphUrl:

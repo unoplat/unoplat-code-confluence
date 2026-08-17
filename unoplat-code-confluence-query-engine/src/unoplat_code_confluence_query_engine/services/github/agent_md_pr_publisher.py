@@ -1,4 +1,4 @@
-"""Publish generated AGENTS.md artifacts to GitHub as one batched PR commit."""
+"""Publish generated repository artifacts to GitHub as one batched PR commit."""
 
 from __future__ import annotations
 
@@ -11,6 +11,9 @@ from unoplat_code_confluence_query_engine.services.github.github_api_helpers imp
     extract_http_error_status,
 )
 
+type ArtifactChange = tuple[str, str]
+"""Repository-relative artifact path and UTF-8 content."""
+
 
 def publish_agent_md_artifacts(
     api: GhApi,
@@ -18,7 +21,7 @@ def publish_agent_md_artifacts(
     owner_name: str,
     repo_name: str,
     branch_name: str,
-    files_to_publish: Sequence[tuple[str, str]],
+    files_to_publish: Sequence[ArtifactChange],
     repository_workflow_run_id: str,
 ) -> PrMetadata:
     """Create a single-commit pull request containing all changed artifacts.
@@ -76,15 +79,14 @@ def publish_agent_md_artifacts(
                 message="PR already exists for this branch",
             )
 
-    content_by_path = dict(files_to_publish)
     tree_entries = [
         {
             "path": rel_path,
             "mode": "100644",
             "type": "blob",
-            "content": content_by_path[rel_path],
+            "content": content,
         }
-        for rel_path in changed_files
+        for rel_path, content in files_to_publish
     ]
     new_tree = api.git.create_tree(  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue, reportUnknownVariableType]
         owner=owner_name,

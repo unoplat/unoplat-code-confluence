@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "source": "https://icons.d2lang.com/",
+  "storage_policy": "hosted-url-references-only",
+  "requires_internet_to_render": true,
+  "category": "technology",
+  "hosted_prefix": "tech",
+  "icon_count": 21,
+  "icons": [
+    {
+      "name": "009-cooler",
+      "label": "Cooler",
+      "hosted_path": "tech/009-cooler.svg",
+      "url": "https://icons.d2lang.com/tech/009-cooler.svg"
+    },
+    {
+      "name": "012-cpu-2",
+      "label": "Cpu",
+      "hosted_path": "tech/012-cpu-2.svg",
+      "url": "https://icons.d2lang.com/tech/012-cpu-2.svg"
+    },
+    {
+      "name": "014-cpu",
+      "label": "Cpu",
+      "hosted_path": "tech/014-cpu.svg",
+      "url": "https://icons.d2lang.com/tech/014-cpu.svg"
+    },
+    {
+      "name": "022-server",
+      "label": "Server",
+      "hosted_path": "tech/022-server.svg",
+      "url": "https://icons.d2lang.com/tech/022-server.svg"
+    },
+    {
+      "name": "041-joystick",
+      "label": "Joystick",
+      "hosted_path": "tech/041-joystick.svg",
+      "url": "https://icons.d2lang.com/tech/041-joystick.svg"
+    },
+    {
+      "name": "048-gamepad",
+      "label": "Gamepad",
+      "hosted_path": "tech/048-gamepad.svg",
+      "url": "https://icons.d2lang.com/tech/048-gamepad.svg"
+    },
+    {
+      "name": "052-smartphone-3",
+      "label": "Smartphone",
+      "hosted_path": "tech/052-smartphone-3.svg",
+      "url": "https://icons.d2lang.com/tech/052-smartphone-3.svg"
+    },
+    {
+      "name": "065-monitor-4",
+      "label": "Monitor",
+      "hosted_path": "tech/065-monitor-4.svg",
+      "url": "https://icons.d2lang.com/tech/065-monitor-4.svg"
+    },
+    {
+      "name": "069-hard-drive",
+      "label": "Hard Drive",
+      "hosted_path": "tech/069-hard-drive.svg",
+      "url": "https://icons.d2lang.com/tech/069-hard-drive.svg"
+    },
+    {
+      "name": "079-tablet-1",
+      "label": "Tablet",
+      "hosted_path": "tech/079-tablet-1.svg",
+      "url": "https://icons.d2lang.com/tech/079-tablet-1.svg"
+    },
+    {
+      "name": "antenna",
+      "label": "Antenna",
+      "hosted_path": "tech/antenna.svg",
+      "url": "https://icons.d2lang.com/tech/antenna.svg"
+    },
+    {
+      "name": "bar-chart",
+      "label": "Bar Chart",
+      "hosted_path": "tech/bar-chart.svg",
+      "url": "https://icons.d2lang.com/tech/bar-chart.svg"
+    },
+    {
+      "name": "bar-chart-1",
+      "label": "Bar Chart",
+      "hosted_path": "tech/bar-chart-1.svg",
+      "url": "https://icons.d2lang.com/tech/bar-chart-1.svg"
+    },
+    {
+      "name": "battery-1",
+      "label": "Battery",
+      "hosted_path": "tech/battery-1.svg",
+      "url": "https://icons.d2lang.com/tech/battery-1.svg"
+    },
+    {
+      "name": "browser-2",
+      "label": "Browser",
+      "hosted_path": "tech/browser-2.svg",
+      "url": "https://icons.d2lang.com/tech/browser-2.svg"
+    },
+    {
+      "name": "desktop",
+      "label": "Desktop",
+      "hosted_path": "tech/desktop.svg",
+      "url": "https://icons.d2lang.com/tech/desktop.svg"
+    },
+    {
+      "name": "diskette",
+      "label": "Diskette",
+      "hosted_path": "tech/diskette.svg",
+      "url": "https://icons.d2lang.com/tech/diskette.svg"
+    },
+    {
+      "name": "laptop",
+      "label": "Laptop",
+      "hosted_path": "tech/laptop.svg",
+      "url": "https://icons.d2lang.com/tech/laptop.svg"
+    },
+    {
+      "name": "power",
+      "label": "Power",
+      "hosted_path": "tech/power.svg",
+      "url": "https://icons.d2lang.com/tech/power.svg"
+    },
+    {
+      "name": "router",
+      "label": "Router",
+      "hosted_path": "tech/router.svg",
+      "url": "https://icons.d2lang.com/tech/router.svg"
+    },
+    {
+      "name": "servers",
+      "label": "Servers",
+      "hosted_path": "tech/servers.svg",
+      "url": "https://icons.d2lang.com/tech/servers.svg"
+    }
+  ]
+}
