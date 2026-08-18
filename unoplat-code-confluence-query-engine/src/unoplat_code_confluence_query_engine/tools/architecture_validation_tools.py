@@ -53,9 +53,17 @@ _ICON_CATALOG_CATEGORIES: tuple[str, ...] = (
     "technology",
     "infrastructure",
 )
+# D2 properties may be assigned through a dotted object path (for example,
+# ``api.icon: ...``) instead of only within an object block as bare ``icon``.
+# Match every path whose final property is ``icon`` so the source allowlist
+# cannot be bypassed by choosing the dotted form.
+_D2_PATH_SEGMENT = r'(?:"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[^\s.:;{}#]+)'
 _ICON_PROPERTY_PATTERN = re.compile(
-    r"(?m)^[ \t]*icon[ \t]*:[ \t]*(?P<value>.+?)[ \t]*(?:#.*)?$"
+    rf"(?m)^[ \t]*(?:(?:{_D2_PATH_SEGMENT})[ \t]*\.[ \t]*)*"
+    r"icon[ \t]*:[ \t]*(?P<value>.+?)[ \t]*(?:#.*)?$"
 )
+_SVG_EMBEDDED_IMAGE_PREFIX = "data:image/"
+_SVG_IMAGE_ELEMENTS = frozenset(("image", "feimage"))
 _CHROMIUM_CANDIDATES: tuple[str, ...] = (
     "chromium",
     "chromium-browser",
@@ -459,7 +467,39 @@ def _validate_svg_output(svg_bytes: bytes) -> ElementTree.Element:
             f"references under {HOSTED_ICON_URL_MARKER}. Icons must be embedded "
             "during the canonical D2 render."
         )
+
+    _validate_svg_image_references(svg_root)
     return svg_root
+
+
+def _validate_svg_image_references(svg_root: ElementTree.Element) -> None:
+    """Require rendered SVG images to be embedded before Chromium opens the file.
+
+    D2 normally turns icon URLs into ``data:image/...`` references. Any other
+    ``href`` on an SVG image (including ``http(s)``, protocol-relative, file,
+    and relative paths) could make headless Chromium perform I/O while creating
+    the preview, so fail closed instead of attempting to classify URL schemes.
+    """
+    unsupported: set[str] = set()
+    for element in svg_root.iter():
+        if _local_name(element.tag).lower() not in _SVG_IMAGE_ELEMENTS:
+            continue
+        for attribute, raw_value in element.attrib.items():
+            if _local_name(attribute).lower() != "href":
+                continue
+            reference = raw_value.strip()
+            if not reference.lower().startswith(_SVG_EMBEDDED_IMAGE_PREFIX):
+                unsupported.add(reference or "<empty>")
+
+    if unsupported:
+        preview = ", ".join(sorted(unsupported)[:8])
+        if len(unsupported) > 8:
+            preview += ", …"
+        raise ModelRetry(
+            "Rendered architecture.svg contains unembedded image reference(s): "
+            f"{preview}. All SVG images must use embedded data:image/ references "
+            "before Chromium preview rendering."
+        )
 
 
 def _parse_svg_dimension(raw_value: str | None) -> float | None:
