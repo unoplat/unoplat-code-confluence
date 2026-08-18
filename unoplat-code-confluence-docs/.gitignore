@@ -17,3 +17,9 @@ node_modules
 
 .source
 dist/
+
+# Generated DIDS catalog pages (scripts/sync-framework-definitions.mjs).
+# Already-tracked customized MDX pages stay in git; new shells and sidebar meta are created at install/build.
+content/docs/supported-frameworks/*/*.mdx
+content/docs/supported-frameworks/meta.json
+content/docs/supported-frameworks/*/meta.json
