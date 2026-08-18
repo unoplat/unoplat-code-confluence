@@ -35,7 +35,37 @@ function resolveElectricShapeUrl(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
     return new URL(path, window.location.origin).href;
   }
-  return path;
+
+  const configuredOrigin = env.frontendOrigin;
+  if (!configuredOrigin) {
+    throw new Error(
+      "Cannot resolve the relative Electric shape URL outside a browser. Set VITE_FRONTEND_ORIGIN to an absolute HTTP(S) origin.",
+    );
+  }
+
+  let origin: URL;
+  try {
+    origin = new URL(configuredOrigin);
+  } catch {
+    throw new Error(
+      `Invalid VITE_FRONTEND_ORIGIN: ${configuredOrigin}. Expected an absolute HTTP(S) origin.`,
+    );
+  }
+
+  if (
+    !["http:", "https:"].includes(origin.protocol) ||
+    origin.username ||
+    origin.password ||
+    origin.pathname !== "/" ||
+    origin.search ||
+    origin.hash
+  ) {
+    throw new Error(
+      `Invalid VITE_FRONTEND_ORIGIN: ${configuredOrigin}. Expected an absolute HTTP(S) origin without credentials, path, query, or fragment.`,
+    );
+  }
+
+  return new URL(path, origin.origin).href;
 }
 
 const electricShapeUrl = resolveElectricShapeUrl();

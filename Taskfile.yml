@@ -162,6 +162,7 @@ tasks:
       vars: [WORKTREE]
     cmds:
       - |
+        set -eu
         case "{{.WORKTREE}}" in
           *[!A-Za-z0-9._-]*)
             echo "Invalid WORKTREE: {{.WORKTREE}}"

@@ -27,6 +27,11 @@ export interface Env {
    */
   electricBaseUrl: string;
   /**
+   * Absolute frontend origin used to resolve same-origin paths when no browser
+   * location is available, such as in Node-based tests.
+   */
+  frontendOrigin?: string;
+  /**
    * Enable verbose SSE debug logging in frontend (Vite flag: VITE_DEBUG_SSE)
    */
   debugSse: boolean;
@@ -46,5 +51,6 @@ export const env: Env = {
   // Always same-origin. Do not read VITE_ELECTRIC_BASE_URL — host :3001 is
   // fragile under Tilt/OrbStack and reintroduces CORS/port collisions.
   electricBaseUrl: "/electric",
+  frontendOrigin: import.meta.env.VITE_FRONTEND_ORIGIN?.trim() || undefined,
   debugSse: String(import.meta.env.VITE_DEBUG_SSE).toLowerCase() === "true",
 };

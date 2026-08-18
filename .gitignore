@@ -5,7 +5,7 @@
 
 # Local working notes and AI agent planning dirs (not source)
 **/backlog/
-**/docs/
+/docs/
 **/product-features/
 **/backups/
 # Local Zed debug configs stay private; shared editor settings are committed
