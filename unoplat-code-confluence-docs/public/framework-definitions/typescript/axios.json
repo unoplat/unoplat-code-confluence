@@ -1,0 +1,43 @@
+{
+  "typescript": {
+    "axios": {
+      "docs_url": "https://axios-http.com/docs/api_intro",
+      "description": "Axios promise-based HTTP client request operations.",
+      "capabilities": {
+        "http_client": {
+          "description": "Outbound HTTP requests made through Axios functions or AxiosInstance receivers.",
+          "operations": {
+            "request": {
+              "description": "Finds Axios HTTP request candidates and Axios client-creation seeds for downstream request tracing.",
+              "absolute_paths": [
+                "axios",
+                "axios.default",
+                "axios.create",
+                "axios.request",
+                "axios.get",
+                "axios.delete",
+                "axios.head",
+                "axios.options",
+                "axios.post",
+                "axios.put",
+                "axios.patch",
+                "axios.postForm",
+                "axios.putForm",
+                "axios.patchForm",
+                "axios.AxiosInstance"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "construct_query": {
+                "match_policy": "import_guarded_regex",
+                "callee_regex": "^(?:axios(?:\\.default)?|(?:[A-Za-z_$][A-Za-z0-9_$]*\\.)+(?:create|request|get|delete|head|options|post|put|patch|postForm|putForm|patchForm))$"
+              },
+              "base_confidence": 0.62,
+              "notes": "Treat axios.create as an instance-creation seed, not as an HTTP request. For a create seed, trace the assigned Axios instance through same-file aliases, exports, barrel re-exports, renamed imports, tsconfig path aliases, and final request-method calls. Persist every verified request call under this same framework identity, then reject and complete the create seed so it is not emitted as an interface. For non-static receiver candidates, confirm that the receiver resolves to the Axios instance; reject unrelated objects that merely expose HTTP-verb method names."
+            }
+          }
+        }
+      }
+    }
+  }
+}

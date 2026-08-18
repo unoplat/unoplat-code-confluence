@@ -52,7 +52,9 @@ path: L<line>: <match_text>
 
 These anchors provide a focused starting point for modeling application boundaries. The architecture process reads only the listed fresh `app_interfaces.md` artifacts, then inspects related source sections and relevant deployment evidence when needed. It runs when fresh evidence includes an external boundary, avoiding an architecture claim when the required foundation is absent.
 
-The result is a repository-root `architecture.md` containing one focused Mermaid `architecture-beta` diagram. Before completion, the diagram is rendered and its SVG is inspected; the current artifact is accepted only after validation succeeds.
+The result is repository-root `architecture.d2` source plus a validated `architecture.svg` render. The agent authors only the D2; `validate_architecture` renders it with D2 v0.7.1 + ELK, inspects the SVG, and publishes the render only after validation succeeds.
+
+<ArchitectureDiagramShowcase />
 
 <Callout type="info" title="Precision and token efficiency by design">
   Source spans narrow business-domain reading to detected models. Fresh interface anchors narrow architecture analysis to relevant boundaries and code. Dependency deltas reuse unchanged entries, while no-change checks preserve accurate workflow content. Deterministic rendering and final validation keep the published artifacts stable and verifiable.
