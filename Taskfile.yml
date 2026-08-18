@@ -197,6 +197,8 @@ tasks:
           echo "Homebrew rsync not found at $RSYNC_BIN"
           exit 1
         fi
+        echo "Preparing remote worktree git admin at $REMOTE_HOST:$REMOTE_ADMIN"
+        ssh "$REMOTE_HOST" "if [ -f '$REMOTE_MAIN/.git' ]; then echo 'Remote $REMOTE_MAIN is a linked worktree (.git is a file), not the main clone'; exit 1; fi; if [ ! -d '$REMOTE_MAIN/.git' ]; then echo 'Remote main clone .git not found: $REMOTE_MAIN/.git'; exit 1; fi; if [ '{{.DRY_RUN}}' != '1' ]; then mkdir -p '$REMOTE_ADMIN'; fi"
         echo "Worktree: $WORKTREE_DIR/ -> $REMOTE_HOST:$REMOTE_WORKTREE/"
         "$RSYNC_BIN" -rlptDvh --progress --delete --delete-excluded --no-owner --no-group --no-acls --no-xattrs \
           --rsync-path="$REMOTE_RSYNC" "$@" \
@@ -227,8 +229,6 @@ tasks:
           --exclude '.DS_Store' \
           "$WORKTREE_DIR/" \
           "$REMOTE_HOST:$REMOTE_WORKTREE/"
-        echo "Preparing remote worktree git admin at $REMOTE_HOST:$REMOTE_ADMIN"
-        ssh "$REMOTE_HOST" "if [ -f '$REMOTE_MAIN/.git' ]; then echo 'Remote $REMOTE_MAIN is a linked worktree (.git is a file), not the main clone'; exit 1; fi; if [ ! -d '$REMOTE_MAIN/.git' ]; then echo 'Remote main clone .git not found: $REMOTE_MAIN/.git'; exit 1; fi; mkdir -p '$REMOTE_ADMIN'"
         echo "Worktree git admin: $LOCAL_ADMIN/ -> $REMOTE_HOST:$REMOTE_ADMIN/"
         "$RSYNC_BIN" -rlptDvh --progress --delete --no-owner --no-group --no-acls --no-xattrs --mkpath \
           --rsync-path="$REMOTE_RSYNC" "$@" \
