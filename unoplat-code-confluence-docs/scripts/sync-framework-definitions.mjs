@@ -51,6 +51,33 @@ function getLibraryName(fileName) {
   return fileName.replace(/\.json$/i, "");
 }
 
+function toCatalogLibraryKey(library) {
+  return library.startsWith("@")
+    ? library.slice(1).replaceAll("/", "-")
+    : library;
+}
+
+function getLibraryDefinition(payload, language, library) {
+  const languageDefinitions = payload[language];
+  if (!languageDefinitions) {
+    return undefined;
+  }
+
+  const exactMatch = languageDefinitions[library];
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const catalogLibraryKey = toCatalogLibraryKey(library);
+  const scopedMatch = Object.entries(languageDefinitions).find(
+    ([packageName]) =>
+      packageName.startsWith("@") &&
+      toCatalogLibraryKey(packageName) === catalogLibraryKey,
+  );
+
+  return scopedMatch?.[1];
+}
+
 function toTitleCase(value) {
   return value
     .split(/[-_\s]+/)
@@ -250,7 +277,7 @@ async function syncFrameworkDefinitions() {
       const library = getLibraryName(fileName);
       libraries.push(library);
 
-      const libraryDefinition = parsed[language]?.[library];
+      const libraryDefinition = getLibraryDefinition(parsed, language, library);
       catalogRows.push({
         language,
         library,
