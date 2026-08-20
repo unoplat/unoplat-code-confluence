@@ -39,6 +39,7 @@ from tests.utils.sync_db_utils import get_sync_postgres_session
 
 # Framework definitions directory (all languages)
 DEFINITIONS_DIR = pathlib.Path(__file__).parent.parent.parent / "framework-definitions"
+EXPECTED_ABSOLUTE_PATHS_COUNT = 193
 
 
 def _build_loader() -> FrameworkDefinitionLoader:
@@ -207,8 +208,9 @@ class TestFrameworkDefinitionsIngestion:
             assert metrics["features_count"] == 76, (
                 f"Expected 76 features, got {metrics['features_count']}"
             )
-            assert metrics["absolute_paths_count"] == 192, (
-                f"Expected 192 absolute paths, got {metrics['absolute_paths_count']}"
+            assert metrics["absolute_paths_count"] == EXPECTED_ABSOLUTE_PATHS_COUNT, (
+                f"Expected {EXPECTED_ABSOLUTE_PATHS_COUNT} absolute paths, "
+                f"got {metrics['absolute_paths_count']}"
             )
 
             # Verify data exists in database
@@ -222,7 +224,7 @@ class TestFrameworkDefinitionsIngestion:
 
             assert framework_count == 21
             assert feature_count == 76
-            assert path_count == 192
+            assert path_count == EXPECTED_ABSOLUTE_PATHS_COUNT
 
     def test_foreign_key_relationships(self, test_client: TestClient, service_ports):
         """Test that foreign key relationships work correctly."""
@@ -350,7 +352,11 @@ class TestFrameworkDefinitionsIngestion:
                 results.append(state)
 
             # All results should be identical for all framework definitions
-            expected_state = {"frameworks": 21, "features": 76, "paths": 192}
+            expected_state = {
+                "frameworks": 21,
+                "features": 76,
+                "paths": EXPECTED_ABSOLUTE_PATHS_COUNT,
+            }
             for result in results:
                 assert result == expected_state
 
@@ -374,8 +380,9 @@ class TestFrameworkDefinitionsIngestion:
         # Validate parsing results match expected production data for all definitions
         assert len(frameworks) == 21, f"Expected 21 frameworks, got {len(frameworks)}"
         assert len(features) == 76, f"Expected 76 features, got {len(features)}"
-        assert len(absolute_paths) == 192, (
-            f"Expected 192 absolute paths, got {len(absolute_paths)}"
+        assert len(absolute_paths) == EXPECTED_ABSOLUTE_PATHS_COUNT, (
+            f"Expected {EXPECTED_ABSOLUTE_PATHS_COUNT} absolute paths, "
+            f"got {len(absolute_paths)}"
         )
 
         # Test specific framework: FastAPI
