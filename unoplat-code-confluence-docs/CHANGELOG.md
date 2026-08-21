@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.46.1...unoplat-code-confluence-docs-v0.47.0) (2026-08-21)
+
+
+### Features
+
+* add architecture for docs and updated dependencies ([944b84b](https://github.com/unoplat/unoplat-code-confluence/commit/944b84b8cd1f14d222e12944a38ca466a030ffb9))
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
+
+### Bug Fixes
+
+* **docs:** resolve scoped framework catalog packages ([1c93c0b](https://github.com/unoplat/unoplat-code-confluence/commit/1c93c0b47148df8d8086d2f5782c04c5f66cfede))
+* **test:** temporal test fix ([55fc16e](https://github.com/unoplat/unoplat-code-confluence/commit/55fc16e88495a9748cfc786f34dc91638b110a20))
+
 ## [0.46.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-docs-v0.46.0...unoplat-code-confluence-docs-v0.46.1) (2026-07-18)
 
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.87.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.86.0...code-confluence-flow-bridge-v0.87.0) (2026-08-21)
+
+
+### Features
+
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
+
+### Bug Fixes
+
+* **new-version-method-calls:** include execute start child as part of temporal discovery ([a0c6b9a](https://github.com/unoplat/unoplat-code-confluence/commit/a0c6b9a34736a4e81a22e32a3c6e94d503956b04))
+* **test:** temporal test fix ([55fc16e](https://github.com/unoplat/unoplat-code-confluence/commit/55fc16e88495a9748cfc786f34dc91638b110a20))
+
 ## [0.86.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.85.0...code-confluence-flow-bridge-v0.86.0) (2026-07-15)
 
 
