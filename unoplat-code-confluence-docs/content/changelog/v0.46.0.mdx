@@ -1,0 +1,32 @@
+---
+title: "Release v0.46.0"
+description: "Repository architecture diagrams move to D2 with validated SVG output, plus more reliable live sync and Temporal discovery"
+version: "0.46.0"
+releaseDate: "2026-08-21"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.46.0"
+---
+
+## Highlights
+
+This release migrates repository architecture diagrams from Mermaid to D2, validates the rendered SVG before publishing, and hardens live progress sync and Temporal child-workflow discovery.
+
+## What's New
+
+### D2 Architecture Diagrams
+
+- Authors unfenced D2 in repository-root `architecture.d2` instead of a Mermaid diagram inside `architecture.md`
+- Renders with D2 v0.7.1 and ELK, then publishes `architecture.svg` only after source and visual validation succeed
+- Inspects the rendered diagram (SVG and a temporary PNG preview) rather than judging layout from source alone
+- Ships development, infrastructure, and technology icon catalogs so diagrams can use a consistent visual vocabulary
+- Keeps the evidence-first workflow: inbound and outbound constructs from `app_interfaces.md` still bound what the diagram may claim
+
+### Docs Architecture Showcase
+
+- The documentation How it works page now embeds the generated `architecture.svg` for this project
+- Framework catalog pages resolve scoped package names correctly (for example `@tanstack/...`)
+
+## Bug Fixes
+
+- Proxied Electric live-sync streams through the same-origin frontend so progress updates no longer depend on a cross-origin Electric URL
+- Included Temporal `execute_child_workflow` in framework discovery, alongside existing `start_child_workflow` coverage
+- Validated D2 source and rendered SVG before treating an architecture diagram as complete

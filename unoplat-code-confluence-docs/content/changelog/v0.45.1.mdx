@@ -1,0 +1,24 @@
+---
+title: "Release v0.45.1"
+description: "Cleaner call-expression discovery, a published realtime_sync schema, and more reliable Temporal usage capture"
+version: "0.45.1"
+releaseDate: "2026-07-23"
+githubRelease: "https://github.com/unoplat/unoplat-code-confluence/releases/tag/unoplat-code-confluence-v0.45.1"
+---
+
+## Highlights
+
+This patch tightens call-expression discovery so test files no longer pollute interface evidence, publishes the missing `realtime_sync` capability in the framework schema, and makes Temporal usage capture more reliable.
+
+## Bug Fixes
+
+### Call-Expression Discovery
+
+- Excluded JS/TS test filenames and test paths from call-expression discovery
+- Skipped invalid usage spans instead of treating them as proven evidence
+- Retried persistence for spans that were already proven, so discovered usages are less likely to be dropped
+
+### Schema and Temporal
+
+- Published the `realtime_sync` capability on the framework-definition schema so custom definitions can declare bidirectional sync constructs
+- Migrated call-discoverer retry configuration and read usage from the Temporal `RunResult` property
