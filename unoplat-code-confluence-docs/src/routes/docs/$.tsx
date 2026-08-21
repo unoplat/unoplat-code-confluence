@@ -12,6 +12,7 @@ import {
 } from "fumadocs-ui/layouts/docs/page";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import { baseOptions } from "@/lib/layout.shared";
+import { ArchitectureDiagramShowcase } from "@/components/architecture-diagram-showcase";
 import { RoadmapCard } from "@/components/roadmap-card";
 import { RoadmapSection } from "@/components/roadmap-section";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
@@ -119,6 +120,7 @@ const clientLoader = browserCollections.docs.createClientLoader<Record<string, n
                   className="rounded-lg border border-fd-border my-4"
                 />
               ),
+              ArchitectureDiagramShowcase,
               RoadmapCard,
               RoadmapSection,
               Tab,

@@ -12,6 +12,7 @@
 - **markdown-it-py**: Purpose: Python port of markdown-it: a fast, configurable Markdown parser that follows CommonMark and supports plugin-based syntax extensions.
 - **pydantic-ai**: Purpose: Pydantic AI is a Python agent framework for building GenAI applications and agents. It uses Pydantic for structured outputs, dependency injection, tool calling, and composable agent capabilities.
 - **pydantic-ai-backend**: Purpose: File storage and sandbox backends for Pydantic AI agents. It provides a console toolset for file operations, Docker-isolated execution, and permission controls for safer agent workflows.
+- **pydantic-ai-harness**: Purpose: Batteries for Pydantic AI agents. Used here for conversation compaction capabilities (`TieredCompaction`, `ClearToolResults`, `DeduplicateFileReads`, `SummarizingCompaction`) on the architecture agent.
 - **pydantic-ai-skills**: Purpose: A Python framework for building and managing Agent Skills in Pydantic AI. It provides SkillsToolset/SkillsCapability for progressive disclosure, loading filesystem or programmatic skills on demand and staying compatible with the Agent Skills spec.
 - **pydantic-ai-slim**: Purpose: Slim install variant of Pydantic AI for Python. It gives you the core agent framework and lets you add only the optional provider/tool extras you need.
 - **qs-codec**: Purpose: Query string encoding and decoding for Python. A Python port of the JavaScript qs library, supporting nested objects/lists, configurable list formats, duplicate-key handling, and charset/encoding options.

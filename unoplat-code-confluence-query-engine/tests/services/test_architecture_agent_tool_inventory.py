@@ -63,13 +63,13 @@ async def test_architecture_agent_prints_available_tool_schemas(tmp_path) -> Non
     assert [tool["name"] for tool in inventory] == [
         "validate_architecture",
         "load_skill",
+        "read_skill_resource",
         "ls",
         "read_file",
         "write_file",
         "edit_file",
         "glob",
         "grep",
-        "execute",
     ]
     background_tools = {
         "run_in_background",

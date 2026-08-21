@@ -3,8 +3,8 @@
 All current agent backends resolve to local filesystem backends scoped to the
 active repository. Readonly agents get inspection-only access; direct AGENTS.md
 section owners get markdown-scoped editing for their owned sections; the
-development workflow agent gets shell execution; and the Architecture agent can
-write only architecture.md and execute only its fixed Mermaid validation command.
+development workflow agent gets shell execution; and the Architecture agent may
+write/edit only repository-root ``architecture.d2`` with shell execution disabled.
 """
 
 from __future__ import annotations
@@ -21,13 +21,15 @@ from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_m
     CodebaseMetadata,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
-    ARCHITECTURE_ARTIFACT,
     CALL_EXPRESSION_DISCOVERY_RULESET,
     MARKDOWN_READ_WRITE_EXECUTE_RULESET,
     MARKDOWN_READ_WRITE_RULESET,
     READ_AND_EXECUTE_RULESET,
     READONLY_CONSOLE_RULESET,
     build_architecture_console_ruleset,
+)
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    ARCHITECTURE_SOURCE_ARTIFACT,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_backend_paths import (
     resolve_repository_root,
@@ -47,10 +49,10 @@ class ClampedTimeoutLocalBackend(LocalBackend):
     """
 
     @override
-    def execute(
-        self, command: str, timeout: int | None = None
-    ) -> ExecuteResponse:
-        clamped = min(timeout or EXECUTE_TIMEOUT_SECONDS_CAP, EXECUTE_TIMEOUT_SECONDS_CAP)
+    def execute(self, command: str, timeout: int | None = None) -> ExecuteResponse:
+        clamped = min(
+            timeout or EXECUTE_TIMEOUT_SECONDS_CAP, EXECUTE_TIMEOUT_SECONDS_CAP
+        )
         return super().execute(command, timeout=clamped)
 
     @override
@@ -58,7 +60,9 @@ class ClampedTimeoutLocalBackend(LocalBackend):
         self, command: str, timeout: int | None = None
     ) -> ExecuteResponse:
         """Run through LocalBackend's cancellable path with the same timeout cap."""
-        clamped = min(timeout or EXECUTE_TIMEOUT_SECONDS_CAP, EXECUTE_TIMEOUT_SECONDS_CAP)
+        clamped = min(
+            timeout or EXECUTE_TIMEOUT_SECONDS_CAP, EXECUTE_TIMEOUT_SECONDS_CAP
+        )
         return await super().async_execute(command, timeout=clamped)
 
 
@@ -111,18 +115,24 @@ def _build_local_backend(
 
 
 def resolve_architecture_backend(repository_root: str) -> BackendProtocol:
-    """Build the repository-root Architecture backend without a codebase dependency."""
+    """Build the repository-root Architecture backend without a codebase dependency.
+
+    Execution is disabled: the model authors only ``architecture.d2`` and relies on
+    the dedicated ``validate_architecture`` tool for D2/ELK/SVG validation.
+    """
     root = Path(repository_root)
     if not root.is_absolute():
         raise ValueError(
             f"Architecture backend requires an absolute repository root, got: {repository_root!r}"
         )
     root = root.resolve()
-    return ClampedTimeoutLocalBackend(
+    return LocalBackend(
         root_dir=root,
         allowed_directories=[str(root)],
-        enable_execute=True,
-        permissions=build_architecture_console_ruleset(str(root / ARCHITECTURE_ARTIFACT)),
+        enable_execute=False,
+        permissions=build_architecture_console_ruleset(
+            str(root / ARCHITECTURE_SOURCE_ARTIFACT)
+        ),
         ask_fallback="deny",
     )
 

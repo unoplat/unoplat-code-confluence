@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "source": "https://icons.d2lang.com/",
+  "storage_policy": "hosted-url-references-only",
+  "requires_internet_to_render": true,
+  "category": "infrastructure",
+  "hosted_prefix": "infra",
+  "icon_count": 17,
+  "icons": [
+    {
+      "name": "001-access-denied",
+      "label": "Access Denied",
+      "hosted_path": "infra/001-access-denied.svg",
+      "url": "https://icons.d2lang.com/infra/001-access-denied.svg"
+    },
+    {
+      "name": "002-backup",
+      "label": "Backup",
+      "hosted_path": "infra/002-backup.svg",
+      "url": "https://icons.d2lang.com/infra/002-backup.svg"
+    },
+    {
+      "name": "003-firewall",
+      "label": "Firewall",
+      "hosted_path": "infra/003-firewall.svg",
+      "url": "https://icons.d2lang.com/infra/003-firewall.svg"
+    },
+    {
+      "name": "007-satellite",
+      "label": "Satellite",
+      "hosted_path": "infra/007-satellite.svg",
+      "url": "https://icons.d2lang.com/infra/007-satellite.svg"
+    },
+    {
+      "name": "010-data-sharing",
+      "label": "Data Sharing",
+      "hosted_path": "infra/010-data-sharing.svg",
+      "url": "https://icons.d2lang.com/infra/010-data-sharing.svg"
+    },
+    {
+      "name": "011-data-storage",
+      "label": "Data Storage",
+      "hosted_path": "infra/011-data-storage.svg",
+      "url": "https://icons.d2lang.com/infra/011-data-storage.svg"
+    },
+    {
+      "name": "011-delete",
+      "label": "Delete",
+      "hosted_path": "infra/011-delete.svg",
+      "url": "https://icons.d2lang.com/infra/011-delete.svg"
+    },
+    {
+      "name": "012-data",
+      "label": "Data",
+      "hosted_path": "infra/012-data.svg",
+      "url": "https://icons.d2lang.com/infra/012-data.svg"
+    },
+    {
+      "name": "013-transfer",
+      "label": "Transfer",
+      "hosted_path": "infra/013-transfer.svg",
+      "url": "https://icons.d2lang.com/infra/013-transfer.svg"
+    },
+    {
+      "name": "014-network",
+      "label": "Network",
+      "hosted_path": "infra/014-network.svg",
+      "url": "https://icons.d2lang.com/infra/014-network.svg"
+    },
+    {
+      "name": "019-network",
+      "label": "Network",
+      "hosted_path": "infra/019-network.svg",
+      "url": "https://icons.d2lang.com/infra/019-network.svg"
+    },
+    {
+      "name": "021-hardware",
+      "label": "Hardware",
+      "hosted_path": "infra/021-hardware.svg",
+      "url": "https://icons.d2lang.com/infra/021-hardware.svg"
+    },
+    {
+      "name": "022-hosting",
+      "label": "Hosting",
+      "hosted_path": "infra/022-hosting.svg",
+      "url": "https://icons.d2lang.com/infra/022-hosting.svg"
+    },
+    {
+      "name": "025-plug-in",
+      "label": "Plug In",
+      "hosted_path": "infra/025-plug-in.svg",
+      "url": "https://icons.d2lang.com/infra/025-plug-in.svg"
+    },
+    {
+      "name": "033-protection",
+      "label": "Protection",
+      "hosted_path": "infra/033-protection.svg",
+      "url": "https://icons.d2lang.com/infra/033-protection.svg"
+    },
+    {
+      "name": "040-global network",
+      "label": "Global Network",
+      "hosted_path": "infra/040-global network.svg",
+      "url": "https://icons.d2lang.com/infra/040-global%20network.svg"
+    },
+    {
+      "name": "041-tower",
+      "label": "Tower",
+      "hosted_path": "infra/041-tower.svg",
+      "url": "https://icons.d2lang.com/infra/041-tower.svg"
+    }
+  ]
+}

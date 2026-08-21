@@ -1,0 +1,29 @@
+{
+  "python": {
+    "click": {
+      "docs_url": "https://click.palletsprojects.com/",
+      "description": "Click command decorators that expose executable command-line entry points.",
+      "capabilities": {
+        "cli_command": {
+          "description": "Executable leaf commands registered with Click.",
+          "operations": {
+            "command": {
+              "description": "Register a function as an executable Click command.",
+              "docs_url": "https://click.palletsprojects.com/en/stable/api/#click.command",
+              "absolute_paths": [
+                "click.command"
+              ],
+              "target_level": "function",
+              "concept": "AnnotationLike",
+              "construct_query": {
+                "method_regex": "^command$"
+              },
+              "startpoint": true,
+              "notes": "Detects executable leaf command functions decorated with @click.command or @cli.command when Click is imported. The @click.group/@cli.group definitions are not emitted, and no command-to-group hierarchy is traced. Parameter/helper decorators are excluded. Receiver provenance for @cli.command is not traced beyond the file-level Click import guard."
+            }
+          }
+        }
+      }
+    }
+  }
+}

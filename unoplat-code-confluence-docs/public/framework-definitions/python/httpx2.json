@@ -1,0 +1,50 @@
+{
+  "python": {
+    "httpx2": {
+      "docs_url": "https://httpx2.pydantic.dev/",
+      "description": "HTTPX2 top-level HTTP request and WebSocket client helpers.",
+      "capabilities": {
+        "http_client": {
+          "description": "Outbound HTTP requests made through HTTPX2 public module helpers.",
+          "operations": {
+            "http_request": {
+              "description": "Send or stream an outbound HTTP request through an HTTPX2 top-level helper.",
+              "docs_url": "https://httpx2.pydantic.dev/api/",
+              "absolute_paths": [
+                "httpx2.request",
+                "httpx2.get",
+                "httpx2.options",
+                "httpx2.head",
+                "httpx2.post",
+                "httpx2.put",
+                "httpx2.patch",
+                "httpx2.delete",
+                "httpx2.stream"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "Top-level HTTP request calls require exact HTTPX2 import or module provenance, including aliases; unrelated local helpers are rejected."
+            }
+          }
+        },
+        "websocket_client": {
+          "description": "Outbound WebSocket sessions opened through HTTPX2.",
+          "operations": {
+            "websocket": {
+              "description": "Open an outbound WebSocket session through the HTTPX2 top-level context-manager helper.",
+              "docs_url": "https://github.com/pydantic/httpx2/blob/main/src/httpx2/httpx2/_api.py",
+              "absolute_paths": [
+                "httpx2.websocket"
+              ],
+              "target_level": "function",
+              "concept": "CallExpression",
+              "base_confidence": 0.95,
+              "notes": "The top-level WebSocket helper requires exact HTTPX2 import or module provenance, including aliases, and maps separately to the existing websocket_client outbound capability. This helper is present on upstream main after the 2.5.0 release."
+            }
+          }
+        }
+      }
+    }
+  }
+}

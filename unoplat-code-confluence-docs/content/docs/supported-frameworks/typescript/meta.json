@@ -1,10 +1,12 @@
 {
   "title": "Typescript",
   "pages": [
+    "axios",
     "firebase",
     "lit",
     "nextjs",
     "swr",
+    "tanstack-react-db",
     "zustand"
   ]
 }

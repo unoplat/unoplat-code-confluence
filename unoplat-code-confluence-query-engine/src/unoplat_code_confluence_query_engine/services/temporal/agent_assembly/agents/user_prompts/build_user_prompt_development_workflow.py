@@ -35,7 +35,7 @@ def build_development_workflow_instructions() -> str:
         "Forbidden edits:\n"
         "- any other AGENTS.md heading or section content\n"
         "- any non-markdown file\n"
-        "- creating, editing, moving, or deleting repository-root `architecture.md`\n"
+        "- creating, editing, moving, or deleting repository-root `architecture.d2` or `architecture.svg`\n"
         "- dependencies_overview.md, business_domain_references.md, app_interfaces.md, or any source/config file\n"
         "If ## Engineering Workflow is already complete and correct before this run modifies anything, do not rewrite it. Whether you may return status=no_change will be conveyed by the user for this run.\n"
         "Use this exact section shape:\n"
@@ -50,12 +50,13 @@ def build_development_workflow_instructions() -> str:
         "</markdown_ownership>\n"
         "<existing_section_update_policy>\n"
         "Follow this decision procedure in order:\n"
-        "1. Read the exact AGENTS.md path supplied in the user prompt and inspect only the existing ## Engineering Workflow section if it exists.\n"        "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
-        "3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. If and only if the user says no-change output is allowed for this run, return {\"status\":\""
+        "1. Read the exact AGENTS.md path supplied in the user prompt and inspect only the existing ## Engineering Workflow section if it exists.\n"
+        "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
+        '3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. If and only if the user says no-change output is allowed for this run, return {"status":"'
         f"{ENGINEERING_WORKFLOW_NO_CHANGE}"
-        "\"} with no commands field. If the user says full structured output is required, return {\"status\":\""
+        '"} with no commands field. If the user says full structured output is required, return {"status":"'
         f"{ENGINEERING_WORKFLOW_FULL_OUTPUT}"
-        "\",\"commands\":[...]} instead without rewriting the already-correct section.\n"
+        '","commands":[...]} instead without rewriting the already-correct section.\n'
         "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return full_output with commands.\n"
         f"Once you invoke edit_file or write_file in this run, status={ENGINEERING_WORKFLOW_NO_CHANGE} is no longer valid; return status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with the commands you wrote.\n"
         "</existing_section_update_policy>\n"
@@ -85,15 +86,15 @@ def build_development_workflow_prompt(
             + "No-change output is allowed for this run because previous structured engineering_workflow data is available to carry forward. "
             "If — and only if — the existing AGENTS.md ## Engineering Workflow section is already correct "
             "before you make any edits, return exactly "
-            f"{{\"status\":\"{ENGINEERING_WORKFLOW_NO_CHANGE}\"}} with no commands field. If you invoke edit_file or write_file in this run, return "
-            f"{{\"status\":\"{ENGINEERING_WORKFLOW_FULL_OUTPUT}\",\"commands\":[...]}} instead."
+            f'{{"status":"{ENGINEERING_WORKFLOW_NO_CHANGE}"}} with no commands field. If you invoke edit_file or write_file in this run, return '
+            f'{{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}} instead.'
         )
 
     return (
         base_prompt
         + "Full structured output is required for this run because previous structured engineering_workflow data is unavailable. "
         "If the existing AGENTS.md ## Engineering Workflow section is already correct before you make any edits, do not rewrite it, but return full_output with commands inferred from verified repository evidence and the existing section. "
-        f"Do not return status={ENGINEERING_WORKFLOW_NO_CHANGE}. Return {{\"status\":\"{ENGINEERING_WORKFLOW_FULL_OUTPUT}\",\"commands\":[...]}}. If you invoke edit_file or write_file in this run, return full_output with the commands you wrote."
+        f'Do not return status={ENGINEERING_WORKFLOW_NO_CHANGE}. Return {{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}}. If you invoke edit_file or write_file in this run, return full_output with the commands you wrote.'
     )
 
 

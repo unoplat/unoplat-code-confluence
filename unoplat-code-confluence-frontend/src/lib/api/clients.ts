@@ -3,7 +3,7 @@ import { env } from "@/lib/env";
 
 /**
  * Shared axios client for ingestion service (code-confluence-flow-bridge)
- * Base URL: VITE_API_BASE_URL (default: http://127.0.0.1:8000)
+ * Base URL: VITE_API_BASE_URL (default: /api)
  */
 export const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
@@ -15,7 +15,7 @@ export const apiClient: AxiosInstance = axios.create({
 
 /**
  * Shared axios client for query engine service
- * Base URL: VITE_QUERY_ENGINE_URL (default: http://127.0.0.1:8001)
+ * Base URL: VITE_QUERY_ENGINE_URL (default: /query-engine)
  */
 export const queryEngineClient: AxiosInstance = axios.create({
   baseURL: env.queryEngineUrl,

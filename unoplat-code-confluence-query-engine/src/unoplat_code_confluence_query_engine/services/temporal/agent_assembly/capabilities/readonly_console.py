@@ -10,7 +10,7 @@ Supports local-console profiles for:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, override
 
 from pydantic_ai.exceptions import SkipToolExecution
 from pydantic_ai.messages import ToolCallPart
@@ -31,6 +31,11 @@ from pydantic_ai_backends.toolsets.console import (
     GREP_DESCRIPTION,
     WRITE_FILE_DESCRIPTION,
     create_console_toolset,
+)
+
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
+    ARCHITECTURE_RENDER_ARTIFACT,
+    ARCHITECTURE_SOURCE_ARTIFACT,
 )
 
 
@@ -178,24 +183,29 @@ _CALL_EXPRESSION_JS_TS_TEST_FILENAMES: tuple[str, ...] = tuple(
         f"*_test.{ext}",
     )
 )
-CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = [
-    pattern
-    for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
-    for pattern in (name, f"{name}/**", f"**/{name}", f"**/{name}/**")
-] + [
-    pattern
-    for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
-    for pattern in (filename, f"**/{filename}")
-] + [
-    pattern
-    for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
-    for pattern in (filename, f"**/{filename}")
-] + [
-    pattern
-    for suffix in _CALL_EXPRESSION_JS_TS_TEST_SUFFIXES
-    for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
-    for pattern in (f"*.{suffix}.{ext}", f"**/*.{suffix}.{ext}")
-]
+CALL_EXPRESSION_TEST_PATH_PATTERNS: list[str] = (
+    [
+        pattern
+        for name in _CALL_EXPRESSION_TEST_DIRECTORY_NAMES
+        for pattern in (name, f"{name}/**", f"**/{name}", f"**/{name}/**")
+    ]
+    + [
+        pattern
+        for filename in _CALL_EXPRESSION_PYTHON_TEST_FILENAMES
+        for pattern in (filename, f"**/{filename}")
+    ]
+    + [
+        pattern
+        for filename in _CALL_EXPRESSION_JS_TS_TEST_FILENAMES
+        for pattern in (filename, f"**/{filename}")
+    ]
+    + [
+        pattern
+        for suffix in _CALL_EXPRESSION_JS_TS_TEST_SUFFIXES
+        for ext in _CALL_EXPRESSION_JS_TS_TEST_EXTENSIONS
+        for pattern in (f"*.{suffix}.{ext}", f"**/*.{suffix}.{ext}")
+    ]
+)
 
 
 COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
@@ -212,13 +222,6 @@ COMMAND_DISCOVERY_ALLOW_PATTERNS: list[str] = [
     "** help",
     "** help **",
 ]
-
-ARCHITECTURE_ARTIFACT = "architecture.md"
-ARCHITECTURE_VALIDATION_COMMAND = (
-    "mmdc --input architecture.md "
-    "--output /tmp/unoplat-architecture-validation-$$.svg "
-    "--puppeteerConfigFile /app/puppeteer-config.json --quiet"
-)
 
 CONSOLE_TOOL_MAX_RETRIES: int = 3
 
@@ -381,33 +384,45 @@ MARKDOWN_READ_WRITE_EXECUTE_RULESET = PermissionRuleset(
 
 
 def build_architecture_console_ruleset(
-    architecture_path: str = f"**/{ARCHITECTURE_ARTIFACT}",
+    architecture_path: str = f"**/{ARCHITECTURE_SOURCE_ARTIFACT}",
 ) -> PermissionRuleset:
-    """Build Architecture permissions scoped to one artifact and Mermaid CLI.
+    """Build Architecture permissions scoped to repository-root architecture.d2.
 
-    The console capability uses the default recursive artifact pattern because it
-    is assembled before codebase metadata is available. Backend resolution grants
-    access only within the resolved repository boundary.
+    The model may write/edit only the D2 source. Generated SVG and every
+    unrelated path are denied. Shell execution is not part of the Architecture
+    console; validation belongs to ``validate_architecture``.
+
+    The console capability uses the default recursive source pattern because it
+    is assembled before codebase metadata is available. Backend resolution
+    grants write/edit access only to the exact repository-root source path
+    within the resolved repository boundary.
     """
-    # `create_console_toolset` hides write/edit/execute tools when the
-    # operation default is "deny". Using default="allow" keeps those tools
-    # registered without marking them requires_approval (which default="ask"
-    # does). Approval-required tools become DeferredToolRequests, and the
-    # Architecture agent only accepts str output, so "ask" aborts the run on
-    # the first write. Explicit allow rules plus a catch-all deny preserve
-    # deny-by-default safety with first-match-wins evaluation.
+    # `create_console_toolset` hides write/edit tools when the operation default
+    # is "deny". Using default="allow" keeps those tools registered without
+    # marking them requires_approval (which default="ask" does).
+    # Approval-required tools become DeferredToolRequests, and the Architecture
+    # agent only accepts str output, so "ask" aborts the run on the first write.
+    # Explicit allow/deny rules plus a catch-all deny preserve deny-by-default
+    # safety with first-match-wins evaluation.
     artifact_permissions = OperationPermissions(
         default="allow",
         rules=[
             PermissionRule(
                 pattern=architecture_path,
                 action="allow",
-                description="Allow only the repository-root architecture artifact",
+                description=("Allow only the repository-root architecture.d2 source"),
+            ),
+            *_deny_rules(
+                [
+                    ARCHITECTURE_RENDER_ARTIFACT,
+                    f"**/{ARCHITECTURE_RENDER_ARTIFACT}",
+                ],
+                "Deny architecture SVG render artifact",
             ),
             PermissionRule(
                 pattern="**",
                 action="deny",
-                description="Deny all non-architecture artifact paths",
+                description="Deny all non-architecture.d2 paths",
             ),
         ],
     )
@@ -416,24 +431,7 @@ def build_architecture_console_ruleset(
         read=_read_permissions(),
         write=artifact_permissions,
         edit=artifact_permissions,
-        # Allow rules must precede the catch-all deny because
-        # PermissionChecker uses first-match-wins semantics. The permission
-        # patterns use glob syntax: one rule covers the bare executable and the
-        # other covers any mmdc arguments.
-        execute=OperationPermissions(
-            default="allow",
-            rules=[
-                *_allow_rules(
-                    ["mmdc", "mmdc **"],
-                    "Allow Mermaid CLI help, version, and render commands",
-                ),
-                PermissionRule(
-                    pattern="**",
-                    action="deny",
-                    description="Deny all non-mmdc commands",
-                ),
-            ],
-        ),
+        execute=OperationPermissions(default="deny"),
         glob=OperationPermissions(default="allow"),
         grep=OperationPermissions(default="allow"),
         ls=OperationPermissions(default="allow"),
@@ -486,16 +484,13 @@ ARCHITECTURE_TOOL_DESCRIPTIONS: dict[str, str] = {
     **COMMON_TOOL_DESCRIPTIONS,
     "write_file": (
         f"{WRITE_FILE_DESCRIPTION}\n\n"
-        "This agent may write only repository-root `architecture.md`. All other files are denied."
+        "This agent may write only repository-root `architecture.d2`. "
+        "All other paths are denied."
     ),
     "edit_file": (
         f"{EDIT_FILE_DESCRIPTION}\n\n"
-        "This agent may edit only repository-root `architecture.md`. All other files are denied."
-    ),
-    "execute": (
-        "Execute Mermaid CLI from the repository root. Only the `mmdc` executable is "
-        "permitted, including help, version, and render invocations; unrelated "
-        "executables are denied."
+        "This agent may edit only repository-root `architecture.d2`. "
+        "All other paths are denied."
     ),
 }
 
@@ -522,12 +517,14 @@ class LocalConsoleCapability(ConsoleCapability):
             descriptions=self.descriptions,
             permissions=self.permissions,
             max_retries=CONSOLE_TOOL_MAX_RETRIES,
+            image_support=True,
         )
         self._checker = PermissionChecker(
             ruleset=self.permissions,
             ask_fallback="deny",
         )
 
+    @override
     async def before_tool_execute(
         self,
         ctx: RunContext[Any],
@@ -551,6 +548,7 @@ class LocalConsoleCapability(ConsoleCapability):
                 "continue using allowed evidence."
             ) from error
 
+    @override
     async def prepare_tools(
         self,
         ctx: RunContext[Any],
@@ -650,13 +648,11 @@ def build_markdown_execute_console_capability(
 
 
 def build_architecture_console_capability(toolset_id: str) -> LocalConsoleCapability:
-    """Create the Architecture console with one artifact and Mermaid CLI access."""
+    """Create the Architecture console with D2 source-only write/edit access."""
     return build_local_console_capability(
         toolset_id=toolset_id,
-        include_execute=True,
+        include_execute=False,
         permissions=ARCHITECTURE_CONSOLE_RULESET,
         descriptions=ARCHITECTURE_TOOL_DESCRIPTIONS,
-        visible_despite_wildcard_denial=frozenset(
-            {"write_file", "edit_file", "execute"}
-        ),
+        visible_despite_wildcard_denial=frozenset({"write_file", "edit_file"}),
     )

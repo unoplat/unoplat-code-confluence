@@ -66,7 +66,6 @@ RUN useradd --uid ${APP_UID} --create-home --shell /usr/sbin/nologin ${APP_USER}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PUPPETEER_SKIP_DOWNLOAD=true \
     PATH="/opt/poetry/bin:/app/.venv/bin:$PATH"
 
 # Install runtime dependencies needed for local execute workflows
@@ -85,6 +84,26 @@ RUN apt-get update && \
         unzip \
     && rm -rf /var/lib/apt/lists/*
 
+# Install a pinned D2 release for ELK architecture rendering. The binary is
+# selected for the target platform and verified against the release digest.
+ARG D2_VERSION=0.7.1
+ARG TARGETARCH
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64) D2_SHA256="eb172adf59f38d1e5a70ab177591356754ffaf9bebb84e0ca8b767dfb421dad7" ;; \
+        arm64) D2_SHA256="ce3a0b985a8f91335a826c254b3a88736fd81afcdd08b58f6c749d2add6864b0" ;; \
+        *) echo "Unsupported D2 architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    D2_ARCHIVE="d2-v${D2_VERSION}-linux-${TARGETARCH}.tar.gz"; \
+    curl -fsSL \
+        "https://github.com/d2lang/d2/releases/download/v${D2_VERSION}/${D2_ARCHIVE}" \
+        -o /tmp/d2.tar.gz; \
+    echo "${D2_SHA256}  /tmp/d2.tar.gz" | sha256sum --check -; \
+    tar -xzf /tmp/d2.tar.gz -C /tmp; \
+    install -m 0755 "/tmp/d2-v${D2_VERSION}/bin/d2" /usr/local/bin/d2; \
+    rm -rf /tmp/d2.tar.gz "/tmp/d2-v${D2_VERSION}"; \
+    d2 --version
+
 # Install uv and Poetry for Python workflow command verification
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /usr/local/bin/
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3 -
@@ -97,9 +116,7 @@ COPY --from=node-stage /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -sf ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx && \
     ln -sf ../lib/node_modules/corepack/dist/corepack.js /usr/local/bin/corepack && \
-    corepack enable && \
-    npm install --global @mermaid-js/mermaid-cli@11.16.0 && \
-    mmdc --version
+    corepack enable
 
 WORKDIR /app
 

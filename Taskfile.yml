@@ -135,3 +135,107 @@ tasks:
         else
           echo ".env file already exists."
         fi
+
+  sync-mac-mini-dry:
+    desc: Dry-run rsync of worktree unoplat-code-confluence.WORKTREE to the Mac Mini (usage - task sync-mac-mini-dry WORKTREE=fix-architecture-precision)
+    requires:
+      vars: [WORKTREE]
+    cmds:
+      - task: _sync-mac-mini
+        vars:
+          WORKTREE: "{{.WORKTREE}}"
+          DRY_RUN: "1"
+
+  sync-mac-mini:
+    desc: Rsync worktree unoplat-code-confluence.WORKTREE onto the existing Mini clone and repair git worktree links (usage - task sync-mac-mini WORKTREE=fix-architecture-precision)
+    requires:
+      vars: [WORKTREE]
+    cmds:
+      - task: _sync-mac-mini
+        vars:
+          WORKTREE: "{{.WORKTREE}}"
+          DRY_RUN: "0"
+
+  _sync-mac-mini:
+    internal: true
+    requires:
+      vars: [WORKTREE]
+    cmds:
+      - |
+        set -eu
+        case "{{.WORKTREE}}" in
+          *[!A-Za-z0-9._-]*)
+            echo "Invalid WORKTREE: {{.WORKTREE}}"
+            exit 1
+            ;;
+        esac
+        SOURCE_PARENT="$HOME/Documents/unoplat"
+        MAIN_DIR="$SOURCE_PARENT/unoplat-code-confluence"
+        WORKTREE_DIR="$SOURCE_PARENT/unoplat-code-confluence.{{.WORKTREE}}"
+        LOCAL_ADMIN="$MAIN_DIR/.git/worktrees/unoplat-code-confluence.{{.WORKTREE}}"
+        REMOTE_HOST="apekshas-mac-mini.tailff588e.ts.net"
+        DEST_PARENT="/Volumes/apexa_ssd/Users/jayghiya/Documents/products"
+        REMOTE_MAIN="$DEST_PARENT/unoplat-code-confluence"
+        REMOTE_WORKTREE="$DEST_PARENT/unoplat-code-confluence.{{.WORKTREE}}"
+        REMOTE_ADMIN="$REMOTE_MAIN/.git/worktrees/unoplat-code-confluence.{{.WORKTREE}}"
+        if [ ! -d "$WORKTREE_DIR" ]; then
+          echo "Worktree not found: $WORKTREE_DIR"
+          exit 1
+        fi
+        if [ ! -d "$LOCAL_ADMIN" ]; then
+          echo "Worktree git admin not found: $LOCAL_ADMIN"
+          exit 1
+        fi
+        if [ "{{.DRY_RUN}}" = "1" ]; then
+          set -- --dry-run
+        else
+          set --
+        fi
+        RSYNC_BIN="/opt/homebrew/bin/rsync"
+        REMOTE_RSYNC="/opt/homebrew/bin/rsync"
+        if [ ! -x "$RSYNC_BIN" ]; then
+          echo "Homebrew rsync not found at $RSYNC_BIN"
+          exit 1
+        fi
+        echo "Preparing remote worktree git admin at $REMOTE_HOST:$REMOTE_ADMIN"
+        ssh "$REMOTE_HOST" "if [ -f '$REMOTE_MAIN/.git' ]; then echo 'Remote $REMOTE_MAIN is a linked worktree (.git is a file), not the main clone'; exit 1; fi; if [ ! -d '$REMOTE_MAIN/.git' ]; then echo 'Remote main clone .git not found: $REMOTE_MAIN/.git'; exit 1; fi; if [ '{{.DRY_RUN}}' != '1' ]; then mkdir -p '$REMOTE_ADMIN'; fi"
+        echo "Worktree: $WORKTREE_DIR/ -> $REMOTE_HOST:$REMOTE_WORKTREE/"
+        "$RSYNC_BIN" -rlptDvh --progress --delete --delete-excluded --no-owner --no-group --no-acls --no-xattrs \
+          --rsync-path="$REMOTE_RSYNC" "$@" \
+          --exclude '.venv' \
+          --exclude 'node_modules' \
+          --exclude '.mypy_cache' \
+          --exclude '.ruff_cache' \
+          --exclude '.pytest_cache' \
+          --exclude '.turbo' \
+          --exclude '.next' \
+          --exclude '.vite' \
+          --exclude '.cache' \
+          --exclude '__pycache__' \
+          --exclude '*.egg-info' \
+          --exclude '.eggs' \
+          --exclude 'dist' \
+          --exclude 'build' \
+          --exclude 'coverage' \
+          --exclude 'coverage_reports' \
+          --exclude 'htmlcov' \
+          --exclude '.coverage' \
+          --exclude 'tmp' \
+          --exclude '.tmp' \
+          --exclude '.tox' \
+          --exclude '.nox' \
+          --exclude '.hypothesis' \
+          --exclude '.ipynb_checkpoints' \
+          --exclude '.DS_Store' \
+          "$WORKTREE_DIR/" \
+          "$REMOTE_HOST:$REMOTE_WORKTREE/"
+        echo "Worktree git admin: $LOCAL_ADMIN/ -> $REMOTE_HOST:$REMOTE_ADMIN/"
+        "$RSYNC_BIN" -rlptDvh --progress --delete --no-owner --no-group --no-acls --no-xattrs --mkpath \
+          --rsync-path="$REMOTE_RSYNC" "$@" \
+          "$LOCAL_ADMIN/" \
+          "$REMOTE_HOST:$REMOTE_ADMIN/"
+        if [ "{{.DRY_RUN}}" = "1" ]; then
+          echo "Dry-run skipped git worktree path repair on $REMOTE_WORKTREE"
+          exit 0
+        fi
+        ssh "$REMOTE_HOST" "printf 'gitdir: %s\n' '$REMOTE_ADMIN' > '$REMOTE_WORKTREE/.git' && printf '%s\n' '$REMOTE_WORKTREE/.git' > '$REMOTE_ADMIN/gitdir' && git -C '$REMOTE_WORKTREE' rev-parse --show-toplevel && git -C '$REMOTE_WORKTREE' status -sb && git -C '$REMOTE_MAIN' worktree list"
