@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.45.1...unoplat-code-confluence-v0.46.0) (2026-08-21)
+
+
+### Features
+
+* add architecture for docs and updated dependencies ([944b84b](https://github.com/unoplat/unoplat-code-confluence/commit/944b84b8cd1f14d222e12944a38ca466a030ffb9))
+* **architecture:** add D2 diagrams and harden URL resolution ([d5bae27](https://github.com/unoplat/unoplat-code-confluence/commit/d5bae278a229ca876d1f443fad969348a224a992))
+* **architecture:** add rendered PNG visual validation ([5f55ed6](https://github.com/unoplat/unoplat-code-confluence/commit/5f55ed6206593180602bea71813f75f229274ab0))
+* **architecture:** improve agent context and diagram validation ([bf477ef](https://github.com/unoplat/unoplat-code-confluence/commit/bf477ef7dda46527b74a8240d7b9d58c3c64f7b8))
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([984595a](https://github.com/unoplat/unoplat-code-confluence/commit/984595a5689a82bcb34ce161808899ee3da5f7d2))
+* D2 source validation and Rendered SVG validation ([0dff6c5](https://github.com/unoplat/unoplat-code-confluence/commit/0dff6c53b764d1143181fb5612c51cd1730e71ce))
+* **docs:** resolve scoped framework catalog packages ([1c93c0b](https://github.com/unoplat/unoplat-code-confluence/commit/1c93c0b47148df8d8086d2f5782c04c5f66cfede))
+* **frontend:** proxy Electric streams through same-origin frontend ([9bd6654](https://github.com/unoplat/unoplat-code-confluence/commit/9bd665449f7c357e72465293c6983266f3e073f9))
+* **new-version-method-calls:** include execute start child as part of temporal discovery ([a0c6b9a](https://github.com/unoplat/unoplat-code-confluence/commit/a0c6b9a34736a4e81a22e32a3c6e94d503956b04))
+* **task:** validate remote clone before rsync ([c149fac](https://github.com/unoplat/unoplat-code-confluence/commit/c149fac403c84dd56cf30582dbe2905e9b6fb2a4))
+* **tests:** fix stale tests ([6964b40](https://github.com/unoplat/unoplat-code-confluence/commit/6964b405e76f772ef1128fe860bb806647318261))
+* **test:** temporal test fix ([55fc16e](https://github.com/unoplat/unoplat-code-confluence/commit/55fc16e88495a9748cfc786f34dc91638b110a20))
+
 ## [0.45.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.45.0...unoplat-code-confluence-v0.45.1) (2026-07-23)
 
 
