@@ -169,6 +169,11 @@ services:
     image: unoplat/code-confluence-frontend-dev
     depends_on:
       - code-confluence-flow-bridge
+      - unoplat-code-confluence-query-engine
+    environment:
+      API_PROXY_TARGET: http://code-confluence-flow-bridge:8000
+      QUERY_ENGINE_PROXY_TARGET: http://unoplat-code-confluence-query-engine:8000
+      ELECTRIC_PROXY_TARGET: http://electric:3000
     ports:
       # Vite dev server on 5173 — HMR websocket uses the same port.
       - "5173:5173"

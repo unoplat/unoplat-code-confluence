@@ -1,0 +1,749 @@
+{
+  "schema_version": 1,
+  "source": "https://icons.d2lang.com/",
+  "storage_policy": "hosted-url-references-only",
+  "requires_internet_to_render": true,
+  "category": "development",
+  "hosted_prefix": "dev",
+  "icon_count": 123,
+  "icons": [
+    {
+      "name": "amazonwebservices",
+      "label": "Amazonwebservices",
+      "hosted_path": "dev/amazonwebservices.svg",
+      "url": "https://icons.d2lang.com/dev/amazonwebservices.svg"
+    },
+    {
+      "name": "android",
+      "label": "Android",
+      "hosted_path": "dev/android.svg",
+      "url": "https://icons.d2lang.com/dev/android.svg"
+    },
+    {
+      "name": "angularjs",
+      "label": "Angularjs",
+      "hosted_path": "dev/angularjs.svg",
+      "url": "https://icons.d2lang.com/dev/angularjs.svg"
+    },
+    {
+      "name": "apache",
+      "label": "Apache",
+      "hosted_path": "dev/apache.svg",
+      "url": "https://icons.d2lang.com/dev/apache.svg"
+    },
+    {
+      "name": "appcelerator",
+      "label": "Appcelerator",
+      "hosted_path": "dev/appcelerator.svg",
+      "url": "https://icons.d2lang.com/dev/appcelerator.svg"
+    },
+    {
+      "name": "apple",
+      "label": "Apple",
+      "hosted_path": "dev/apple.svg",
+      "url": "https://icons.d2lang.com/dev/apple.svg"
+    },
+    {
+      "name": "atom",
+      "label": "Atom",
+      "hosted_path": "dev/atom.svg",
+      "url": "https://icons.d2lang.com/dev/atom.svg"
+    },
+    {
+      "name": "babel",
+      "label": "Babel",
+      "hosted_path": "dev/babel.svg",
+      "url": "https://icons.d2lang.com/dev/babel.svg"
+    },
+    {
+      "name": "backbonejs",
+      "label": "Backbonejs",
+      "hosted_path": "dev/backbonejs.svg",
+      "url": "https://icons.d2lang.com/dev/backbonejs.svg"
+    },
+    {
+      "name": "bitbucket",
+      "label": "Bitbucket",
+      "hosted_path": "dev/bitbucket.svg",
+      "url": "https://icons.d2lang.com/dev/bitbucket.svg"
+    },
+    {
+      "name": "bootstrap",
+      "label": "Bootstrap",
+      "hosted_path": "dev/bootstrap.svg",
+      "url": "https://icons.d2lang.com/dev/bootstrap.svg"
+    },
+    {
+      "name": "bower",
+      "label": "Bower",
+      "hosted_path": "dev/bower.svg",
+      "url": "https://icons.d2lang.com/dev/bower.svg"
+    },
+    {
+      "name": "c",
+      "label": "C",
+      "hosted_path": "dev/c.svg",
+      "url": "https://icons.d2lang.com/dev/c.svg"
+    },
+    {
+      "name": "cakephp-plain-wordmark",
+      "label": "Cakephp Plain Wordmark",
+      "hosted_path": "dev/cakephp-plain-wordmark.svg",
+      "url": "https://icons.d2lang.com/dev/cakephp-plain-wordmark.svg"
+    },
+    {
+      "name": "ceylon",
+      "label": "Ceylon",
+      "hosted_path": "dev/ceylon.svg",
+      "url": "https://icons.d2lang.com/dev/ceylon.svg"
+    },
+    {
+      "name": "chrome",
+      "label": "Chrome",
+      "hosted_path": "dev/chrome.svg",
+      "url": "https://icons.d2lang.com/dev/chrome.svg"
+    },
+    {
+      "name": "clojure",
+      "label": "Clojure",
+      "hosted_path": "dev/clojure.svg",
+      "url": "https://icons.d2lang.com/dev/clojure.svg"
+    },
+    {
+      "name": "clojurescript",
+      "label": "Clojurescript",
+      "hosted_path": "dev/clojurescript.svg",
+      "url": "https://icons.d2lang.com/dev/clojurescript.svg"
+    },
+    {
+      "name": "codeigniter",
+      "label": "Codeigniter",
+      "hosted_path": "dev/codeigniter.svg",
+      "url": "https://icons.d2lang.com/dev/codeigniter.svg"
+    },
+    {
+      "name": "codepen",
+      "label": "Codepen",
+      "hosted_path": "dev/codepen.svg",
+      "url": "https://icons.d2lang.com/dev/codepen.svg"
+    },
+    {
+      "name": "confluence",
+      "label": "Confluence",
+      "hosted_path": "dev/confluence.svg",
+      "url": "https://icons.d2lang.com/dev/confluence.svg"
+    },
+    {
+      "name": "couchdb",
+      "label": "Couchdb",
+      "hosted_path": "dev/couchdb.svg",
+      "url": "https://icons.d2lang.com/dev/couchdb.svg"
+    },
+    {
+      "name": "cplusplus",
+      "label": "Cplusplus",
+      "hosted_path": "dev/cplusplus.svg",
+      "url": "https://icons.d2lang.com/dev/cplusplus.svg"
+    },
+    {
+      "name": "csharp",
+      "label": "Csharp",
+      "hosted_path": "dev/csharp.svg",
+      "url": "https://icons.d2lang.com/dev/csharp.svg"
+    },
+    {
+      "name": "css3",
+      "label": "Css",
+      "hosted_path": "dev/css3.svg",
+      "url": "https://icons.d2lang.com/dev/css3.svg"
+    },
+    {
+      "name": "cucumber",
+      "label": "Cucumber",
+      "hosted_path": "dev/cucumber.svg",
+      "url": "https://icons.d2lang.com/dev/cucumber.svg"
+    },
+    {
+      "name": "d3js",
+      "label": "D3js",
+      "hosted_path": "dev/d3js.svg",
+      "url": "https://icons.d2lang.com/dev/d3js.svg"
+    },
+    {
+      "name": "debian",
+      "label": "Debian",
+      "hosted_path": "dev/debian.svg",
+      "url": "https://icons.d2lang.com/dev/debian.svg"
+    },
+    {
+      "name": "devicon",
+      "label": "Devicon",
+      "hosted_path": "dev/devicon.svg",
+      "url": "https://icons.d2lang.com/dev/devicon.svg"
+    },
+    {
+      "name": "django",
+      "label": "Django",
+      "hosted_path": "dev/django.svg",
+      "url": "https://icons.d2lang.com/dev/django.svg"
+    },
+    {
+      "name": "docker",
+      "label": "Docker",
+      "hosted_path": "dev/docker.svg",
+      "url": "https://icons.d2lang.com/dev/docker.svg"
+    },
+    {
+      "name": "doctrine",
+      "label": "Doctrine",
+      "hosted_path": "dev/doctrine.svg",
+      "url": "https://icons.d2lang.com/dev/doctrine.svg"
+    },
+    {
+      "name": "dotnet",
+      "label": "Dotnet",
+      "hosted_path": "dev/dotnet.svg",
+      "url": "https://icons.d2lang.com/dev/dotnet.svg"
+    },
+    {
+      "name": "drupal",
+      "label": "Drupal",
+      "hosted_path": "dev/drupal.svg",
+      "url": "https://icons.d2lang.com/dev/drupal.svg"
+    },
+    {
+      "name": "electron",
+      "label": "Electron",
+      "hosted_path": "dev/electron.svg",
+      "url": "https://icons.d2lang.com/dev/electron.svg"
+    },
+    {
+      "name": "elm",
+      "label": "Elm",
+      "hosted_path": "dev/elm.svg",
+      "url": "https://icons.d2lang.com/dev/elm.svg"
+    },
+    {
+      "name": "ember",
+      "label": "Ember",
+      "hosted_path": "dev/ember.svg",
+      "url": "https://icons.d2lang.com/dev/ember.svg"
+    },
+    {
+      "name": "erlang",
+      "label": "Erlang",
+      "hosted_path": "dev/erlang.svg",
+      "url": "https://icons.d2lang.com/dev/erlang.svg"
+    },
+    {
+      "name": "firefox",
+      "label": "Firefox",
+      "hosted_path": "dev/firefox.svg",
+      "url": "https://icons.d2lang.com/dev/firefox.svg"
+    },
+    {
+      "name": "foundation",
+      "label": "Foundation",
+      "hosted_path": "dev/foundation.svg",
+      "url": "https://icons.d2lang.com/dev/foundation.svg"
+    },
+    {
+      "name": "gatling",
+      "label": "Gatling",
+      "hosted_path": "dev/gatling.svg",
+      "url": "https://icons.d2lang.com/dev/gatling.svg"
+    },
+    {
+      "name": "gimp",
+      "label": "Gimp",
+      "hosted_path": "dev/gimp.svg",
+      "url": "https://icons.d2lang.com/dev/gimp.svg"
+    },
+    {
+      "name": "git",
+      "label": "Git",
+      "hosted_path": "dev/git.svg",
+      "url": "https://icons.d2lang.com/dev/git.svg"
+    },
+    {
+      "name": "github",
+      "label": "Github",
+      "hosted_path": "dev/github.svg",
+      "url": "https://icons.d2lang.com/dev/github.svg"
+    },
+    {
+      "name": "gitlab",
+      "label": "Gitlab",
+      "hosted_path": "dev/gitlab.svg",
+      "url": "https://icons.d2lang.com/dev/gitlab.svg"
+    },
+    {
+      "name": "go",
+      "label": "Go",
+      "hosted_path": "dev/go.svg",
+      "url": "https://icons.d2lang.com/dev/go.svg"
+    },
+    {
+      "name": "gradle",
+      "label": "Gradle",
+      "hosted_path": "dev/gradle.svg",
+      "url": "https://icons.d2lang.com/dev/gradle.svg"
+    },
+    {
+      "name": "grails",
+      "label": "Grails",
+      "hosted_path": "dev/grails.svg",
+      "url": "https://icons.d2lang.com/dev/grails.svg"
+    },
+    {
+      "name": "groovy",
+      "label": "Groovy",
+      "hosted_path": "dev/groovy.svg",
+      "url": "https://icons.d2lang.com/dev/groovy.svg"
+    },
+    {
+      "name": "grunt",
+      "label": "Grunt",
+      "hosted_path": "dev/grunt.svg",
+      "url": "https://icons.d2lang.com/dev/grunt.svg"
+    },
+    {
+      "name": "gulp",
+      "label": "Gulp",
+      "hosted_path": "dev/gulp.svg",
+      "url": "https://icons.d2lang.com/dev/gulp.svg"
+    },
+    {
+      "name": "handlebars",
+      "label": "Handlebars",
+      "hosted_path": "dev/handlebars.svg",
+      "url": "https://icons.d2lang.com/dev/handlebars.svg"
+    },
+    {
+      "name": "haskell",
+      "label": "Haskell",
+      "hosted_path": "dev/haskell.svg",
+      "url": "https://icons.d2lang.com/dev/haskell.svg"
+    },
+    {
+      "name": "heroku",
+      "label": "Heroku",
+      "hosted_path": "dev/heroku.svg",
+      "url": "https://icons.d2lang.com/dev/heroku.svg"
+    },
+    {
+      "name": "html5",
+      "label": "Html",
+      "hosted_path": "dev/html5.svg",
+      "url": "https://icons.d2lang.com/dev/html5.svg"
+    },
+    {
+      "name": "ie",
+      "label": "Ie",
+      "hosted_path": "dev/ie.svg",
+      "url": "https://icons.d2lang.com/dev/ie.svg"
+    },
+    {
+      "name": "illustrator",
+      "label": "Illustrator",
+      "hosted_path": "dev/illustrator.svg",
+      "url": "https://icons.d2lang.com/dev/illustrator.svg"
+    },
+    {
+      "name": "inkscape",
+      "label": "Inkscape",
+      "hosted_path": "dev/inkscape.svg",
+      "url": "https://icons.d2lang.com/dev/inkscape.svg"
+    },
+    {
+      "name": "intellij",
+      "label": "Intellij",
+      "hosted_path": "dev/intellij.svg",
+      "url": "https://icons.d2lang.com/dev/intellij.svg"
+    },
+    {
+      "name": "ionic-original",
+      "label": "Ionic Original",
+      "hosted_path": "dev/ionic-original.svg",
+      "url": "https://icons.d2lang.com/dev/ionic-original.svg"
+    },
+    {
+      "name": "jasmine",
+      "label": "Jasmine",
+      "hosted_path": "dev/jasmine.svg",
+      "url": "https://icons.d2lang.com/dev/jasmine.svg"
+    },
+    {
+      "name": "java",
+      "label": "Java",
+      "hosted_path": "dev/java.svg",
+      "url": "https://icons.d2lang.com/dev/java.svg"
+    },
+    {
+      "name": "javascript",
+      "label": "Javascript",
+      "hosted_path": "dev/javascript.svg",
+      "url": "https://icons.d2lang.com/dev/javascript.svg"
+    },
+    {
+      "name": "jeet",
+      "label": "Jeet",
+      "hosted_path": "dev/jeet.svg",
+      "url": "https://icons.d2lang.com/dev/jeet.svg"
+    },
+    {
+      "name": "jetbrains",
+      "label": "Jetbrains",
+      "hosted_path": "dev/jetbrains.svg",
+      "url": "https://icons.d2lang.com/dev/jetbrains.svg"
+    },
+    {
+      "name": "jquery",
+      "label": "Jquery",
+      "hosted_path": "dev/jquery.svg",
+      "url": "https://icons.d2lang.com/dev/jquery.svg"
+    },
+    {
+      "name": "krakenjs",
+      "label": "Krakenjs",
+      "hosted_path": "dev/krakenjs.svg",
+      "url": "https://icons.d2lang.com/dev/krakenjs.svg"
+    },
+    {
+      "name": "laravel",
+      "label": "Laravel",
+      "hosted_path": "dev/laravel.svg",
+      "url": "https://icons.d2lang.com/dev/laravel.svg"
+    },
+    {
+      "name": "less",
+      "label": "Less",
+      "hosted_path": "dev/less.svg",
+      "url": "https://icons.d2lang.com/dev/less.svg"
+    },
+    {
+      "name": "linux",
+      "label": "Linux",
+      "hosted_path": "dev/linux.svg",
+      "url": "https://icons.d2lang.com/dev/linux.svg"
+    },
+    {
+      "name": "meteor",
+      "label": "Meteor",
+      "hosted_path": "dev/meteor.svg",
+      "url": "https://icons.d2lang.com/dev/meteor.svg"
+    },
+    {
+      "name": "mocha",
+      "label": "Mocha",
+      "hosted_path": "dev/mocha.svg",
+      "url": "https://icons.d2lang.com/dev/mocha.svg"
+    },
+    {
+      "name": "mongodb",
+      "label": "Mongodb",
+      "hosted_path": "dev/mongodb.svg",
+      "url": "https://icons.d2lang.com/dev/mongodb.svg"
+    },
+    {
+      "name": "moodle",
+      "label": "Moodle",
+      "hosted_path": "dev/moodle.svg",
+      "url": "https://icons.d2lang.com/dev/moodle.svg"
+    },
+    {
+      "name": "mysql",
+      "label": "Mysql",
+      "hosted_path": "dev/mysql.svg",
+      "url": "https://icons.d2lang.com/dev/mysql.svg"
+    },
+    {
+      "name": "nginx",
+      "label": "Nginx",
+      "hosted_path": "dev/nginx.svg",
+      "url": "https://icons.d2lang.com/dev/nginx.svg"
+    },
+    {
+      "name": "nodejs",
+      "label": "Nodejs",
+      "hosted_path": "dev/nodejs.svg",
+      "url": "https://icons.d2lang.com/dev/nodejs.svg"
+    },
+    {
+      "name": "nodewebkit",
+      "label": "Nodewebkit",
+      "hosted_path": "dev/nodewebkit.svg",
+      "url": "https://icons.d2lang.com/dev/nodewebkit.svg"
+    },
+    {
+      "name": "npm",
+      "label": "Npm",
+      "hosted_path": "dev/npm.svg",
+      "url": "https://icons.d2lang.com/dev/npm.svg"
+    },
+    {
+      "name": "oracle",
+      "label": "Oracle",
+      "hosted_path": "dev/oracle.svg",
+      "url": "https://icons.d2lang.com/dev/oracle.svg"
+    },
+    {
+      "name": "photoshop",
+      "label": "Photoshop",
+      "hosted_path": "dev/photoshop.svg",
+      "url": "https://icons.d2lang.com/dev/photoshop.svg"
+    },
+    {
+      "name": "php",
+      "label": "Php",
+      "hosted_path": "dev/php.svg",
+      "url": "https://icons.d2lang.com/dev/php.svg"
+    },
+    {
+      "name": "postgresql",
+      "label": "Postgresql",
+      "hosted_path": "dev/postgresql.svg",
+      "url": "https://icons.d2lang.com/dev/postgresql.svg"
+    },
+    {
+      "name": "postgresql-words",
+      "label": "Postgresql Words",
+      "hosted_path": "dev/postgresql-words.svg",
+      "url": "https://icons.d2lang.com/dev/postgresql-words.svg"
+    },
+    {
+      "name": "protractor",
+      "label": "Protractor",
+      "hosted_path": "dev/protractor.svg",
+      "url": "https://icons.d2lang.com/dev/protractor.svg"
+    },
+    {
+      "name": "pycharm",
+      "label": "Pycharm",
+      "hosted_path": "dev/pycharm.svg",
+      "url": "https://icons.d2lang.com/dev/pycharm.svg"
+    },
+    {
+      "name": "python",
+      "label": "Python",
+      "hosted_path": "dev/python.svg",
+      "url": "https://icons.d2lang.com/dev/python.svg"
+    },
+    {
+      "name": "rails",
+      "label": "Rails",
+      "hosted_path": "dev/rails.svg",
+      "url": "https://icons.d2lang.com/dev/rails.svg"
+    },
+    {
+      "name": "react",
+      "label": "React",
+      "hosted_path": "dev/react.svg",
+      "url": "https://icons.d2lang.com/dev/react.svg"
+    },
+    {
+      "name": "redhat",
+      "label": "Redhat",
+      "hosted_path": "dev/redhat.svg",
+      "url": "https://icons.d2lang.com/dev/redhat.svg"
+    },
+    {
+      "name": "redis",
+      "label": "Redis",
+      "hosted_path": "dev/redis.svg",
+      "url": "https://icons.d2lang.com/dev/redis.svg"
+    },
+    {
+      "name": "redux",
+      "label": "Redux",
+      "hosted_path": "dev/redux.svg",
+      "url": "https://icons.d2lang.com/dev/redux.svg"
+    },
+    {
+      "name": "ruby",
+      "label": "Ruby",
+      "hosted_path": "dev/ruby.svg",
+      "url": "https://icons.d2lang.com/dev/ruby.svg"
+    },
+    {
+      "name": "rust",
+      "label": "Rust",
+      "hosted_path": "dev/rust.svg",
+      "url": "https://icons.d2lang.com/dev/rust.svg"
+    },
+    {
+      "name": "safari",
+      "label": "Safari",
+      "hosted_path": "dev/safari.svg",
+      "url": "https://icons.d2lang.com/dev/safari.svg"
+    },
+    {
+      "name": "sass",
+      "label": "Sass",
+      "hosted_path": "dev/sass.svg",
+      "url": "https://icons.d2lang.com/dev/sass.svg"
+    },
+    {
+      "name": "scala",
+      "label": "Scala",
+      "hosted_path": "dev/scala.svg",
+      "url": "https://icons.d2lang.com/dev/scala.svg"
+    },
+    {
+      "name": "sequelize",
+      "label": "Sequelize",
+      "hosted_path": "dev/sequelize.svg",
+      "url": "https://icons.d2lang.com/dev/sequelize.svg"
+    },
+    {
+      "name": "sketch",
+      "label": "Sketch",
+      "hosted_path": "dev/sketch.svg",
+      "url": "https://icons.d2lang.com/dev/sketch.svg"
+    },
+    {
+      "name": "slack",
+      "label": "Slack",
+      "hosted_path": "dev/slack.svg",
+      "url": "https://icons.d2lang.com/dev/slack.svg"
+    },
+    {
+      "name": "sourcetree",
+      "label": "Sourcetree",
+      "hosted_path": "dev/sourcetree.svg",
+      "url": "https://icons.d2lang.com/dev/sourcetree.svg"
+    },
+    {
+      "name": "ssh",
+      "label": "Ssh",
+      "hosted_path": "dev/ssh.svg",
+      "url": "https://icons.d2lang.com/dev/ssh.svg"
+    },
+    {
+      "name": "stylus",
+      "label": "Stylus",
+      "hosted_path": "dev/stylus.svg",
+      "url": "https://icons.d2lang.com/dev/stylus.svg"
+    },
+    {
+      "name": "swift",
+      "label": "Swift",
+      "hosted_path": "dev/swift.svg",
+      "url": "https://icons.d2lang.com/dev/swift.svg"
+    },
+    {
+      "name": "symfony",
+      "label": "Symfony",
+      "hosted_path": "dev/symfony.svg",
+      "url": "https://icons.d2lang.com/dev/symfony.svg"
+    },
+    {
+      "name": "timescale",
+      "label": "Timescale",
+      "hosted_path": "dev/timescale.svg",
+      "url": "https://icons.d2lang.com/dev/timescale.svg"
+    },
+    {
+      "name": "tomcat",
+      "label": "Tomcat",
+      "hosted_path": "dev/tomcat.svg",
+      "url": "https://icons.d2lang.com/dev/tomcat.svg"
+    },
+    {
+      "name": "travis",
+      "label": "Travis",
+      "hosted_path": "dev/travis.svg",
+      "url": "https://icons.d2lang.com/dev/travis.svg"
+    },
+    {
+      "name": "trello",
+      "label": "Trello",
+      "hosted_path": "dev/trello.svg",
+      "url": "https://icons.d2lang.com/dev/trello.svg"
+    },
+    {
+      "name": "typescript",
+      "label": "Typescript",
+      "hosted_path": "dev/typescript.svg",
+      "url": "https://icons.d2lang.com/dev/typescript.svg"
+    },
+    {
+      "name": "ubuntu",
+      "label": "Ubuntu",
+      "hosted_path": "dev/ubuntu.svg",
+      "url": "https://icons.d2lang.com/dev/ubuntu.svg"
+    },
+    {
+      "name": "vagrant",
+      "label": "Vagrant",
+      "hosted_path": "dev/vagrant.svg",
+      "url": "https://icons.d2lang.com/dev/vagrant.svg"
+    },
+    {
+      "name": "vim",
+      "label": "Vim",
+      "hosted_path": "dev/vim.svg",
+      "url": "https://icons.d2lang.com/dev/vim.svg"
+    },
+    {
+      "name": "visualstudio",
+      "label": "Visualstudio",
+      "hosted_path": "dev/visualstudio.svg",
+      "url": "https://icons.d2lang.com/dev/visualstudio.svg"
+    },
+    {
+      "name": "vuejs",
+      "label": "Vuejs",
+      "hosted_path": "dev/vuejs.svg",
+      "url": "https://icons.d2lang.com/dev/vuejs.svg"
+    },
+    {
+      "name": "webpack",
+      "label": "Webpack",
+      "hosted_path": "dev/webpack.svg",
+      "url": "https://icons.d2lang.com/dev/webpack.svg"
+    },
+    {
+      "name": "webstorm",
+      "label": "Webstorm",
+      "hosted_path": "dev/webstorm.svg",
+      "url": "https://icons.d2lang.com/dev/webstorm.svg"
+    },
+    {
+      "name": "windows",
+      "label": "Windows",
+      "hosted_path": "dev/windows.svg",
+      "url": "https://icons.d2lang.com/dev/windows.svg"
+    },
+    {
+      "name": "wordpress",
+      "label": "Wordpress",
+      "hosted_path": "dev/wordpress.svg",
+      "url": "https://icons.d2lang.com/dev/wordpress.svg"
+    },
+    {
+      "name": "yarn",
+      "label": "Yarn",
+      "hosted_path": "dev/yarn.svg",
+      "url": "https://icons.d2lang.com/dev/yarn.svg"
+    },
+    {
+      "name": "yii",
+      "label": "Yii",
+      "hosted_path": "dev/yii.svg",
+      "url": "https://icons.d2lang.com/dev/yii.svg"
+    },
+    {
+      "name": "yunohost",
+      "label": "Yunohost",
+      "hosted_path": "dev/yunohost.svg",
+      "url": "https://icons.d2lang.com/dev/yunohost.svg"
+    },
+    {
+      "name": "zend",
+      "label": "Zend",
+      "hosted_path": "dev/zend.svg",
+      "url": "https://icons.d2lang.com/dev/zend.svg"
+    }
+  ]
+}

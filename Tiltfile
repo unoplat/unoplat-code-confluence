@@ -55,7 +55,6 @@ docker_build(
     only=[
         "./src",
         "./mcp-servers.json",
-        "./puppeteer-config.json",
         "./pyproject.toml",
         "./uv.lock",
         "./README.md",

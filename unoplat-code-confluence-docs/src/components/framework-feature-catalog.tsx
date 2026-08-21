@@ -64,6 +64,12 @@ function toTitleCase(value: string): string {
     .join(" ");
 }
 
+function toCatalogLibraryKey(library: string): string {
+  return library.startsWith("@")
+    ? library.slice(1).replaceAll("/", "-")
+    : library;
+}
+
 function getLibraryFromPayload(
   payload: FrameworkDefinitionFile,
   language: string,
@@ -74,7 +80,19 @@ function getLibraryFromPayload(
     return null;
   }
 
-  return languageDefinitions[library] ?? null;
+  const exactMatch = languageDefinitions[library];
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const catalogLibraryKey = toCatalogLibraryKey(library);
+  const scopedMatch = Object.entries(languageDefinitions).find(
+    ([packageName]) =>
+      packageName.startsWith("@") &&
+      toCatalogLibraryKey(packageName) === catalogLibraryKey,
+  );
+
+  return scopedMatch?.[1] ?? null;
 }
 
 export function FrameworkFeatureCatalog({

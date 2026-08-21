@@ -33,7 +33,37 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname,"./src"),
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    // Browser uses same-origin /api, /query-engine, and /electric; Vite
+    // proxies to the backend services so host ports and CORS are not required.
+    // In Tilt/Compose, *_PROXY_TARGET points at Compose service DNS names.
+    proxy: {
+      "/api": {
+        target:
+          process.env.API_PROXY_TARGET ??
+          "http://127.0.0.1:8000",
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/api/, ""),
+      },
+      "/query-engine": {
+        target:
+          process.env.QUERY_ENGINE_PROXY_TARGET ??
+          "http://127.0.0.1:8001",
+        changeOrigin: true,
+        rewrite: (requestPath) =>
+          requestPath.replace(/^\/query-engine/, ""),
+      },
+      "/electric": {
+        target:
+          process.env.ELECTRIC_PROXY_TARGET ??
+          "http://127.0.0.1:3001",
+        changeOrigin: true,
+        rewrite: (requestPath) =>
+          requestPath.replace(/^\/electric/, ""),
+      },
     },
   },
   build: {

@@ -1,295 +1,331 @@
 ---
 name: architecture-diagrams
 description: >-
-  Author and review one evidence-based Mermaid architecture-beta diagram using
-  Mermaid's official Architecture Diagram syntax and the packaged Mermaid CLI.
+  Author and visually review evidence-based software architecture diagrams as
+  D2 v0.7.1 source rendered with ELK to canonical SVG.
 ---
 
-# Mermaid Architecture Diagrams
+# D2 Architecture Diagrams
 
-Architecture diagrams visualize the relationships among deployable services,
-external systems, data stores, and supporting resources. Mermaid introduced
-`architecture-beta` in v11.1.0. This project renders with Mermaid v11.16.0.
+Use this guide to create or review the repository architecture from current,
+explicit evidence. The diagram must answer one architectural question clearly;
+it is not an exhaustive code inventory.
 
-Use this project-owned guide when creating or reviewing the repository-root
-`architecture.md`. Model only current repository evidence and
-`app_interfaces.md`; do not invent infrastructure, protocols, ownership
-boundaries, or dependencies.
+This skill contains authoring guidance and URL-only icon catalogs. It has no
+executable skill scripts. Runtime artifact ownership, console tools, and the
+`validate_architecture` finish rule are defined by the agent instructions—follow
+those for what you may write and which tools to call. This skill defines how to
+author and visually approve `architecture.d2`.
 
-This skill is guidance only: it ships no skill scripts and no skill resources.
+## Source format and render expectations
 
-## Artifact contract
+- Author unfenced D2 only in `architecture.d2`. Do not wrap the source in a
+  Markdown document or code fence.
+- Target **D2 v0.7.1 with ELK**. The validator owns syntax checks, version
+  enforcement, rendering, atomic `architecture.svg` replacement, and digests.
+- The only persisted render is SVG. The validator may attach a temporary visual
+  preview of the exact generated SVG for review; that preview is not a
+  repository artifact and must not be written into the repo.
+- Do not judge final layout from D2 source alone. Inspect the validator preview
+  against the checklists in this skill. Any source edit after a successful
+  validation requires another validate + visual review (see agent finish rule
+  and §8 below).
 
-- Keep the document focused on the current architecture that the repository can
-  support with evidence.
-- `architecture.md` contains **exactly one** Mermaid fence. Its first non-empty
-  diagram line is exactly `architecture-beta`.
-- Use stable, lower-case identifiers, and declare every group, service, and
-  junction before an edge references it. Labels go in square brackets and are
-  concise, reader-facing names.
-- **Every `service` declaration must attach exactly one built-in icon.** A bare
-  `service <id>[<label>]` renders as an empty dashed placeholder rather than a
-  useful component glyph. Select the closest of the five built-ins; the icon is
-  a visual category, not an unsupported claim about the implementation.
-- Declare only components and connections justified by source, configuration,
-  deployment, or the current `app_interfaces.md` artifact.
-- The one-diagram contract means that a complex codebase must be represented by
-  a single, focused, high-level view. Do not add multiple detailed views to
-  `architecture.md`; omit unsupported implementation detail and rely on
-  `app_interfaces.md` for its line-level inventory.
+## 1. Build an evidence inventory first
 
-## Role-oriented modeling
+Read every explicitly listed, fresh `app_interfaces.md` artifact. Consult only
+the minimal source, configuration, deployment, or infrastructure evidence
+needed to confirm a claim. Do not use stale or unlisted interface artifacts and
+do not invent components, protocols, dependencies, ownership, or deployment
+boundaries.
 
-Plan the diagram by architectural responsibility before choosing Mermaid ports or
-alignment. The primary organization is a small set of logical roles, not a
-container runtime, codebase directory, or deployment manifest:
+Before writing D2, record a concise inventory:
 
-| Canonical role | Classify here when the component's primary responsibility is | Examples |
-| --- | --- | --- |
-| Consumers and entry points | Initiating product use or exposing a user-facing invocation surface | Browser or automation actor, web frontend, CLI, SDK client, public entry point |
-| Backend services | Implementing repository-owned application behavior | API, domain service, ingestion process, query service, worker |
-| Platform and infrastructure | Supporting execution, orchestration, communication, or persistence | Database, workflow orchestrator, queue, cache, object/file storage |
-| External services | Providing a capability or data source operated outside the system | GitHub API, LLM provider, MCP server, identity provider, third-party API |
+- **Nodes:** actors, entry points, deployable applications and services, data
+  stores, queues, and external systems.
+- **Boundaries:** supported ownership, deployment, trust, network, or subsystem
+  boundaries.
+- **Relationships:** source, target, semantic direction, action label, and
+  interaction type.
+- **Scope:** the primary question, abstraction level, and deliberate omissions.
+- **Visual vocabulary:** the meaning of shapes, colors, line patterns, and
+  icons.
 
-Use the first role whose primary-responsibility definition fits: an initiating
-actor or user-facing surface is a consumer/entry point; otherwise a
-repository-owned application process is a backend service; otherwise a runtime
-support or persistence dependency is platform/infrastructure; otherwise an
-outside capability provider is an external service. This keeps, for example, a
-managed database in infrastructure because persistence is its architectural
-role, while GitHub or an LLM provider remains external. When no role is
-supported by evidence, omit the component.
+Treat the relationship inventory as a non-regression checklist. Layout or style
+changes must never silently remove, merge, reverse, or mislabel an interaction.
+Co-location in a deployment file proves membership, not communication.
 
-Create only role groups that contain at least one supported node. Never emit an
-empty group or a group for a codebase whose current evidence contains no
-relevant executable, interface, external system, data store, or supporting
-resource. Role groups are the primary structure. A deployment, network, or
-trust boundary may appear only as evidence-backed secondary/nested structure
-when it does not replace or obscure the logical roles; otherwise explain that
-boundary in prose outside the Mermaid fence. In particular, one broad
-`Compose` group is not a useful primary architecture.
+Model independently meaningful runtime nodes. Omit package directories, shared
+source modules, and library-only codebases unless the chosen architectural
+question specifically concerns components inside one runtime.
 
-Model independently meaningful runtime nodes rather than repository packaging:
+## 2. Keep one abstraction level
 
-- Omit libraries, packages, shared source modules, and codebases with no
-  relevant constructs; they are not deployable architecture nodes.
-- Split independently executable APIs, workers, schedulers, and ingestion
-  processes when their inbound/outbound relationships differ materially.
-- Combine executables only when evidence establishes one architectural
-  responsibility and the combined node does not hide different callers,
-  dependencies, or data flows. Avoid ambiguous labels such as "API and worker"
-  when the two have distinct relationships.
+Choose one primary level and architectural question:
 
-Make the diagram's main story readable as **consumers and entry points → backend
-services → platform/infrastructure and external services**. This is a planning
-and layout objective, not permission to invent or reverse a relationship:
+- **Context:** people and external systems around the system.
+- **Container:** independently deployable applications, services, and stores.
+- **Component:** important modules inside one application or service.
+- **Deployment:** runtime nodes, environments, networks, and infrastructure.
+- **Data flow:** production, transformation, persistence, and consumption.
 
-- Add an edge only when current interface, source, configuration, or deployment
-  evidence establishes an interaction.
-- Co-location in Docker Compose, Kubernetes, or another deployment definition
-  establishes membership/deployment only; it does not by itself establish an
-  edge between the co-located components.
-- Preserve evidence-backed arrow direction. Do not reverse an arrow to force a
-  preferred layout; use an undirected edge when direction is not established,
-  as described below.
-- Keep secondary infrastructure-to-infrastructure or external-to-external
-  edges only when they are material to the system-level story and directly
-  supported by evidence.
+Do not combine all levels in one image. Prefer a focused system-level diagram;
+if multiple views are truly required, use D2 boards or composition rather than
+crowding unrelated detail together.
 
-## Syntax and building blocks
+Responsibility-oriented container groupings often include consumers and entry
+points, repository-owned backend services, platform/infrastructure, and
+external services. Create only evidence-backed, non-empty groups. These roles
+are useful organization aids, not mandatory decorative boxes.
 
-An architecture diagram begins with `architecture-beta` and consists of groups,
-services, edges, and junctions. Icons use `()` and labels use `[]`.
+## 3. Use stable keys and meaningful containers
 
-```mermaid
-architecture-beta
-    group public(cloud)[Public boundary]
-    group private(cloud)[Private backend]
-    service api(server)[API] in public
-    service data(database)[Application data] in private
+Separate machine-friendly keys from reader-facing labels. Relationships must
+reference keys, including qualified keys across containers:
 
-    api:R --> L:data
+```d2
+client_tier: Client tier {
+  web_app: Web application
+}
+
+service_tier: Service tier {
+  order_api: Order API
+}
+
+client_tier.web_app -> service_tier.order_api: submit order
 ```
 
-### Groups
+Use lower-case stable keys that survive label changes. Keep labels concise and
+specific. Use containers only when they communicate ownership, deployment,
+trust, runtime, network, or internal/external responsibility. Keep nesting
+shallow unless another level adds architectural meaning.
 
-Use groups first for the non-empty canonical roles defined above. Deployment,
-trust, or network boundaries are optional evidence-backed secondary structure,
-not substitutes for the logical organization. Groups may be nested; do not
-create a group merely to visually decorate the diagram.
+## 4. Establish topology before styling
 
-```text
-group <id>(<icon>)[<label>] in <parent-id>
+Add nodes, boundaries, and evidence-backed relationships before colors, icons,
+or spacing controls. Select one global direction from the dominant reading
+order:
+
+```d2
+direction: right
+
+users -> web_app: send requests
+web_app -> api: call API
+api -> worker: enqueue job
+worker -> database: persist result
 ```
 
-The icon and parent clauses are optional when no built-in icon is appropriate
-or the group is top-level:
+Use `right` when the dominant flow is users → application → dependencies. Use
+`down` when it is entry points → processing → persistence. ELK is hierarchical:
+nested containers do not have independent flow directions. Render promising
+global directions rather than judging layout from source alone.
 
-```text
-group <id>[<label>]
+Declare the dominant semantic flow in the chosen reading direction when
+possible. Keep edge labels short, action-oriented, and evidence-backed, such as
+`send request`, `publish event`, `read profile`, or `persist result`. Avoid
+endpoint-name repetition and prose paragraphs on edges.
+
+Preserve the true semantic arrow direction. If available evidence establishes a
+relationship but not direction, do not invent one.
+
+### Reverse and feedback flows
+
+First render the semantically direct edge:
+
+```d2
+notification_service -> web_app: send live update
 ```
 
-### Services
+A literal reverse edge can create a large loop in a layered layout. Only when it
+materially damages readability may you declare the edge in the layout direction
+and place the visible arrowhead at its source:
 
-Services model executable components, external systems, data stores, and
-relevant resources. Put a service in a previously declared group only when that
-membership is supported by evidence. **Always attach one built-in icon to every
-service.** Without one, Mermaid produces an empty dashed service box, which is
-both visually ambiguous and unlike the intended architecture node.
-
-```text
-service <id>(<icon>)[<label>] in <parent-id>
+```d2
+# Ranked forward for ELK; the visible arrow still points to web_app.
+web_app -> notification_service: send live update {
+  source-arrowhead: {
+    shape: triangle
+  }
+  target-arrowhead: {
+    shape: none
+  }
+}
 ```
 
-When a component does not map perfectly to an icon, choose the closest visual
-category instead of omitting it. For example, use `server` for an MCP server,
-queue, scheduler, workflow engine, webhook receiver, cache, vector store, or
-other application-side endpoint; use `cloud` for a managed/hosted external
-service; and use `database` or `disk` for persisted data as applicable. The
-reader-facing label supplies the precise meaning.
+Use this workaround sparingly. Add an explanatory source comment, inspect the
+rendered arrowhead, confirm the visible direction is semantically correct, and
+prefer the direct edge whenever its layout is acceptable.
 
-### Junctions
+## 5. Define a small semantic visual language
 
-A junction is an unlabeled four-way connection point:
+Use a few reusable classes rather than duplicating attributes. Useful edge
+semantics are synchronous request, asynchronous event/work, data access or
+replication, and external integration:
 
-```text
-junction <id> in <parent-id>
+```d2
+classes: {
+  service: {
+    style: {
+      border-radius: 8
+      shadow: true
+    }
+  }
+  request: {
+    style: {
+      stroke: "#2563EB"
+      stroke-width: 2
+    }
+  }
+  event: {
+    style: {
+      stroke: "#7C3AED"
+      stroke-width: 2
+      stroke-dash: 4
+    }
+  }
+  data: {
+    style: {
+      stroke: "#B45309"
+      stroke-width: 2
+    }
+  }
+  external: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+    }
+  }
+}
+
+api: API {class: service}
+worker: Worker {class: service}
+api -> worker: publish task {class: event}
 ```
 
-Use one only for a real fan-out or fan-in that would otherwise obscure the
-relationships. For example, a proven dispatcher that distributes work to two
-separate workers can be modeled as:
+These colors are examples, not required choices. Meaning must never depend on
+color alone: combine color with an action label, dash pattern, arrow style, or
+shape. Use object-level overrides only for intentional exceptions.
 
-```mermaid
-architecture-beta
-    service dispatcher(server)[Dispatcher]
-    service worker_one(server)[Worker one]
-    service worker_two(server)[Worker two]
-    junction fan_out
+Keep styling restrained: light container fills, clear borders, consistent leaf
+styles, modest rounding or shadows, and hierarchy-appropriate font sizes. Avoid
+a unique color or shape for every node. Maintain sufficient contrast and text
+size at the expected documentation scale.
 
-    dispatcher:R --> L:fan_out
-    fan_out:T --> B:worker_one
-    fan_out:B --> T:worker_two
+## 6. Use only exact catalog icon URLs
+
+Icons are optional recognition aids, not a type system or a substitute for text.
+Use them mainly on recognizable leaf nodes such as a database, language, cloud
+service, or external product. Prefer a labeled node with an icon; use
+`shape: image` only when an icon-only element is genuinely appropriate.
+
+Before adding an icon, call `read_skill_resource` with skill name
+`architecture-diagrams` and one of these exact resource names:
+
+- `icons/development/catalog.json` for hosted `dev/` icons
+- `icons/technology/catalog.json` for hosted `tech/` icons
+- `icons/infrastructure/catalog.json` for hosted `infra/` icons
+- `icons/README.md` for storage, runtime, licensing, and refresh policy
+
+Use only an exact HTTPS `url` from a packaged catalog. Never guess a filename,
+use an arbitrary host, use a local icon path, or copy and redistribute hosted
+SVG bytes. Keep labels beside icons, avoid product logos on broad subsystem
+containers, and use a coherent family where practical.
+
+```d2
+database: Application database {
+  icon: https://icons.d2lang.com/dev/postgresql.svg
+}
 ```
 
-Do not use a junction as a substitute for a labeled service, or for fan-out
-that is not established by repository evidence.
+Hosted icons require outbound access to `https://icons.d2lang.com` during the
+complete D2 render. Validation alone does not prove reachability. D2 embeds the
+fetched icon in the final SVG, so that rendered artifact is self-contained.
+If the renderer has no internet access, omit the icon or use a built-in D2 shape
+instead of creating a broken reference. Re-render after adding icons because
+they change node dimensions and routing.
 
-## Icons
+The catalogs are URL metadata, not a blanket license or trademark grant. Use
+third-party marks only for accurate identification, do not imply endorsement,
+and follow applicable brand and usage policies.
 
-Mermaid architecture diagrams support these built-in icons:
+## 7. Tune spacing last
 
-`cloud`, `database`, `disk`, `internet`, `server`
+Wait until nodes, boundaries, relationships, direction, classes, and icons are
+stable. Then adjust one concern at a time:
 
-Use them consistently as lightweight visual cues:
+- Increase layer spacing when edge labels are cramped.
+- Increase edge-to-node spacing when routes pass too close to nodes.
+- Increase container padding when children crowd borders or titles.
+- Reduce spacing carefully when the composition is unnecessarily large.
 
-| Component meaning | Built-in icon when appropriate |
-| --- | --- |
-| Executable application process or service | `server` |
-| Persisted, queryable data store | `database` |
-| Object, file, or filesystem-backed storage | `disk` |
-| Hosted or managed external service | `cloud` |
-| External client or API beyond the deployment boundary | `internet` |
+Do not copy unknown ELK flags from another D2 release. The validator controls
+the canonical v0.7.1 render. Prefer simple source-level topology and direction
+changes; request validator changes separately if a canonical ELK option is
+truly required.
 
-The icon is not the type system. A queue, workflow engine, webhook receiver,
-MCP server, cache, vector store, scheduler, CI/CD component, or conceptual
-boundary still needs an icon when modeled as a service: normally `server` for
-an application-side endpoint, or `cloud` when it is managed/hosted externally.
-Use the label to state its precise role. (Groups and junctions follow their own
-syntax and do not require an icon.)
+## 8. Validate, inspect, and revise
 
-Mermaid itself can use registered Iconify/custom icon packs (for example,
-`logos:docker` after installing an icon pack). **This project must not use that
-capability.** Do not register, install, reference, or render external icon
-packs; never use `logos:*`, Font Awesome, Iconify, or a custom icon. The
-packaged renderer does not register them, and the artifact contract allows only
-the five built-ins above.
+Use this sequence:
 
-## Edges, ports, direction, and protocols
+1. Build and check the node, boundary, relationship, scope, and vocabulary
+   inventory.
+2. Choose one abstraction level and one global reading direction.
+3. Author the unstyled topology in `architecture.d2`.
+4. Correct hierarchy and feedback-flow problems without changing semantics.
+5. Add small semantic classes and restrained styling.
+6. Load exact icon catalogs and add only useful icons.
+7. Tune spacing one concern at a time.
+8. Re-read the complete D2 source and compare it with the evidence inventory.
+9. Call `validate_architecture` with no arguments.
+10. Inspect the attached temporary preview of the exact canonical SVG at full
+    resolution and expected embedded size.
+11. Repair every structural or visual issue, then re-read, revalidate, and
+    inspect again.
+12. Load this skill again for final review. Finish only when the latest source
+    and render digests correspond to the visually approved artifacts.
 
-An edge connects two declared services or junctions. Specify ports explicitly:
+Compilation is necessary but not visual approval. Reject a render with
+unnecessary crossings, overlapping edges, routes through nodes or labels,
+ambiguous label association, excessive bends, dominant reverse-flow loops,
+cluttered boundaries, or unreadable text. Never remove or reverse an
+architecture fact merely to improve layout.
 
-```text
-<source>{group}?:<T|B|L|R> <arrow> <T|B|L|R>:<target>{group}?
-```
+### Correctness and non-regression
 
-`T`, `B`, `L`, and `R` select the top, bottom, left, and right side of an
-endpoint. Choose ports that communicate the intended layout and avoid needless
-crossings.
+- [ ] Every in-scope node and meaningful boundary is present.
+- [ ] Every required relationship remains present and correctly labeled.
+- [ ] Visible arrowheads point in the true semantic direction.
+- [ ] Containers represent real boundaries rather than decoration.
+- [ ] The final topology still matches the evidence inventory.
+- [ ] No unsupported component, protocol, dependency, or ownership claim was
+      introduced.
 
-| Form | Meaning |
-| --- | --- |
-| `a:R -- L:b` | Undirected horizontal relationship |
-| `a:T -- B:b` | Undirected vertical relationship |
-| `a:R --> L:b` | Relationship directed from `a` to `b` |
-| `a:R <--> L:b` | Evidence-backed bidirectional relationship |
-| `a{group}:R --> L:b{group}` | Edge exiting/entering group boundaries |
+### Readability
 
-Use `--` when direction is not established. Add `>` at the receiving end, or
-`<` at the sending end, only where source/configuration/`app_interfaces.md`
-establishes it. Group IDs cannot be edge endpoints. The `{group}` modifier is
-valid only on a service that belongs to that group.
+- [ ] The primary reading order is immediately apparent.
+- [ ] Edge labels associate clearly with their relationships.
+- [ ] Crossings, bends, and feedback loops are limited.
+- [ ] Text remains readable at documentation size.
+- [ ] Classes have consistent meanings.
+- [ ] Icons improve recognition without replacing labels.
 
-`architecture-beta` has no edge-label grammar. Do **not** invent flowchart
-syntax such as `-->|HTTPS|`. When a protocol (HTTPS, TCP, gRPC, a queue
-transport, and so on) is established and materially clarifies the diagram,
-communicate it with an evidence-backed endpoint label such as `[GitHub HTTPS
-API]`, or concise prose outside the Mermaid fence. Do not claim a protocol that
-the available evidence does not establish.
+### Accessibility
 
-## Alignment and layout
+- [ ] Meaning does not depend only on color.
+- [ ] Container fills, borders, labels, and edges have sufficient contrast.
+- [ ] Fonts are legible at the intended size.
+- [ ] Unfamiliar icons have accompanying text.
 
-Declaration order affects Mermaid's layout. Use explicit ports first. Add
-alignment only to fix a concrete sibling-layout issue, not as decoration.
+## Official references
 
-```text
-align row <id-a> <id-b> ...
-align column <id-a> <id-b> ...
-```
-
-- Members must already be declared services or junctions; each directive needs
-  at least two members and occupies its own line.
-- Use `align column` for siblings that connect to a common downstream node via
-  the same horizontal port pair, such as `R --> L:downstream`.
-- Use `align row` for siblings that connect to a common downstream node via the
-  same vertical port pair, such as `B --> T:downstream`.
-- Member order controls their order on the selected axis. It must not contradict
-  edge directions or Mermaid may fail to render.
-
-## Evidence, focus, and review workflow
-
-1. Load this skill before drafting. Read the current `app_interfaces.md`,
-   deployment/configuration evidence, relevant source sections, and any current
-   `architecture.md`.
-2. Identify inbound and outbound interfaces first, classify supported nodes by
-   their primary canonical role, and then model only the supporting services and
-   relationships that the evidence establishes. Omit empty roles; treat any
-   deployment or trust boundary as secondary structure only.
-3. Prefer a small system-level diagram over an exhaustive inventory. Keep
-   labels specific enough to distinguish components without adding unsupported
-   technology claims.
-4. Write or update the one owned `architecture.md` diagram with the console
-   `write_file` or `edit_file` tool (never a skill script). Re-read the complete
-   artifact and verify its one-fence contract, declaration order, labels, **one
-   built-in icon on every service** (no bare `service id[label]` declarations),
-   built-in-only icons, group membership, ports, arrows, and evidence-backed
-   edges.
-5. After the final write/no-change decision, call the no-argument
-   `validate_architecture` tool. It extracts the diagram as direct Mermaid input,
-   streams it to `mmdc`, captures the rendered SVG from stdout, and inspects that
-   SVG for Mermaid's error-page markers. This matters because exit code zero alone
-   is not proof of a valid render.
-6. If validation fails, repair only `architecture.md`, re-read it, repeat the
-   review, and call `validate_architecture` again. Raw `mmdc` console commands are
-   useful supplemental probes, but their exit status is not the final signal.
-7. Load this skill again during final review. Confirm the final artifact against
-   repository evidence, the official `architecture-beta` forms, a built-in icon
-   on every service (so no empty dashed placeholders remain), fan-in/fan-out
-   junction necessity, and the successful validation digest. Do not edit the
-   artifact after the digest is confirmed without validating again.
-
-## Reference
-
-- [Official Mermaid Architecture Diagram syntax](https://mermaid.js.org/syntax/architecture.html)
-- [Upstream architecture-diagrams reference](https://github.com/softaworks/agent-toolkit/blob/HEAD/skills/mermaid-diagrams/references/architecture-diagrams.md)
-- [Iconify](https://iconify.design) (Mermaid supports it generally, but it is prohibited for this project)
+- [D2 introduction](https://d2lang.com/tour/intro/)
+- [D2 containers](https://d2lang.com/tour/containers/)
+- [D2 connections and arrowheads](https://d2lang.com/tour/connections/)
+- [D2 classes](https://d2lang.com/tour/classes/)
+- [D2 styles](https://d2lang.com/tour/style/)
+- [D2 icons and images](https://d2lang.com/tour/icons/)
+- [D2 layout overview](https://d2lang.com/tour/layouts/)
+- [D2 ELK layout](https://d2lang.com/tour/elk/)
+- [D2 ELK example gallery](https://d2lang.com/examples/elk/)
+- [Eclipse ELK option reference](https://www.eclipse.org/elk/reference.html)
+- [D2 hosted icon catalog](https://icons.d2lang.com/)

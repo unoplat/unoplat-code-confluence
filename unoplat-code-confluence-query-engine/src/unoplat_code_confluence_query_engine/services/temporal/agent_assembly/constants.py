@@ -3,7 +3,17 @@ from __future__ import annotations
 DEPENDENCY_OVERVIEW_ARTIFACT = "dependencies_overview.md"
 BUSINESS_DOMAIN_REFERENCES_ARTIFACT = "business_domain_references.md"
 APP_INTERFACES_ARTIFACT = "app_interfaces.md"
-ARCHITECTURE_ARTIFACT = "architecture.md"
+
+ARCHITECTURE_SOURCE_ARTIFACT = "architecture.d2"
+ARCHITECTURE_RENDER_ARTIFACT = "architecture.svg"
+
+# The Architecture agent authors only the D2 source. The rendered SVG is also
+# managed by the workflow.
+ARCHITECTURE_AUTHORED_ARTIFACTS: tuple[str, ...] = (ARCHITECTURE_SOURCE_ARTIFACT,)
+ARCHITECTURE_MANAGED_ARTIFACTS: tuple[str, ...] = (
+    ARCHITECTURE_SOURCE_ARTIFACT,
+    ARCHITECTURE_RENDER_ARTIFACT,
+)
 
 ARCHITECTURE_CONSOLE_TOOLSET_ID = "console__architecture"
 ARCHITECTURE_SKILL_TOOLSET_ID = "skills__architecture"

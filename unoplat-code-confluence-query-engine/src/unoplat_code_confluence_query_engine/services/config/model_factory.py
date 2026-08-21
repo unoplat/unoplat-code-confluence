@@ -181,7 +181,8 @@ class ModelFactory:
                 provider = OpenAIProvider(openai_client=codex_client)
                 # Codex backend requires explicit `store=false` for Responses API requests.
                 codex_model_settings: OpenAIResponsesModelSettings = {
-                    "openai_store": False
+                    "openai_store": False,
+                    "openai_reasoning_summary": "auto",
                 }
                 if params.get("temperature") is not None:
                     codex_model_settings["temperature"] = params["temperature"]

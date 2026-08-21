@@ -1,15 +1,20 @@
 {
-  "generated_at": "2026-07-11T19:15:12+05:30",
-  "schema_version": "v4",
+  "generated_at": "2026-07-16T01:17:02+05:30",
+  "schema_version": "v4.1",
   "languages": [
     {
       "language": "python",
       "libraries": [
         "celery",
+        "click",
         "fastapi",
         "fastmcp",
+        "ghapi",
         "gql",
+        "httpx",
+        "httpx2",
         "litellm",
+        "pydantic_ai",
         "pydantic",
         "sqlalchemy",
         "sqlmodel",
@@ -19,10 +24,12 @@
     {
       "language": "typescript",
       "libraries": [
+        "axios",
         "firebase",
         "lit",
         "nextjs",
         "swr",
+        "tanstack-react-db",
         "zustand"
       ]
     }

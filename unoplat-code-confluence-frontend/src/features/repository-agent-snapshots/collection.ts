@@ -24,7 +24,51 @@ export interface RepositoryAgentCodebaseScope
   codebaseName: string;
 }
 
-const electricShapeUrl = `${env.electricBaseUrl.replace(/\/$/, "")}/v1/shape`;
+// @electric-sql/client@1.5.x does `new URL(url)` without a base, so relative
+// paths like `/electric/v1/shape` throw Invalid URL. Resolve against origin
+// so the browser still hits the same-origin Vite/Nginx proxy.
+function resolveElectricShapeUrl(): string {
+  const path = `${env.electricBaseUrl.replace(/\/$/, "")}/v1/shape`;
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return new URL(path, window.location.origin).href;
+  }
+
+  const configuredOrigin = env.frontendOrigin;
+  if (!configuredOrigin) {
+    throw new Error(
+      "Cannot resolve the relative Electric shape URL outside a browser. Set VITE_FRONTEND_ORIGIN to an absolute HTTP(S) origin.",
+    );
+  }
+
+  let origin: URL;
+  try {
+    origin = new URL(configuredOrigin);
+  } catch {
+    throw new Error(
+      `Invalid VITE_FRONTEND_ORIGIN: ${configuredOrigin}. Expected an absolute HTTP(S) origin.`,
+    );
+  }
+
+  if (
+    !["http:", "https:"].includes(origin.protocol) ||
+    origin.username ||
+    origin.password ||
+    origin.pathname !== "/" ||
+    origin.search ||
+    origin.hash
+  ) {
+    throw new Error(
+      `Invalid VITE_FRONTEND_ORIGIN: ${configuredOrigin}. Expected an absolute HTTP(S) origin without credentials, path, query, or fragment.`,
+    );
+  }
+
+  return new URL(path, origin.origin).href;
+}
+
+const electricShapeUrl = resolveElectricShapeUrl();
 const collectionGcTime = 1000 * 60 * 2;
 const electricNumericParser = {
   numeric: (value: string): number => Number(value),

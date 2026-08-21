@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.60.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.59.0...unoplat-code-confluence-frontend-v1.60.0) (2026-08-21)
+
+
+### Features
+
+* **architecture:** add D2 diagrams and harden URL resolution ([d5bae27](https://github.com/unoplat/unoplat-code-confluence/commit/d5bae278a229ca876d1f443fad969348a224a992))
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
+
+### Bug Fixes
+
+* **frontend:** proxy Electric streams through same-origin frontend ([9bd6654](https://github.com/unoplat/unoplat-code-confluence/commit/9bd665449f7c357e72465293c6983266f3e073f9))
+
 ## [1.59.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.58.0...unoplat-code-confluence-frontend-v1.59.0) (2026-07-18)
 
 
