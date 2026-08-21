@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.5.0...unoplat-code-confluence-cli-v0.6.0) (2026-08-21)
+
+
+### Features
+
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
 ## [0.5.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.4.1...unoplat-code-confluence-cli-v0.5.0) (2026-06-27)
 
 

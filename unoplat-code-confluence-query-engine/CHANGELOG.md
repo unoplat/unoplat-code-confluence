@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.2...unoplat-code-confluence-query-engine-v0.49.0) (2026-08-21)
+
+
+### Features
+
+* **architecture:** add rendered PNG visual validation ([5f55ed6](https://github.com/unoplat/unoplat-code-confluence/commit/5f55ed6206593180602bea71813f75f229274ab0))
+* **architecture:** improve agent context and diagram validation ([bf477ef](https://github.com/unoplat/unoplat-code-confluence/commit/bf477ef7dda46527b74a8240d7b9d58c3c64f7b8))
+* **architecture:** migrate diagrams to D2 with hardened validation ([4632890](https://github.com/unoplat/unoplat-code-confluence/commit/4632890581d0ca3094d4ea3cf5e37292832cbfdb))
+
+
+### Bug Fixes
+
+* D2 source validation and Rendered SVG validation ([0dff6c5](https://github.com/unoplat/unoplat-code-confluence/commit/0dff6c53b764d1143181fb5612c51cd1730e71ce))
+* **tests:** fix stale tests ([6964b40](https://github.com/unoplat/unoplat-code-confluence/commit/6964b405e76f772ef1128fe860bb806647318261))
+
+
+### Documentation
+
+* **architecture:** add intuitive diagram review guidance ([81afe18](https://github.com/unoplat/unoplat-code-confluence/commit/81afe1893928c1fecddcb50c6ef9b87e77634643))
+* **architecture:** refine evidence-driven diagram guidance ([6eafa96](https://github.com/unoplat/unoplat-code-confluence/commit/6eafa96850f0298641c63703fe502ac4c9c775c9))
+
 ## [0.48.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.1...unoplat-code-confluence-query-engine-v0.48.2) (2026-07-22)
 
 
