@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.49.0...unoplat-code-confluence-query-engine-v0.49.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* **streaming-compaction:** streaming compaction should use parent req… ([7efd270](https://github.com/unoplat/unoplat-code-confluence/commit/7efd270d3174339902b6ba1c0b6a0cd93da4e5fb))
+* **streaming-compaction:** streaming compaction should use parent request model limits ([742a18d](https://github.com/unoplat/unoplat-code-confluence/commit/742a18d5f4b1598377fafb5e79d4633238450e72))
+
 ## [0.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.48.2...unoplat-code-confluence-query-engine-v0.49.0) (2026-08-21)
 
 
