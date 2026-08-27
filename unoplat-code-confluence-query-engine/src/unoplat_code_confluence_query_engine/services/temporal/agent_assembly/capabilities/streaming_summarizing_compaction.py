@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterable
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, field, fields, replace
 from typing import TypeVar, override
 
 from pydantic_ai import Agent, AgentStreamEvent, RunContext
+from pydantic_ai.agent import EventStreamHandler
 from pydantic_ai.messages import ModelMessage
+from pydantic_ai.usage import UsageLimits
 from pydantic_ai_harness.compaction import SummarizingCompaction
 from pydantic_ai_harness.compaction._summarizing_compaction import _format_messages
 
@@ -17,8 +19,8 @@ _SUMMARY_INSTRUCTIONS = (
     "You are a context summarization assistant. Extract the most important "
     "information from conversations."
 )
-_UPSTREAM_SUPPORTS_STREAM = any(
-    dataclass_field.name == "stream"
+_UPSTREAM_SUPPORTS_EVENT_STREAM_HANDLER = any(
+    dataclass_field.name == "event_stream_handler"
     for dataclass_field in fields(SummarizingCompaction)
 )
 
@@ -32,19 +34,32 @@ async def drain_summary_events(
         pass
 
 
+def reserved_usage_limits(limits: UsageLimits | None) -> UsageLimits | None:
+    """Reserve the pending parent request before a nested model call made from a hook.
+
+    The hook may run after the parent request's limit check. Reducing a finite
+    request limit prevents the nested call from spending the request that was
+    already approved for the parent.
+    """
+    if limits is None or limits.request_limit is None:
+        return limits
+    return replace(limits, request_limit=max(0, limits.request_limit - 1))
+
+
 @dataclass
 class StreamingSummarizingCompaction(SummarizingCompaction[AgentDepsT]):
-    """Use streaming requests for LLM-powered conversation summaries.
+    """Backport streaming summary requests from pydantic-ai-harness PR #620.
 
-    This is a compatibility subclass for pydantic-ai-harness PR #620. With a
-    harness version that already provides its ``stream`` field, the subclass
-    delegates directly to the upstream implementation. Older versions use the
-    local fallback below while retaining the parent capability's compaction
-    behavior.
+    Once upstream exposes ``event_stream_handler``, this subclass delegates to
+    its implementation. Older versions use the local fallback while retaining
+    the parent capability's compaction behavior.
     """
 
-    stream: bool = field(default=True, kw_only=True)
-    """Whether to stream and internally drain the nested summary request."""
+    event_stream_handler: EventStreamHandler[object] | None = field(
+        default=None,
+        kw_only=True,
+    )
+    """Handler for the nested summary run; any handler selects streaming."""
 
     @override
     async def _summarize(
@@ -55,7 +70,7 @@ class StreamingSummarizingCompaction(SummarizingCompaction[AgentDepsT]):
         previous_summary: str | None = None,
     ) -> str:
         """Generate a summary through the upstream or compatibility path."""
-        if _UPSTREAM_SUPPORTS_STREAM:
+        if _UPSTREAM_SUPPORTS_EVENT_STREAM_HANDLER:
             return await super()._summarize(
                 messages,
                 ctx,
@@ -78,6 +93,7 @@ class StreamingSummarizingCompaction(SummarizingCompaction[AgentDepsT]):
         result = await agent.run(
             prompt,
             usage=ctx.usage,
-            event_stream_handler=drain_summary_events if self.stream else None,
+            usage_limits=reserved_usage_limits(ctx.usage_limits),
+            event_stream_handler=self.event_stream_handler,
         )
         return result.output.strip()
