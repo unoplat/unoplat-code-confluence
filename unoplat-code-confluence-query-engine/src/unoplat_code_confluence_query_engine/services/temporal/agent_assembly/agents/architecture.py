@@ -28,6 +28,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capab
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.streaming_summarizing_compaction import (
     StreamingSummarizingCompaction,
+    drain_summary_events,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.constants import (
     ARCHITECTURE_CONSOLE_TOOLSET_ID,
@@ -114,6 +115,7 @@ def build_architecture_agent(
                     keep_messages=ARCHITECTURE_COMPACTION_KEEP_MESSAGES,
                     incremental=True,
                     preserve_first_user_message=True,
+                    event_stream_handler=drain_summary_events,
                 ),
             ],
             target_tokens=ARCHITECTURE_COMPACTION_TARGET_TOKENS,
