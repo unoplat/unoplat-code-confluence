@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.46.0...unoplat-code-confluence-v0.47.0) (2026-08-27)
+
+
+### Features
+
+* **update-releases:** changelog releases update ([7b673a1](https://github.com/unoplat/unoplat-code-confluence/commit/7b673a179b395f98a67ad67c2d8ea09438985f93))
+* **update-releases:** changelog releases update ([c055e9f](https://github.com/unoplat/unoplat-code-confluence/commit/c055e9f8e48ccbae8b3e71ba24928ff16ac2fad4))
+
+
+### Bug Fixes
+
+* **ci:** refresh package uv lockfiles before python lock checks run ([189feba](https://github.com/unoplat/unoplat-code-confluence/commit/189feba84a64d166cce27f87893e0e1d7fb504c7))
+* **streaming-compaction:** streaming compaction should use parent req… ([7efd270](https://github.com/unoplat/unoplat-code-confluence/commit/7efd270d3174339902b6ba1c0b6a0cd93da4e5fb))
+* **streaming-compaction:** streaming compaction should use parent request model limits ([742a18d](https://github.com/unoplat/unoplat-code-confluence/commit/742a18d5f4b1598377fafb5e79d4633238450e72))
+
 ## [0.46.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.45.1...unoplat-code-confluence-v0.46.0) (2026-08-21)
 
 
