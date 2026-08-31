@@ -10,6 +10,10 @@ No inbound constructs detected.
 
 No outbound constructs detected.
 
+## Bidirectional Constructs
+
+No bidirectional constructs detected.
+
 ## Internal Constructs
 
 No internal constructs detected.
