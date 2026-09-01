@@ -1,36 +1,5 @@
 # Agent Guidelines
 
-## Engineering Workflow
-- **Install**: `task sync` (from `Taskfile.yml`)
-- **Dev**: `task run-query-engine-backend-dev` (from `Taskfile.yml`)
-- **Test**: `task test` (from `Taskfile.yml`)
-- **Lint**: `task lint` (from `Taskfile.yml`)
-- **Type check**: `task typecheck` (from `Taskfile.yml`)
-
-## Dependency Guide
-- **Overview**: Full dependency descriptions are maintained in `dependencies_overview.md`.
-- **Usage**: Keep this section concise and treat `dependencies_overview.md` as the source-of-truth dependency catalog.
-
-## Business Logic Domain
-- **Overview**: AI-driven codebase analysis service that orchestrates repository workflows to generate structured documentation outputs and track execution across codebases.
-- **Core data focus**: Provider configuration (including OAuth flows), model parameters/catalogs, tool/MCP server setup, repository rulesets/metadata, and agent runtime dependencies.
-- **Workflow telemetry**: Agent events, workflow envelopes, and usage/cost statistics capture lifecycle and execution monitoring.
-- **Structured outputs**: Typed schemas for agent markdown responses, AGENTS.md updates, engineering workflows, and business logic summaries.
-- **Primary references**: See `business_logic_references.md` for the source-of-truth module map.
-
-## App Interfaces
-- **Protocol**: FastAPI HTTP endpoints under `src/unoplat_code_confluence_query_engine/api/v1/endpoints`.
-- **Surface area**: Model configuration + provider/OAuth flows, feature flag CRUD, repository agent rules/snapshots/markdown PR endpoints, and tool configuration management.
-- **Reference map**: See `app_interfaces.md` for endpoint-to-module details.
-
-## Commands
-- **Test all**: `task test` (starts deps, runs tests with coverage, stops deps)
-- **Test single**: `uv run --group test pytest tests/path/to/test_file.py::test_function_name -v`
-- **Lint**: `task lint` (check) or `task lint-fix` (auto-fix)
-- **Format**: `task format` (ruff formatter)
-- **Type check**: `task typecheck` (pyrefly strict preset)
-- **Dev server**: `task run-query-engine-backend-dev` (port 8001)
-
 ## Code Style
 - **Imports**: Absolute only (no relative), use ruff for ordering (`task lint-fix`)
 - **Types**: Always precise types - never use `Any`, use `typing` module generics
