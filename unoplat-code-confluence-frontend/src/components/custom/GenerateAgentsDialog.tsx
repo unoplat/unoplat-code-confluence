@@ -858,6 +858,8 @@ export function GenerateAgentsDialog({
               open={isPreviewOpen}
               onOpenChange={setIsPreviewOpen}
               onDownloadAll={handleDownloadAll}
+              generatedAt={parsedSnapshot?.updatedAt}
+              runId={job.repository_workflow_run_id}
             />
           )}
         </DialogContent>
