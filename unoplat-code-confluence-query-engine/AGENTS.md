@@ -48,10 +48,6 @@
 retrying.
 2. always when want to run python script open shell with 'uv run python'.
 
-## Backlog Workflow
-
-This project uses Backlog.md MCP for all task and project management. Before creating tasks or tracking work, read [`backlog_instructions.md`](./backlog_instructions.md) for the complete workflow guidance.
-
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
