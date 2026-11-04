@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.49.0...unoplat-code-confluence-commons-v0.49.1) (2026-11-04)
+
+
+### Code Refactoring
+
+* **commons:** remove agent event tool payload columns ([6bd7f47](https://github.com/unoplat/unoplat-code-confluence/commit/6bd7f470cdf3d145e8fb75d13588ca2b34899921))
+* **commons:** remove agent event tool payload columns ([029ce74](https://github.com/unoplat/unoplat-code-confluence/commit/029ce74b9fe0e4e0c586bb219f443551715bf371))
+
 ## [0.49.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.48.1...unoplat-code-confluence-commons-v0.49.0) (2026-08-21)
 
 
