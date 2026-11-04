@@ -31,7 +31,7 @@ Reference details: see `business_logic_references.md`.
 <!-- UNOPLAT_CODE_CONFLUENCE_CONTEXT:BEGIN -->
 <CRITICAL_INSTRUCTION>
 
-> Generated from branch `dev` at commit `a5948971aedbc9c28b0f70964454c7f6a7c4d6da` (2026-08-31). Content may become stale as new commits land.
+> Generated from branch `dev` at commit `300eba2384d7ead72dab160ff80dbfb9007858fb` (2026-11-04). Content may become stale as new commits land.
 
 </CRITICAL_INSTRUCTION>
 

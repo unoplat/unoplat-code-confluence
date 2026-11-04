@@ -129,7 +129,8 @@ external_systems: External systems {
 
 operators -> clients.web_frontend: use web application {class: request}
 operators -> clients.cli: run commands {class: request}
-clients.web_frontend -> services.flow_bridge: manage repositories {class: request}
+clients.cli -> services.flow_bridge: add & refresh {class: request}
+clients.web_frontend -> services.flow_bridge: manage repos {class: request}
 clients.web_frontend -> services.query_engine: manage agents & configuration {class: request}
 clients.web_frontend -> platform.electric: subscribe to live data {class: integration}
 

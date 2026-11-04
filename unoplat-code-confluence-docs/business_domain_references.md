@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This repository delivers the documentation site for Unoplat Code Confluence, a developer tool for AI-assisted code understanding and AGENTS.md generation. Its models support documentation publishing and product communication through framework catalog entries, release changelogs, announcement banners, SEO metadata, and documentation/search routes. Reusable typed data-table filters enable users to browse and refine catalog-style documentation content.
+This repository supports the documentation site for Unoplat Code Confluence, a developer tool for AI-assisted code understanding and AGENTS.md generation. Its data models cover framework catalog entries, release changelogs, announcement banners, SEO metadata, and reusable table filters. The dominant domain is product documentation and release communication for a code-context engine.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-docs/src/components/data-table-filter/core/filters.ts`

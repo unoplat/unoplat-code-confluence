@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This frontend supports a repository intelligence and code-analysis platform that onboards GitHub/GitLab repositories, ingests their codebases, and tracks workflow runs, agent events, progress, and generated Agent MD documentation artifacts. It also manages AI model/tool providers and credentials, OAuth integrations, operational error-to-GitHub-issue reporting, and user feedback on application and agent results.
+This frontend supports a code analysis and repository operations platform that onboards repositories, tracks ingestion and workflow runs, and presents AI-generated codebase documentation. Its models cover repository and codebase metadata, agent progress and snapshots, engineering workflows, dependency guides, business logic, and application interfaces. Supporting capabilities include provider credentials, AI model and tool configuration, and user feedback.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/features/agent-feedback/api.ts`
@@ -178,7 +178,6 @@ This frontend supports a repository intelligence and code-analysis platform that
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L119-L128`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L130-L135`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L137-L139`
-- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L141-L144`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L146-L149`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L152-L156`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L162-L170`
@@ -190,6 +189,7 @@ This frontend supports a repository intelligence and code-analysis platform that
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L227-L243`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L246-L253`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L256-L264`
+- `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L267-L270`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L273-L276`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L279-L281`
 - `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-frontend/src/types.ts#L284-L295`

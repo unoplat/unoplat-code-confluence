@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This service is an AI-assisted codebase analysis and repository automation engine. It orchestrates Temporal agent workflows to inspect repositories, capture framework and interface evidence, generate engineering, dependency, and business-domain documentation, and publish AGENTS.md updates through pull requests. Provider/OAuth and MCP tool configuration, repository snapshots and progress events, and LLM usage and cost statistics support operation of the agent runtime.
+This service is an AI-assisted codebase analysis and repository automation engine. It orchestrates repository workflows that examine codebases, identify business domains and framework usage, and generate engineering guidance, AGENTS.md artifacts, and pull requests. Supporting capabilities include AI model and tool configuration, OAuth, workflow progress tracking, and usage and cost statistics.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-query-engine/scripts/update_d2_icon_catalog.py`
