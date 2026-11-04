@@ -23,20 +23,28 @@ docker_compose("tilt-docker-compose.yml")
 # ---------------------------------------------------------------------------
 docker_build(
     "unoplat/code-confluence-flow-bridge-dev",
-    context="./unoplat-code-confluence-ingestion/code-confluence-flow-bridge",
+    context=".",
     dockerfile="./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/Dockerfile.dev",
     only=[
-        "./src",
-        "./framework-definitions",
-        "./pyproject.toml",
-        "./uv.lock",
-        "./README.md",
+        "./unoplat-code-confluence-commons/pyproject.toml",
+        "./unoplat-code-confluence-commons/README.md",
+        "./unoplat-code-confluence-commons/src",
+        "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src",
+        "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions",
+        "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/pyproject.toml",
+        "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock",
+        "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/README.md",
     ],
     live_update=[
         fall_back_on([
+            "./unoplat-code-confluence-commons/pyproject.toml",
             "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/pyproject.toml",
             "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock",
         ]),
+        sync(
+            "./unoplat-code-confluence-commons/src",
+            "/workspace/unoplat-code-confluence-commons/src",
+        ),
         sync("./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src", "/app/src"),
         sync(
             "./unoplat-code-confluence-ingestion/code-confluence-flow-bridge/framework-definitions",
@@ -50,21 +58,55 @@ docker_build(
 # ---------------------------------------------------------------------------
 docker_build(
     "unoplat/code-confluence-query-engine-dev",
-    context="./unoplat-code-confluence-query-engine",
+    context=".",
     dockerfile="./unoplat-code-confluence-query-engine/Dockerfile.dev",
     only=[
-        "./src",
-        "./mcp-servers.json",
-        "./pyproject.toml",
-        "./uv.lock",
-        "./README.md",
+        "./unoplat-code-confluence-commons/pyproject.toml",
+        "./unoplat-code-confluence-commons/README.md",
+        "./unoplat-code-confluence-commons/src",
+        "./unoplat-code-confluence-query-engine/src",
+        "./unoplat-code-confluence-query-engine/mcp-servers.json",
+        "./unoplat-code-confluence-query-engine/pyproject.toml",
+        "./unoplat-code-confluence-query-engine/uv.lock",
+        "./unoplat-code-confluence-query-engine/README.md",
     ],
     live_update=[
         fall_back_on([
+            "./unoplat-code-confluence-commons/pyproject.toml",
             "./unoplat-code-confluence-query-engine/pyproject.toml",
             "./unoplat-code-confluence-query-engine/uv.lock",
         ]),
+        sync(
+            "./unoplat-code-confluence-commons/src",
+            "/workspace/unoplat-code-confluence-commons/src",
+        ),
         sync("./unoplat-code-confluence-query-engine/src", "/app/src"),
+    ],
+)
+
+# ---------------------------------------------------------------------------
+# application-migrator (one-shot Alembic job, lightweight image)
+# ---------------------------------------------------------------------------
+# Separate from the query-engine dev image so migrations never wait on its
+# toolchain. No live_update: any watched change rebuilds the image, and Tilt
+# recreates the job so it reruns the revisions. Query-engine source edits do not.
+docker_build(
+    "unoplat/code-confluence-query-engine-migrator-dev",
+    context=".",
+    dockerfile="./unoplat-code-confluence-query-engine/Dockerfile.migrator",
+    only=[
+        "./unoplat-code-confluence-commons/pyproject.toml",
+        "./unoplat-code-confluence-commons/README.md",
+        "./unoplat-code-confluence-commons/src",
+        "./unoplat-code-confluence-query-engine/alembic",
+        "./unoplat-code-confluence-query-engine/alembic.ini",
+        "./unoplat-code-confluence-query-engine/pyproject.toml",
+        "./unoplat-code-confluence-query-engine/uv.lock",
+        "./unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/__init__.py",
+        "./unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/__init__.py",
+        "./unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/__init__.py",
+        "./unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/ai_model_config.py",
+        "./unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/migration_metadata.py",
     ],
 )
 
@@ -113,6 +155,19 @@ dc_resource("temporal", labels=["infra"])
 dc_resource("temporal-admin-tools", labels=["infra"])
 dc_resource("temporal-ui", labels=["infra"])
 
-dc_resource("code-confluence-flow-bridge", labels=["app"])
-dc_resource("unoplat-code-confluence-query-engine", labels=["app"])
+# One-shot Alembic job. Compose defaults both cutover attestations to true, so
+# `tilt up` bootstraps an empty database without shell flags. For existing data,
+# complete the drain/backup cutover first; either attestation can be set to false.
+dc_resource("application-migrator", labels=["infra"], resource_deps=["postgresql"])
+
+dc_resource(
+    "code-confluence-flow-bridge",
+    labels=["app"],
+    resource_deps=["application-migrator"],
+)
+dc_resource(
+    "unoplat-code-confluence-query-engine",
+    labels=["app"],
+    resource_deps=["application-migrator"],
+)
 dc_resource("unoplat-code-confluence-frontend", labels=["app"])

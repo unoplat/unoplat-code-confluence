@@ -93,6 +93,18 @@ jobs:
               components[key] = { image: repo, tag: imgTag };
             }
 
+            // The schema job runs the dedicated migrator image that is published with
+            // each query-engine release, so both must reference the same release tag.
+            const migratorImage = compose?.services?.['application-migrator']?.image;
+            const expectedMigratorImage = components.query_engine
+              ? `${components.query_engine.image}-migrator:${components.query_engine.tag}`
+              : undefined;
+            if (!migratorImage || migratorImage !== expectedMigratorImage) {
+              throw new Error(
+                `application-migrator must use ${expectedMigratorImage}, got "${migratorImage}"`,
+              );
+            }
+
             const manifest = {
               schema_version: 1,
               app: { name: 'unoplat-code-confluence', version, tag },
