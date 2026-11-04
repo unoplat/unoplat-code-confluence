@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1.7
+# Build from the repository root so uv can resolve the sibling commons package:
+#   docker build -f unoplat-code-confluence-ingestion/code-confluence-flow-bridge/Dockerfile .
 
 ########################################
 # ------------ builder stage ----------
@@ -9,7 +11,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Only tools required to compile native wheels
 RUN apt-get update && \
@@ -17,17 +20,23 @@ RUN apt-get update && \
         git build-essential libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Keep the repository layout for uv's relative commons path. Non-editable installs
+# leave no reference to it, so the runtime image ships only /app.
+WORKDIR /workspace/unoplat-code-confluence-ingestion/code-confluence-flow-bridge
 
 # Install dependency layer first so source changes do not invalidate it.
-COPY pyproject.toml uv.lock README.md ./
+COPY unoplat-code-confluence-ingestion/code-confluence-flow-bridge/pyproject.toml unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock unoplat-code-confluence-ingestion/code-confluence-flow-bridge/README.md ./
+COPY unoplat-code-confluence-commons/pyproject.toml unoplat-code-confluence-commons/README.md /workspace/unoplat-code-confluence-commons/
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project --no-editable --no-dev
+    uv sync --locked --no-install-project --no-install-package unoplat-code-confluence-commons --no-editable --no-dev
 
 # Copy source after dependency install and sync project into the venv.
-COPY . /app
+COPY unoplat-code-confluence-commons/src /workspace/unoplat-code-confluence-commons/src
+COPY unoplat-code-confluence-ingestion/code-confluence-flow-bridge/src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable --no-dev
+
+COPY unoplat-code-confluence-ingestion/code-confluence-flow-bridge/ /app/
 
 ########################################
 # ------------ runtime stage ----------

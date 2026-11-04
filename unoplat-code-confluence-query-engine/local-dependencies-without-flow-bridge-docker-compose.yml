@@ -104,9 +104,9 @@ services:
       - 8081:8080
 
 networks:
+  # Project-scoped: a second Compose project cannot resolve this stack's services.
   temporal-network:
     driver: bridge
-    name: temporal-network
 
 volumes:
   postgresql_data:
