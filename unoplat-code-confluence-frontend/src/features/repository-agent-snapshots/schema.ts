@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+// Safe activity metadata only. Generated bodies never belong in this schema:
+// tool_args, tool_result_content and message are deliberately not projected.
 export const repositoryAgentEventSchema = z.object({
   repository_name: z.string(),
   repository_owner_name: z.string(),
@@ -8,11 +10,8 @@ export const repositoryAgentEventSchema = z.object({
   event_id: z.number(),
   event: z.string(),
   phase: z.string(),
-  message: z.string().optional().nullable(),
   tool_name: z.string().optional().nullable(),
   tool_call_id: z.string().optional().nullable(),
-  tool_args: z.record(z.unknown()).optional().nullable(),
-  tool_result_content: z.string().optional().nullable(),
   created_at: z.string(),
 });
 
@@ -37,121 +36,9 @@ export type RepositoryAgentCodebaseProgressRow = z.infer<
   typeof repositoryAgentCodebaseProgressRowSchema
 >;
 
-// Nested schemas for agent_md_output.codebases structure
-
-export const agentMdEngineeringWorkflowCommandSchema = z.object({
-  command: z.string(),
-  stage: z.enum(["install", "build", "dev", "test", "lint", "type_check"]),
-  config_file: z.string(),
-  working_directory: z.string().nullable().optional(),
-});
-
-export type AgentMdEngineeringWorkflowCommand = z.infer<
-  typeof agentMdEngineeringWorkflowCommandSchema
->;
-
-export const agentMdEngineeringWorkflowSchema = z.object({
-  commands: z.array(agentMdEngineeringWorkflowCommandSchema).default([]),
-});
-
-export type AgentMdEngineeringWorkflow = z.infer<
-  typeof agentMdEngineeringWorkflowSchema
->;
-
-export const agentMdBusinessLogicSchema = z.object({
-  description: z.string(),
-  data_models: z.array(
-    z.object({
-      path: z.string(),
-      responsibility: z.string().nullable(),
-    }),
-  ),
-});
-
-// Dependency Guide Entry schema
-export const agentMdDependencyGuideEntrySchema = z.object({
-  name: z.string(),
-  purpose: z.string(),
-});
-
-export type AgentMdDependencyGuideEntry = z.infer<
-  typeof agentMdDependencyGuideEntrySchema
->;
-
-// Dependency Guide schema (collection)
-export const agentMdDependencyGuideSchema = z.object({
-  dependencies: z.array(agentMdDependencyGuideEntrySchema).default([]),
-});
-
-export type AgentMdDependencyGuide = z.infer<
-  typeof agentMdDependencyGuideSchema
->;
-
-export const agentMdInterfaceMatchPatternSchema = z
-  .record(z.string(), z.array(z.string()).default([]))
-  .default({});
-
-export type AgentMdInterfaceMatchPattern = z.infer<
-  typeof agentMdInterfaceMatchPatternSchema
->;
-
-export const agentMdInterfaceConstructSchema = z.object({
-  kind: z.string(),
-  library: z.string(),
-  match_pattern: agentMdInterfaceMatchPatternSchema,
-});
-
-export type AgentMdInterfaceConstruct = z.infer<
-  typeof agentMdInterfaceConstructSchema
->;
-
-export const agentMdAppInterfacesSchema = z.object({
-  inbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
-  outbound_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
-  bidirectional_constructs: z
-    .array(agentMdInterfaceConstructSchema)
-    .default([]),
-  internal_constructs: z.array(agentMdInterfaceConstructSchema).default([]),
-});
-
-export type AgentMdAppInterfaces = z.infer<typeof agentMdAppInterfacesSchema>;
-
-export const agentMdProgrammingLanguageMetadataSchema = z.object({
-  primary_language: z.string(),
-  package_manager: z.string(),
-});
-
-export type AgentMdProgrammingLanguageMetadata = z.infer<
-  typeof agentMdProgrammingLanguageMetadataSchema
->;
-
-export const agentMdCodebaseOutputSchema = z.object({
-  codebase_name: z.string(),
-  // Use .nullish() to accept both null (from PostgreSQL/Python None) and undefined (missing key)
-  statistics: z.lazy(() => usageStatisticsSchema).nullish(),
-  programming_language_metadata:
-    agentMdProgrammingLanguageMetadataSchema.nullish(),
-  engineering_workflow: agentMdEngineeringWorkflowSchema.nullish(),
-  dependency_guide: agentMdDependencyGuideSchema.nullish(),
-  business_logic: agentMdBusinessLogicSchema.nullish(),
-  app_interfaces: agentMdAppInterfacesSchema.nullish(),
-});
-
-export type AgentMdCodebaseOutput = z.infer<typeof agentMdCodebaseOutputSchema>;
-
-// Agent MD output schema - codebases values are objects, not strings
-// Electric SQL auto-parses JSONB columns
 export const repositoryActivityProgressSchema = z
   .record(z.string(), z.coerce.number())
   .default({});
-
-export const agentMdOutputSchema = z.object({
-  repository: z.string().optional(),
-  codebases: z.record(z.string(), agentMdCodebaseOutputSchema).default({}),
-  repository_activity_progress: repositoryActivityProgressSchema,
-});
-
-export type AgentMdOutputRecord = z.infer<typeof agentMdOutputSchema>;
 
 export const usageStatisticsSchema = z.object({
   requests: z.number().default(0),
@@ -188,10 +75,13 @@ export const repositoryAgentSnapshotRowSchema = z.object({
   repository_owner_name: z.string(),
   repository_workflow_run_id: z.string(), // Part of composite PK - required
 
-  agent_md_output: agentMdOutputSchema.default({
-    codebases: {},
-    repository_activity_progress: {},
-  }),
+  // Live refresh signals only. Availability and the manifest come from
+  // GET /v1/repository-agent-snapshot, which validates stored identity. The
+  // error stays unknown so a malformed value cannot stop live progress sync.
+  artifact_commit_sha: z.string().nullable().optional(),
+  artifact_publication_error: z.unknown(),
+
+  repository_activity_progress: repositoryActivityProgressSchema,
 
   // Optional JSONB field
   statistics: workflowStatisticsSchema.nullable().optional(),
@@ -208,3 +98,90 @@ export const repositoryAgentSnapshotRowSchema = z.object({
 export type RepositoryAgentSnapshotRow = z.infer<
   typeof repositoryAgentSnapshotRowSchema
 >;
+
+export const artifactManifestEntrySchema = z.object({
+  path: z.string().min(1),
+  kind: z.enum(["markdown", "d2", "svg"]),
+  scope: z.enum(["codebase", "repository"]),
+  codebase_name: z.string().nullable(),
+  byte_length: z.number().int().nonnegative(),
+  sha256: z.string(),
+});
+
+export type ArtifactManifestEntry = z.infer<typeof artifactManifestEntrySchema>;
+
+export const artifactPublicationErrorSchema = z.object({
+  code: z.string(),
+  stage: z.string(),
+  message: z.string().max(512),
+  retryable: z.boolean(),
+});
+
+export type ArtifactPublicationError = z.infer<
+  typeof artifactPublicationErrorSchema
+>;
+
+// Response of GET /v1/repository-agent-snapshot. It holds no generated content.
+export const repositoryAgentSnapshotMetadataSchema = z
+  .object({
+    repository_workflow_run_id: z.string(),
+    availability: z.enum([
+      "available",
+      "no_artifacts",
+      "pending",
+      "failed",
+      "unavailable",
+    ]),
+    artifact_commit_sha: z
+      .string()
+      .regex(/^[0-9a-f]{40}$/)
+      .nullable(),
+    artifact_manifest: z.array(artifactManifestEntrySchema).nullable(),
+    artifact_publication_error: artifactPublicationErrorSchema.nullable(),
+    repository_activity_progress: z.record(z.string(), z.number()),
+    overall_progress: z.number().nullable(),
+    statistics: workflowStatisticsSchema.nullable(),
+  })
+  .refine(
+    (metadata) =>
+      (metadata.availability === "available") ===
+      (metadata.artifact_commit_sha !== null &&
+        (metadata.artifact_manifest?.length ?? 0) > 0),
+    { message: "Only available runs have a saved commit and files" },
+  );
+
+export type RepositoryAgentSnapshotMetadata = z.infer<
+  typeof repositoryAgentSnapshotMetadataSchema
+>;
+
+export const artifactReadErrorCodeSchema = z.enum([
+  "invalid_artifact_path",
+  "run_not_found",
+  "artifact_not_found",
+  "artifact_identity_pending",
+  "artifact_identity_unavailable",
+  "artifact_identity_invalid",
+  "artifact_integrity_failed",
+  "artifact_missing_at_commit",
+  "credentials_unavailable",
+  "credentials_invalid",
+  "provider_credentials_rejected",
+  "provider_permission_denied",
+  "provider_not_found",
+  "provider_request_rejected",
+  "provider_response_invalid",
+  "provider_rate_limited",
+  "provider_unavailable",
+  "metadata_unavailable",
+  "artifact_read_failed",
+]);
+
+export type ArtifactReadErrorCode = z.infer<typeof artifactReadErrorCodeSchema>;
+
+export const artifactReadErrorResponseSchema = z.object({
+  detail: z.object({
+    code: artifactReadErrorCodeSchema,
+    message: z.string().max(512),
+    retryable: z.boolean(),
+  }),
+});

@@ -4,7 +4,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { AgentEventItem } from "@/components/custom/agent-events/AgentEventItem";
 
 import { AgentGroupHeader } from "@/components/custom/agent-events/AgentGroupHeader";
-import { ToolDetailModal } from "@/components/custom/agent-events/ToolDetailModal";
 import {
   Accordion,
   AccordionContent,
@@ -20,7 +19,6 @@ import type { RepositoryAgentEvent } from "@/features/repository-agent-snapshots
 import type {
   AgentEventDisplayItem,
   AgentEventsAccordionProps,
-  ToolDetailItem,
 } from "@/types/agent-events";
 
 const ROW_ESTIMATE_PX = 96;
@@ -98,14 +96,12 @@ function findAnchorIndex(
 interface VirtualizedAgentGroupEventsProps {
   groupId: string;
   events: RepositoryAgentEvent[];
-  onViewDetails: (item: ToolDetailItem) => void;
   registerHandle: RegisterGroupHandle;
 }
 
 function VirtualizedAgentGroupEvents({
   groupId,
   events,
-  onViewDetails,
   registerHandle,
 }: VirtualizedAgentGroupEventsProps): React.ReactElement {
   const items = React.useMemo(() => buildEventDisplayItems(events), [events]);
@@ -278,7 +274,7 @@ function VirtualizedAgentGroupEvents({
                 paddingBottom: "8px",
               }}
             >
-              <AgentEventItem item={item} onViewDetails={onViewDetails} />
+              <AgentEventItem item={item} />
             </div>
           );
         })}
@@ -297,9 +293,6 @@ export const AgentEventsAccordion = React.forwardRef<
   const agentGroups = React.useMemo(
     () => groupEventsByAgent(events, completedNamespaces),
     [events, completedNamespaces],
-  );
-  const [detailItem, setDetailItem] = React.useState<ToolDetailItem | null>(
-    null,
   );
   const [expandedGroups, setExpandedGroups] = React.useState<string[]>([]);
 
@@ -371,49 +364,36 @@ export const AgentEventsAccordion = React.forwardRef<
   }
 
   return (
-    <>
-      <Accordion
-        type="multiple"
-        value={visibleExpandedGroups}
-        onValueChange={handleExpandedGroupsChange}
-        className="w-full"
-      >
-        {agentGroups.map((group) => {
-          if (group.eventCount === 0) {
-            return null;
-          }
+    <Accordion
+      type="multiple"
+      value={visibleExpandedGroups}
+      onValueChange={handleExpandedGroupsChange}
+      className="w-full"
+    >
+      {agentGroups.map((group) => {
+        if (group.eventCount === 0) {
+          return null;
+        }
 
-          return (
-            <AccordionItem
-              key={group.agentId}
-              value={group.agentId}
-              className="border-border border-b last:border-b-0"
-            >
-              <AccordionTrigger className="px-4 py-2.5 hover:no-underline">
-                <AgentGroupHeader group={group} />
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pt-1 pb-3">
-                <VirtualizedAgentGroupEvents
-                  groupId={group.agentId}
-                  events={group.events}
-                  onViewDetails={setDetailItem}
-                  registerHandle={registerHandle}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
-
-      <ToolDetailModal
-        open={detailItem !== null}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            setDetailItem(null);
-          }
-        }}
-        item={detailItem}
-      />
-    </>
+        return (
+          <AccordionItem
+            key={group.agentId}
+            value={group.agentId}
+            className="border-border border-b last:border-b-0"
+          >
+            <AccordionTrigger className="px-4 py-2.5 hover:no-underline">
+              <AgentGroupHeader group={group} />
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pt-1 pb-3">
+              <VirtualizedAgentGroupEvents
+                groupId={group.agentId}
+                events={group.events}
+                registerHandle={registerHandle}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
   );
 });

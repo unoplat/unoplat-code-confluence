@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Copy,
   Download,
+  FileCode,
   FileText,
   Folder,
   Network,
@@ -11,20 +12,8 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import "@mdxeditor/editor/style.css";
-import {
-  MDXEditor,
-  codeBlockPlugin,
-  codeMirrorPlugin,
-  headingsPlugin,
-  linkPlugin,
-  listsPlugin,
-  markdownShortcutPlugin,
-  quotePlugin,
-  tablePlugin,
-  thematicBreakPlugin,
-} from "@mdxeditor/editor";
 
+import { ArtifactMarkdownPreview } from "@/components/custom/ArtifactMarkdownPreview";
 import { SvgPreview } from "@/components/custom/SvgPreview";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -43,227 +32,267 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type {
-  AgentMdCodebaseOutput,
-  AgentMdProgrammingLanguageMetadata,
-} from "@/features/repository-agent-snapshots/schema";
-import { agentMdOutputToMarkdown } from "@/lib/agent-md-to-markdown";
+import {
+  useRepositoryArtifactFile,
+  useRepositoryMarkdownBundleDownload,
+  type RepositoryArtifactFileState,
+} from "@/features/repository-agent-snapshots/artifact-hooks";
+import type { RepositoryAgentSnapshotScope } from "@/features/repository-agent-snapshots/collection";
+import type { ArtifactManifestEntry } from "@/features/repository-agent-snapshots/schema";
 import { cn } from "@/lib/utils";
 
-export interface GeneratedArtifact {
-  codebaseName: string;
-  fileName: string;
-  type: "markdown" | "svg";
-  content: string;
-  description?: string;
-  sizeLabel?: string;
-  width?: number;
-  height?: number;
-}
-
 interface GenerateAgentsPreviewProps {
-  codebases: Record<string, AgentMdCodebaseOutput>;
+  scope: RepositoryAgentSnapshotScope;
+  commitSha: string;
+  manifest: ArtifactManifestEntry[];
   repositoryName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onDownloadAll: () => void;
-  artifacts?: GeneratedArtifact[];
   generatedAt?: string;
-  runId?: string;
 }
 
 interface ArtifactGroup {
-  codebaseName: string;
-  metadata?: AgentMdProgrammingLanguageMetadata | null;
-  artifacts: ViewerArtifact[];
+  key: string;
+  displayName: string;
+  artifacts: ArtifactManifestEntry[];
 }
 
-interface ViewerArtifact extends GeneratedArtifact {
-  id: string;
-}
+type ArtifactKind = ArtifactManifestEntry["kind"];
 
-const codeBlockLanguages: Record<string, string> = {
-  js: "JavaScript",
-  jsx: "JSX",
-  ts: "TypeScript",
-  tsx: "TSX",
-  py: "Python",
-  css: "CSS",
-  json: "JSON",
-  md: "Markdown",
-  txt: "Plain Text",
-  bash: "Bash",
-  shell: "Shell",
-  yaml: "YAML",
-  yml: "YAML",
-  toml: "TOML",
+const shortCommitShaLength = 7;
+const markdownBundleFileName = "AGENTS.md";
+
+const artifactKindLabels: Record<ArtifactKind, string> = {
+  markdown: "Markdown",
+  d2: "D2 source",
+  svg: "SVG",
 };
 
-function buildMarkdownEditorKey(
-  codebaseName: string,
-  markdown: string,
-): string {
-  let hash = 0;
-  for (let index = 0; index < markdown.length; index += 1) {
-    hash = (hash * 31 + markdown.charCodeAt(index)) >>> 0;
+const artifactMimeTypes: Record<ArtifactKind, string> = {
+  markdown: "text/markdown;charset=utf-8",
+  d2: "text/plain;charset=utf-8",
+  svg: "image/svg+xml;charset=utf-8",
+};
+
+function getArtifactFileName(entry: ArtifactManifestEntry): string {
+  return entry.path.split("/").pop() ?? entry.path;
+}
+
+function getArtifactGroupKey(entry: ArtifactManifestEntry): string {
+  return entry.scope === "repository"
+    ? "repository"
+    : `codebase:${entry.codebase_name ?? ""}`;
+}
+
+function getArtifactGroupName(entry: ArtifactManifestEntry): string {
+  if (entry.scope === "repository") {
+    return "Repository";
   }
-  return `${codebaseName}-${hash}-${markdown.length}`;
+  return entry.codebase_name === "." ? "Root" : (entry.codebase_name ?? "");
 }
 
-function ReadonlyMarkdownPreview({
-  markdown,
-  editorKey,
-}: {
-  markdown: string;
-  editorKey: string;
-}): React.ReactElement {
-  return (
-    <MDXEditor
-      key={editorKey}
-      markdown={markdown}
-      readOnly
-      suppressHtmlProcessing
-      plugins={[
-        headingsPlugin(),
-        listsPlugin(),
-        linkPlugin(),
-        quotePlugin(),
-        thematicBreakPlugin(),
-        tablePlugin(),
-        codeBlockPlugin({ defaultCodeBlockLanguage: "txt" }),
-        codeMirrorPlugin({ codeBlockLanguages }),
-        markdownShortcutPlugin(),
-      ]}
-      contentEditableClassName="prose prose-sm max-w-none dark:prose-invert mdx-editor-content"
-      className="mdx-editor-wrapper mdx-editor-theme min-h-full"
-    />
-  );
-}
-
-function formatBytes(content: string): string {
-  const bytes = new Blob([content]).size;
-  if (bytes < 1024) return `${bytes} B`;
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
-function buildTechStackSubtitle(
-  metadata: AgentMdProgrammingLanguageMetadata | null | undefined,
-): string | null {
-  if (!metadata) return null;
-  return [metadata.primary_language, metadata.package_manager]
-    .filter(Boolean)
-    .join(" · ");
+function buildArtifactGroups(
+  manifest: ArtifactManifestEntry[],
+  searchQuery: string,
+): ArtifactGroup[] {
+  const query = searchQuery.trim().toLocaleLowerCase();
+  const groups = new Map<string, ArtifactGroup>();
+
+  for (const entry of manifest) {
+    const displayName = getArtifactGroupName(entry);
+    const isMatch =
+      displayName.toLocaleLowerCase().includes(query) ||
+      entry.path.toLocaleLowerCase().includes(query);
+    if (!isMatch) {
+      continue;
+    }
+
+    const key = getArtifactGroupKey(entry);
+    const group = groups.get(key);
+    if (group) {
+      group.artifacts.push(entry);
+    } else {
+      groups.set(key, { key, displayName, artifacts: [entry] });
+    }
+  }
+
+  return [...groups.values()];
 }
 
-function downloadArtifact(artifact: ViewerArtifact): void {
-  const mimeType =
-    artifact.type === "svg"
-      ? "image/svg+xml;charset=utf-8"
-      : "text/markdown;charset=utf-8";
-  const url = URL.createObjectURL(
-    new Blob([artifact.content], { type: mimeType }),
-  );
+function downloadTextFile(
+  fileName: string,
+  content: string,
+  mimeType: string,
+): void {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = artifact.fileName;
+  link.download = fileName;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 }
 
+function ArtifactKindIcon({
+  kind,
+  className,
+}: {
+  kind: ArtifactKind;
+  className?: string;
+}): React.ReactElement {
+  if (kind === "svg") {
+    return <Network className={className} />;
+  }
+  if (kind === "d2") {
+    return <FileCode className={className} />;
+  }
+  return <FileText className={className} />;
+}
+
+function ArtifactContent({
+  entry,
+  file,
+}: {
+  entry: ArtifactManifestEntry;
+  file: RepositoryArtifactFileState;
+}): React.ReactElement | null {
+  if (file.status === "idle") {
+    return null;
+  }
+
+  if (file.status === "loading") {
+    return (
+      <output className="text-muted-foreground flex h-full items-center justify-center text-sm">
+        Loading file from the saved commit…
+      </output>
+    );
+  }
+
+  if (file.status === "error") {
+    return (
+      <div
+        className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center"
+        role="alert"
+      >
+        <p className="text-destructive text-sm">{file.failure.message}</p>
+        <code className="text-muted-foreground text-xs">
+          {file.failure.code}
+        </code>
+        {file.failure.retryable && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={file.isRetrying}
+            onClick={file.retry}
+          >
+            {file.isRetrying ? "Retrying…" : "Retry"}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  if (entry.kind === "svg") {
+    return (
+      <SvgPreview
+        key={entry.path}
+        source={file.content}
+        fileName={getArtifactFileName(entry)}
+      />
+    );
+  }
+
+  return (
+    <ScrollArea className="bg-muted h-full p-4" viewportClassName="pr-3">
+      <div className="border-border bg-card mx-auto min-h-full max-w-3xl rounded-lg border p-5 shadow-sm">
+        {entry.kind === "markdown" ? (
+          <ArtifactMarkdownPreview markdown={file.content} />
+        ) : (
+          <pre className="font-mono text-xs break-all whitespace-pre-wrap">
+            {file.content}
+          </pre>
+        )}
+      </div>
+    </ScrollArea>
+  );
+}
+
 export function GenerateAgentsPreview({
-  codebases,
+  scope,
+  commitSha,
+  manifest,
   repositoryName,
   open,
   onOpenChange,
-  onDownloadAll,
-  artifacts = [],
   generatedAt,
-  runId,
 }: GenerateAgentsPreviewProps): React.ReactElement {
-  const viewerArtifacts = React.useMemo<ViewerArtifact[]>(() => {
-    const markdownArtifacts = Object.entries(codebases).map(
-      ([codebaseName, output]): ViewerArtifact => ({
-        id: `${codebaseName}:AGENTS.md`,
-        codebaseName,
-        fileName: "AGENTS.md",
-        type: "markdown",
-        content: agentMdOutputToMarkdown(output, { title: codebaseName }),
-        description: "Generated agents documentation",
-      }),
-    );
-
-    const additionalArtifacts = artifacts.map((artifact, index) => ({
-      ...artifact,
-      id: `${artifact.codebaseName}:${artifact.fileName}:${index}`,
-    }));
-
-    return [...markdownArtifacts, ...additionalArtifacts];
-  }, [artifacts, codebases]);
-
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedArtifactId, setSelectedArtifactId] = React.useState("");
-  const [openCodebases, setOpenCodebases] = React.useState<Set<string>>(
-    () => new Set(),
+  const [selectedPath, setSelectedPath] = React.useState<string | null>(null);
+  const [toggledGroups, setToggledGroups] = React.useState<
+    Record<string, boolean>
+  >({});
+
+  const defaultArtifact =
+    manifest.find((entry) => entry.kind === "svg") ?? manifest[0];
+  const selectedArtifact =
+    manifest.find((entry) => entry.path === selectedPath) ?? defaultArtifact;
+  const defaultGroupKey = selectedArtifact
+    ? getArtifactGroupKey(selectedArtifact)
+    : null;
+
+  const file = useRepositoryArtifactFile({
+    scope,
+    commitSha,
+    path: selectedArtifact?.path ?? null,
+    enabled: open,
+  });
+  const loadedContent = file.status === "ready" ? file.content : null;
+  const markdownBundle = useRepositoryMarkdownBundleDownload({
+    scope,
+    commitSha,
+    repositoryName,
+    manifest,
+    isActive: open,
+    onReady: (markdown) => {
+      downloadTextFile(
+        markdownBundleFileName,
+        markdown,
+        artifactMimeTypes.markdown,
+      );
+    },
+    onFailure: (failure) => {
+      toast.error(
+        `Nothing was downloaded: ${failure.message} (${failure.code})`,
+      );
+    },
+  });
+
+  const groups = React.useMemo(
+    () => buildArtifactGroups(manifest, searchQuery),
+    [manifest, searchQuery],
+  );
+  const totalGroupCount = React.useMemo(
+    () => new Set(manifest.map(getArtifactGroupKey)).size,
+    [manifest],
   );
 
-  React.useEffect(() => {
-    if (!open || viewerArtifacts.length === 0) return;
-
-    const selectedStillExists = viewerArtifacts.some(
-      (artifact) => artifact.id === selectedArtifactId,
-    );
-    if (!selectedStillExists) {
-      const firstSvg = viewerArtifacts.find(
-        (artifact) => artifact.type === "svg",
-      );
-      const nextArtifact = firstSvg ?? viewerArtifacts[0];
-      setSelectedArtifactId(nextArtifact.id);
-      setOpenCodebases((current) => {
-        const next = new Set(current);
-        next.add(nextArtifact.codebaseName);
-        return next;
-      });
-    }
-  }, [open, selectedArtifactId, viewerArtifacts]);
-
-  const selectedArtifact =
-    viewerArtifacts.find((artifact) => artifact.id === selectedArtifactId) ??
-    viewerArtifacts[0];
-
-  const groups = React.useMemo<ArtifactGroup[]>(() => {
-    const query = searchQuery.trim().toLocaleLowerCase();
-    const codebaseNames = new Set([
-      ...Object.keys(codebases),
-      ...viewerArtifacts.map((artifact) => artifact.codebaseName),
-    ]);
-
-    return [...codebaseNames]
-      .map((codebaseName) => {
-        const codebaseMatches = codebaseName
-          .toLocaleLowerCase()
-          .includes(query);
-        const matchingArtifacts = viewerArtifacts.filter(
-          (artifact) =>
-            artifact.codebaseName === codebaseName &&
-            (codebaseMatches ||
-              artifact.fileName.toLocaleLowerCase().includes(query)),
-        );
-
-        return {
-          codebaseName,
-          metadata: codebases[codebaseName]?.programming_language_metadata,
-          artifacts: matchingArtifacts,
-        };
-      })
-      .filter((group) => group.artifacts.length > 0);
-  }, [codebases, searchQuery, viewerArtifacts]);
-
   const handleCopy = async (): Promise<void> => {
-    if (!selectedArtifact) return;
-    await navigator.clipboard.writeText(selectedArtifact.content);
-    toast.success(`${selectedArtifact.fileName} copied to clipboard`);
+    if (!selectedArtifact || loadedContent === null) {
+      return;
+    }
+    await navigator.clipboard.writeText(loadedContent);
+    toast.success(
+      `${getArtifactFileName(selectedArtifact)} copied to clipboard`,
+    );
   };
 
   const generatedLabel = React.useMemo(() => {
@@ -290,23 +319,29 @@ export function GenerateAgentsPreview({
               id="generated-artifacts-description"
               className="mt-1 text-xs"
             >
-              {viewerArtifacts.length}{" "}
-              {viewerArtifacts.length === 1 ? "artifact" : "artifacts"} across{" "}
-              {Object.keys(codebases).length}{" "}
-              {Object.keys(codebases).length === 1 ? "codebase" : "codebases"}
+              {manifest.length}{" "}
+              {manifest.length === 1 ? "artifact" : "artifacts"} across{" "}
+              {totalGroupCount} {totalGroupCount === 1 ? "group" : "groups"}
               <span className="sr-only"> for {repositoryName}</span>
             </DialogDescription>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onDownloadAll}
-            >
-              <Download />
-              <span className="hidden sm:inline">Download all</span>
-            </Button>
+            {markdownBundle.hasMarkdownFiles && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={markdownBundle.isPreparing}
+                onClick={markdownBundle.start}
+              >
+                <Download />
+                <span className="hidden sm:inline">
+                  {markdownBundle.isPreparing
+                    ? "Preparing download…"
+                    : "Download all Markdown"}
+                </span>
+              </Button>
+            )}
             <DialogClose asChild>
               <Button
                 type="button"
@@ -336,27 +371,26 @@ export function GenerateAgentsPreview({
               </div>
 
               <div className="text-muted-foreground px-2 pt-3 pb-2 text-[11px] font-semibold tracking-[0.06em] uppercase">
-                Codebases · {groups.length}
+                Files · {groups.length}{" "}
+                {groups.length === 1 ? "group" : "groups"}
               </div>
 
               <ScrollArea className="min-h-0 flex-1" viewportClassName="pr-1">
                 {groups.length > 0 ? (
                   <div className="space-y-0.5">
                     {groups.map((group) => {
-                      const isOpen = openCodebases.has(group.codebaseName);
-                      const techStack = buildTechStackSubtitle(group.metadata);
+                      const isOpen =
+                        toggledGroups[group.key] ??
+                        group.key === defaultGroupKey;
                       return (
-                        <Collapsible key={group.codebaseName} open={isOpen}>
+                        <Collapsible key={group.key} open={isOpen}>
                           <button
                             type="button"
                             onClick={() => {
-                              setOpenCodebases((current) => {
-                                const next = new Set(current);
-                                if (next.has(group.codebaseName))
-                                  next.delete(group.codebaseName);
-                                else next.add(group.codebaseName);
-                                return next;
-                              });
+                              setToggledGroups((current) => ({
+                                ...current,
+                                [group.key]: !isOpen,
+                              }));
                             }}
                             className="hover:bg-accent focus-visible:ring-ring flex h-12 w-full items-center gap-2 rounded-md px-2 text-left outline-none focus-visible:ring-2"
                             aria-expanded={isOpen}
@@ -364,15 +398,13 @@ export function GenerateAgentsPreview({
                             <Folder className="size-4 shrink-0" />
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-xs font-semibold">
-                                {group.codebaseName}
+                                {group.displayName}
                               </span>
                               <span className="text-muted-foreground block truncate text-[11px]">
-                                {[
-                                  techStack,
-                                  `${group.artifacts.length} ${group.artifacts.length === 1 ? "artifact" : "artifacts"}`,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" · ")}
+                                {group.artifacts.length}{" "}
+                                {group.artifacts.length === 1
+                                  ? "artifact"
+                                  : "artifacts"}
                               </span>
                             </span>
                             <ChevronRight
@@ -387,13 +419,13 @@ export function GenerateAgentsPreview({
                             <div className="space-y-0.5 pb-1">
                               {group.artifacts.map((artifact) => {
                                 const isSelected =
-                                  artifact.id === selectedArtifact?.id;
+                                  artifact.path === selectedArtifact?.path;
                                 return (
                                   <button
-                                    key={artifact.id}
+                                    key={artifact.path}
                                     type="button"
                                     onClick={() =>
-                                      setSelectedArtifactId(artifact.id)
+                                      setSelectedPath(artifact.path)
                                     }
                                     className={cn(
                                       "focus-visible:ring-ring flex min-h-10 w-full items-center gap-2 rounded-md py-1.5 pr-2 pl-9 text-left outline-none focus-visible:ring-2",
@@ -406,20 +438,18 @@ export function GenerateAgentsPreview({
                                     }
                                   >
                                     <span className="bg-card border-border flex size-6 shrink-0 items-center justify-center rounded-md border">
-                                      {artifact.type === "svg" ? (
-                                        <Network className="size-3.5" />
-                                      ) : (
-                                        <FileText className="size-3.5" />
-                                      )}
+                                      <ArtifactKindIcon
+                                        kind={artifact.kind}
+                                        className="size-3.5"
+                                      />
                                     </span>
                                     <span className="min-w-0 flex-1">
                                       <span className="block truncate font-mono text-[11px] font-medium">
-                                        {artifact.fileName}
+                                        {getArtifactFileName(artifact)}
                                       </span>
                                       <span className="text-muted-foreground block truncate text-[10px]">
-                                        {artifact.type === "svg"
-                                          ? `SVG${artifact.width && artifact.height ? ` · ${artifact.width} × ${artifact.height}` : ""}`
-                                          : `Markdown · ${artifact.sizeLabel ?? formatBytes(artifact.content)}`}
+                                        {artifactKindLabels[artifact.kind]} ·{" "}
+                                        {formatBytes(artifact.byte_length)}
                                       </span>
                                     </span>
                                     {isSelected && (
@@ -441,16 +471,15 @@ export function GenerateAgentsPreview({
                 )}
               </ScrollArea>
 
-              {(generatedLabel || runId) && (
-                <div className="border-border text-muted-foreground mt-3 shrink-0 border-t px-2 pt-3 text-[11px]">
-                  {generatedLabel && <div>{generatedLabel}</div>}
-                  {runId && (
-                    <div className="mt-1 truncate font-mono text-[10px]">
-                      run {runId}
-                    </div>
-                  )}
+              <div className="border-border text-muted-foreground mt-3 shrink-0 border-t px-2 pt-3 text-[11px]">
+                {generatedLabel && <div>{generatedLabel}</div>}
+                <div className="mt-1 truncate font-mono text-[10px]">
+                  commit {commitSha.slice(0, shortCommitShaLength)}
                 </div>
-              )}
+                <div className="mt-1 truncate font-mono text-[10px]">
+                  run {scope.runId}
+                </div>
+              </div>
             </aside>
           </ResizablePanel>
 
@@ -463,21 +492,14 @@ export function GenerateAgentsPreview({
                   <div className="border-border flex h-[66px] shrink-0 items-center justify-between gap-3 border-b px-4">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span className="bg-accent flex size-8 shrink-0 items-center justify-center rounded-md">
-                        {selectedArtifact.type === "svg" ? (
-                          <Network />
-                        ) : (
-                          <FileText />
-                        )}
+                        <ArtifactKindIcon kind={selectedArtifact.kind} />
                       </span>
                       <span className="min-w-0">
                         <span className="block truncate font-mono text-xs font-semibold">
-                          {selectedArtifact.fileName}
+                          {getArtifactFileName(selectedArtifact)}
                         </span>
                         <span className="text-muted-foreground block truncate text-[11px]">
-                          {selectedArtifact.description ??
-                            (selectedArtifact.type === "svg"
-                              ? "SVG artifact"
-                              : "Generated Markdown")}
+                          {selectedArtifact.path}
                         </span>
                       </span>
                     </div>
@@ -486,18 +508,27 @@ export function GenerateAgentsPreview({
                         type="button"
                         variant="outline"
                         size="sm"
+                        disabled={loadedContent === null}
                         onClick={() => void handleCopy()}
                       >
                         <Copy />
                         <span className="hidden md:inline">
-                          Copy{" "}
-                          {selectedArtifact.type === "svg" ? "SVG" : "Markdown"}
+                          Copy {artifactKindLabels[selectedArtifact.kind]}
                         </span>
                       </Button>
                       <Button
                         type="button"
                         size="sm"
-                        onClick={() => downloadArtifact(selectedArtifact)}
+                        disabled={loadedContent === null}
+                        onClick={() => {
+                          if (loadedContent !== null) {
+                            downloadTextFile(
+                              getArtifactFileName(selectedArtifact),
+                              loadedContent,
+                              artifactMimeTypes[selectedArtifact.kind],
+                            );
+                          }
+                        }}
                       >
                         <Download />
                         <span className="hidden sm:inline">Download</span>
@@ -506,27 +537,7 @@ export function GenerateAgentsPreview({
                   </div>
 
                   <div className="min-h-0 flex-1 overflow-hidden">
-                    {selectedArtifact.type === "svg" ? (
-                      <SvgPreview
-                        source={selectedArtifact.content}
-                        fileName={selectedArtifact.fileName}
-                      />
-                    ) : (
-                      <ScrollArea
-                        className="bg-muted h-full p-4"
-                        viewportClassName="pr-3"
-                      >
-                        <div className="border-border bg-card mx-auto min-h-full max-w-3xl rounded-lg border p-5 shadow-sm">
-                          <ReadonlyMarkdownPreview
-                            markdown={selectedArtifact.content}
-                            editorKey={buildMarkdownEditorKey(
-                              selectedArtifact.id,
-                              selectedArtifact.content,
-                            )}
-                          />
-                        </div>
-                      </ScrollArea>
-                    )}
+                    <ArtifactContent entry={selectedArtifact} file={file} />
                   </div>
                 </>
               ) : (
