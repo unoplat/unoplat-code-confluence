@@ -55,7 +55,6 @@ PostgreSQL reflection; index comparisons are not broadly disabled.
 
 ## Required cutover before upgrading
 
-Read `../scripts/migrations/README.md` for the detailed operational evidence.
 Pause ingestion/refresh/generation/update starts and admissions, including scheduled
 and manual triggers. Drain affected parent **and child** Temporal histories;
 reconcile queued/active DB rows against Temporal. Verify a backup, stop old writers,
@@ -154,7 +153,7 @@ The flags are attestations, and SQL cannot prove a Temporal drain.
 | Data | Result |
 | --- | --- |
 | `repository_agent_md_snapshot.agent_md_output` | Dropped without CASCADE. An unexpected dependency stops the revision for review |
-| `repository_agent_event.tool_args`, `tool_result_content` | NULL |
+| `repository_agent_event.tool_args`, `tool_result_content` | Dropped without CASCADE |
 | `repository_agent_event.message` | Static message for the phase; `Agent event recorded` for an unknown phase |
 | `repository_agent_event.tool_name`, `tool_call_id` | Kept if they meet the runtime pattern, otherwise NULL |
 | `repository_agent_event.event`, `phase` | Kept if they are bounded identifiers, otherwise `unknown` |

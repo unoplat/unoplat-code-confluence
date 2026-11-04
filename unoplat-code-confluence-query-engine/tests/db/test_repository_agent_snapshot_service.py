@@ -54,8 +54,6 @@ class EventData(TypedDict):
     message: str | None
     tool_name: str | None
     tool_call_id: str | None
-    tool_args: dict[str, object] | None
-    tool_result_content: str | None
     created_at: datetime
 
 
@@ -215,8 +213,6 @@ def list_codebase_events(
                 message,
                 tool_name,
                 tool_call_id,
-                tool_args,
-                tool_result_content,
                 created_at
             FROM repository_agent_event
             WHERE repository_owner_name = :owner
@@ -240,9 +236,7 @@ def list_codebase_events(
             "message": row[3],
             "tool_name": row[4],
             "tool_call_id": row[5],
-            "tool_args": row[6],
-            "tool_result_content": row[7],
-            "created_at": row[8],
+            "created_at": row[6],
         }
         for row in result.fetchall()
     ]
@@ -476,8 +470,6 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
         assert events[0]["message"] == "Agent step completed"
         assert events[0]["tool_name"] == "final_result"
         assert events[0]["tool_call_id"] is None
-        assert events[0]["tool_args"] is None
-        assert events[0]["tool_result_content"] is None
 
         progress_rows = list_codebase_progress_rows(
             session,

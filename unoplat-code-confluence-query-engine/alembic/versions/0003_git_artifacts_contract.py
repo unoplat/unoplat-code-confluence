@@ -1,8 +1,9 @@
 # ruff: noqa: INP001
 """Discard legacy generated content and historical raw agent event text.
 
-This revision is irreversible. It drops ``agent_md_output`` without CASCADE and
-scrubs tool payloads and message previews from agent event rows. Workflow
+This revision is irreversible. It drops ``agent_md_output``, ``tool_args`` and
+``tool_result_content`` without CASCADE, and scrubs message previews from agent
+event rows. Workflow
 ``error_report`` values are preserved unchanged, so users can still submit full
 error details. Rows, keys, event IDs, ordering, timestamps, statistics, progress,
 configuration, credentials, PR metadata and saved Git identity are left untouched.
@@ -125,6 +126,9 @@ def upgrade() -> None:
     """)
     # No CASCADE: an unexpected dependency must stop this for review.
     op.drop_column("repository_agent_md_snapshot", "agent_md_output")
+    # Tool payloads are no longer persisted or read; drop their columns too.
+    op.drop_column("repository_agent_event", "tool_args")
+    op.drop_column("repository_agent_event", "tool_result_content")
 
 
 def downgrade() -> None:
