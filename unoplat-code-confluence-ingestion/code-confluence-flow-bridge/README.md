@@ -30,7 +30,8 @@ Note - Directory to be in : unoplat-code-confluence-ingestion/code-confluence-fl
 ## Run Locally in Production Mode
 
 ```bash
-docker compose -f local-docker-compose.yml up
+# Run from the repository root. The attestations are only for a new, empty database.
+ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true docker compose -f local-docker-compose.yml up
 ```
 
 ## OTEL Logging important links
