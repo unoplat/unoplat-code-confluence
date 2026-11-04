@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Safe activity metadata only. Generated bodies never belong in this schema:
-// tool_args, tool_result_content and message are deliberately not projected.
+// message is deliberately not projected.
 export const repositoryAgentEventSchema = z.object({
   repository_name: z.string(),
   repository_owner_name: z.string(),

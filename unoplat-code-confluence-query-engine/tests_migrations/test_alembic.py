@@ -171,21 +171,47 @@ def seed_snapshot(
            completed_namespaces, created_at, modified_at)
         VALUES ('repo', 'owner', 'run', 'backend', 4, 3, 3, 55.5,
           '["dependency_guide"]'::jsonb, NOW(), NOW());
-        INSERT INTO repository_agent_event
-          (repository_name, repository_owner_name, repository_workflow_run_id,
-           codebase_name, event_id, event, phase, message, tool_name, tool_call_id,
-           tool_args, tool_result_content, created_at)
-        VALUES
-          ('repo', 'owner', 'run', 'backend', 1, 'dependency_guide', 'tool.call',
-           'Tool call raw secret', 'write_file', 'call|1',
-           '{"content":"raw secret"}'::jsonb, NULL, '2026-01-01T00:00:01+00'),
-          ('repo', 'owner', 'run', 'backend', 2, 'dependency_guide', 'tool.result',
-           'Tool result raw secret', 'raw secret', 'raw secret',
-           NULL, 'raw secret', '2026-01-01T00:00:02+00'),
-          ('repo', 'owner', 'run', 'backend', 3, 'raw secret', 'raw secret',
-           'raw secret', NULL, NULL, NULL, NULL, '2026-01-01T00:00:03+00');
     """,
     )
+    # Tool payload columns exist only before the contract drops them.
+    if legacy_document:
+        query(
+            url,
+            """
+            INSERT INTO repository_agent_event
+              (repository_name, repository_owner_name, repository_workflow_run_id,
+               codebase_name, event_id, event, phase, message, tool_name,
+               tool_call_id, tool_args, tool_result_content, created_at)
+            VALUES
+              ('repo', 'owner', 'run', 'backend', 1, 'dependency_guide',
+               'tool.call', 'Tool call raw secret', 'write_file', 'call|1',
+               '{"content":"raw secret"}'::jsonb, NULL, '2026-01-01T00:00:01+00'),
+              ('repo', 'owner', 'run', 'backend', 2, 'dependency_guide',
+               'tool.result', 'Tool result raw secret', 'raw secret', 'raw secret',
+               NULL, 'raw secret', '2026-01-01T00:00:02+00'),
+              ('repo', 'owner', 'run', 'backend', 3, 'raw secret', 'raw secret',
+               'raw secret', NULL, NULL, NULL, NULL, '2026-01-01T00:00:03+00');
+        """,
+        )
+    else:
+        query(
+            url,
+            """
+            INSERT INTO repository_agent_event
+              (repository_name, repository_owner_name, repository_workflow_run_id,
+               codebase_name, event_id, event, phase, message, tool_name,
+               tool_call_id, created_at)
+            VALUES
+              ('repo', 'owner', 'run', 'backend', 1, 'dependency_guide',
+               'tool.call', 'Tool call started', 'write_file', 'call|1',
+               '2026-01-01T00:00:01+00'),
+              ('repo', 'owner', 'run', 'backend', 2, 'dependency_guide',
+               'tool.result', 'Tool call finished', NULL, NULL,
+               '2026-01-01T00:00:02+00'),
+              ('repo', 'owner', 'run', 'backend', 3, 'unknown', 'unknown',
+               'Agent event recorded', NULL, NULL, '2026-01-01T00:00:03+00');
+        """,
+        )
     # Progress values are fixed test literals, never user-provided SQL.
     legacy_column = "agent_md_output, " if legacy_document else ""
     legacy_value = (
@@ -319,10 +345,7 @@ def test_existing_baseline_preserves_other_data(
     assert [event["tool_call_id"] for event in events] == ["call|1", None, None]
     assert [event["event"] for event in events][2] == "unknown"
     assert [event["phase"] for event in events][2] == "unknown"
-    assert all(
-        event["tool_args"] is None and event["tool_result_content"] is None
-        for event in events
-    )
+    assert not {"tool_args", "tool_result_content"} & set(events[0].keys())
 
     parent_report = query(
         database_url, "SELECT error_report FROM repository_workflow_run"
