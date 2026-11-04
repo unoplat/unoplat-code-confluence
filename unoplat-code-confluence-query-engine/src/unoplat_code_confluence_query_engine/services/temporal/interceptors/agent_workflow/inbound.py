@@ -4,19 +4,24 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
-import traceback
-from typing import Any, Optional
+from typing import Any, Optional, override
 
 from temporalio import workflow
 from temporalio.api.common.v1 import Payload
 from temporalio.common import RetryPolicy
-from temporalio.exceptions import ActivityError, ApplicationError, ChildWorkflowError
+from temporalio.exceptions import (
+    ActivityError,
+    ApplicationError,
+    TimeoutError as TemporalTimeoutError,
+)
 from temporalio.worker._interceptor import (
     ExecuteWorkflowInput,
     Interceptor,
     WorkflowInboundInterceptor,
+    WorkflowInterceptorClassInput,
+    WorkflowOutboundInterceptor,
 )
-from temporalio.workflow import Info
+from temporalio.workflow import ActivityCancellationType, Info
 
 from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers import (
     is_temporal_cancellation_exception,
@@ -29,7 +34,11 @@ with workflow.unsafe.imports_passed_through():
         CodebaseWorkflowDbActivityEnvelope,
         ParentWorkflowDbActivityEnvelope,
     )
-    from unoplat_code_confluence_commons.workflow_models import ErrorReport, JobStatus
+    from unoplat_code_confluence_commons.workflow_models import (
+        ErrorReport,
+        JobStatus,
+        error_report_from_exception,
+    )
 
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow.activity import (
         CodebaseWorkflowDbActivity,
@@ -41,12 +50,8 @@ with workflow.unsafe.imports_passed_through():
         workflow_headers_var,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
+        REPOSITORY_ACTIVITY_NAMES,
         AgentSnapshotBeginRunEnvelope,
-    REPOSITORY_ACTIVITY_NAMES,
-    )
-    from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
-        extract_model_error_from_details,
-        extract_model_error_from_exception,
     )
     from unoplat_code_confluence_query_engine.utils.trace_utils import (
         seed_and_bind_logger,
@@ -60,6 +65,60 @@ DB_ACTIVITY_RETRY_POLICY = RetryPolicy(
     maximum_interval=timedelta(seconds=10),
 )
 DB_ACTIVITY_TIMEOUT = timedelta(minutes=1)
+ADMISSION_TIMEOUT = timedelta(hours=6)
+ADMISSION_POLL_INTERVAL = timedelta(seconds=5)
+ADMISSION_RETRY_POLICY = RetryPolicy(
+    initial_interval=timedelta(seconds=1),
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=0,
+)
+TERMINAL_RETRY_POLICY = RetryPolicy(
+    initial_interval=timedelta(seconds=1),
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=0,
+)
+
+
+async def wait_for_checkout_admission(
+    envelope: ParentWorkflowDbActivityEnvelope,
+) -> None:
+    """Queue without occupying a checkout slot; wait outside DB transactions."""
+    deadline = workflow.now() + ADMISSION_TIMEOUT
+    try:
+        await workflow.execute_activity(
+            RepositoryWorkflowDbActivity.update_repository_workflow_status,
+            args=[envelope.model_copy(update={"status": JobStatus.SUBMITTED.value})],
+            start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
+            schedule_to_close_timeout=ADMISSION_TIMEOUT,
+            retry_policy=ADMISSION_RETRY_POLICY,
+            cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+        )
+        while workflow.now() < deadline:
+            admitted = await workflow.execute_activity(
+                RepositoryWorkflowDbActivity.update_repository_workflow_status,
+                args=[envelope],
+                start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
+                schedule_to_close_timeout=deadline - workflow.now(),
+                retry_policy=ADMISSION_RETRY_POLICY,
+                cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+            )
+            if admitted:
+                return
+            remaining = deadline - workflow.now()
+            if remaining <= timedelta():
+                break
+            await workflow.sleep(min(ADMISSION_POLL_INTERVAL, remaining))
+    except ActivityError as exc:
+        if not isinstance(exc.cause, TemporalTimeoutError):
+            raise
+        # Exhausted admission infrastructure retries also report TIMED_OUT.
+        # Cancellation errors must propagate even at the deadline.
+    raise ApplicationError(
+        "Checkout admission timed out",
+        type="CheckoutAdmissionTimeout",
+        non_retryable=True,
+    )
+
 
 WORKFLOW_EXECUTION_EXCEPTIONS: tuple[type[BaseException], ...] = (
     asyncio.CancelledError,
@@ -70,7 +129,10 @@ WORKFLOW_EXECUTION_EXCEPTIONS: tuple[type[BaseException], ...] = (
 class AgentWorkflowStatusInterceptor(Interceptor):
     """Worker interceptor factory for agent workflow status tracking."""
 
-    def workflow_interceptor_class(self, input: Any) -> type[WorkflowInboundInterceptor]:
+    @override
+    def workflow_interceptor_class(
+        self, input: WorkflowInterceptorClassInput
+    ) -> type[WorkflowInboundInterceptor]:
         return AgentWorkflowStatusInboundInterceptor
 
 
@@ -80,9 +142,11 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
     def __init__(self, nxt: WorkflowInboundInterceptor) -> None:
         super().__init__(nxt)
 
-    def init(self, outbound: Any) -> None:
+    @override
+    def init(self, outbound: WorkflowOutboundInterceptor) -> None:
         super().init(AgentWorkflowOutboundInterceptor(outbound))
 
+    @override
     async def execute_workflow(self, input: ExecuteWorkflowInput) -> Any:
         info: Info = workflow.info()
         workflow_type = info.workflow_type
@@ -151,26 +215,16 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             operation=operation,
             trace_id=trace_id,
         )
-        await workflow.execute_activity(
-            RepositoryWorkflowDbActivity.update_repository_workflow_status,
-            args=[running_envelope],
-            start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
-            retry_policy=DB_ACTIVITY_RETRY_POLICY,
-        )
-        bound_logger.debug(
-            "[agent_workflow_interceptor] RUNNING status recorded for repository workflow"
-        )
-
         status = JobStatus.COMPLETED.value
         error_report: Optional[ErrorReport] = None
         result: Any = None
         exc: Optional[BaseException] = None
 
         try:
+            await wait_for_checkout_admission(running_envelope)
             begin_envelope = AgentSnapshotBeginRunEnvelope(
                 owner_name=owner_name,
                 repo_name=repo_name,
-                repository_qualified_name=repository_qualified_name,
                 repository_workflow_run_id=repository_workflow_run_id,
                 codebase_names=[
                     str(metadata.get("codebase_name", "unknown"))
@@ -197,10 +251,17 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             if is_temporal_cancellation_exception(e):
                 status = JobStatus.CANCELLED.value
                 error_report = None
-                bound_logger.info("[agent_workflow_interceptor] RepositoryAgentWorkflow cancelled")
+                bound_logger.info(
+                    "[agent_workflow_interceptor] RepositoryAgentWorkflow cancelled"
+                )
             else:
-                status = JobStatus.ERROR.value
-                error_report = self._build_error_report(e)
+                status = (
+                    JobStatus.TIMED_OUT.value
+                    if isinstance(e, ApplicationError)
+                    and e.type == "CheckoutAdmissionTimeout"
+                    else JobStatus.ERROR.value
+                )
+                error_report = error_report_from_exception(e)
                 bound_logger.error(
                     "[agent_workflow_interceptor] RepositoryAgentWorkflow failed: {}",
                     str(e),
@@ -216,11 +277,15 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 error_report=error_report,
                 trace_id=trace_id,
             )
-            await workflow.execute_activity(
-                RepositoryWorkflowDbActivity.update_repository_workflow_status,
-                args=[final_envelope],
-                start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
-                retry_policy=DB_ACTIVITY_RETRY_POLICY,
+            # Cleanup must survive queued/running cancellation and transient DB outages.
+            await asyncio.shield(
+                workflow.execute_activity(
+                    RepositoryWorkflowDbActivity.update_repository_workflow_status,
+                    args=[final_envelope],
+                    start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
+                    retry_policy=TERMINAL_RETRY_POLICY,
+                    cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+                )
             )
             bound_logger.debug(
                 "[agent_workflow_interceptor] Final status {} recorded for repository workflow",
@@ -315,10 +380,12 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
             if is_temporal_cancellation_exception(e):
                 status = JobStatus.CANCELLED.value
                 error_report = None
-                bound_logger.info("[agent_workflow_interceptor] CodebaseAgentWorkflow cancelled")
+                bound_logger.info(
+                    "[agent_workflow_interceptor] CodebaseAgentWorkflow cancelled"
+                )
             else:
                 status = JobStatus.ERROR.value
-                error_report = self._build_error_report(e)
+                error_report = error_report_from_exception(e)
                 bound_logger.error(
                     "[agent_workflow_interceptor] CodebaseAgentWorkflow failed: {}",
                     str(e),
@@ -346,63 +413,8 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 status,
             )
 
-            if status == JobStatus.ERROR.value and repository_workflow_run_id:
-                bound_logger.warning(
-                    "[agent_workflow_interceptor] Codebase workflow failed, "
-                    "marking parent repository workflow {} as ERROR",
-                    repository_workflow_run_id,
-                )
-                parent_failed_envelope = ParentWorkflowDbActivityEnvelope(
-                    repository_name=repo_name,
-                    repository_owner_name=owner_name,
-                    workflow_id=workflow_id,
-                    workflow_run_id=repository_workflow_run_id,
-                    status=JobStatus.ERROR.value,
-                    operation=RepositoryWorkflowOperation.AGENTS_GENERATION,
-                    error_report=None,
-                    trace_id=trace_id,
-                )
-                await workflow.execute_activity(
-                    RepositoryWorkflowDbActivity.update_repository_workflow_status,
-                    args=[parent_failed_envelope],
-                    start_to_close_timeout=DB_ACTIVITY_TIMEOUT,
-                    retry_policy=DB_ACTIVITY_RETRY_POLICY,
-                )
-                bound_logger.info(
-                    "[agent_workflow_interceptor] Parent repository workflow marked as ERROR"
-                )
+            # Only the parent releases admission, after all sibling work has stopped.
 
         if exc:
             raise exc
         return result
-
-    def _build_error_report(self, exc: BaseException) -> ErrorReport:
-        root: BaseException = exc
-        if isinstance(exc, ActivityError) and exc.cause:
-            root = exc.cause
-        elif isinstance(exc, ChildWorkflowError) and exc.cause:
-            root = exc.cause
-
-        metadata: dict[str, Any] = {}
-
-        if isinstance(root, ApplicationError):
-            metadata = {
-                "type": root.type,
-                "details": root.details,
-                "non_retryable": root.non_retryable,
-                "next_retry_delay": (
-                    root.next_retry_delay.total_seconds() if root.next_retry_delay else None
-                ),
-            }
-
-        model_error_details = extract_model_error_from_exception(root)
-        if not model_error_details and isinstance(root, ApplicationError):
-            model_error_details = extract_model_error_from_details(root.details)
-        if model_error_details:
-            metadata["model_error"] = model_error_details
-
-        return ErrorReport(
-            error_message=str(root),
-            stack_trace=traceback.format_exc(),
-            metadata=metadata if metadata else None,
-        )

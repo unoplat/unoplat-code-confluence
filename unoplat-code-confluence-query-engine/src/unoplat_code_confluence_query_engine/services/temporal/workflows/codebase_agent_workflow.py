@@ -27,9 +27,6 @@ with workflow.unsafe.imports_passed_through():
         ArchitectureEvidenceSummary,
         CodebaseAgentWorkflowResult,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
-        persist_codebase_snapshot_patch,
-    )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.app_interfaces_runner import (
         run_app_interfaces_agent,
     )
@@ -92,20 +89,6 @@ class CodebaseAgentWorkflow:
 
         agent_stats: list[UsageStatistics] = []
         agent_errors: list[dict[str, Any]] = []
-
-        await persist_codebase_snapshot_patch(
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            codebase_name=codebase_metadata.codebase_name,
-            codebase_patch={
-                "codebase_name": codebase_metadata.codebase_name,
-                "programming_language_metadata": programming_language_metadata,
-                "engineering_workflow": None,
-                "dependency_guide": None,
-                "business_logic": None,
-                "app_interfaces": None,
-            },
-        )
 
         await run_managed_block_bootstrap(
             codebase_metadata=codebase_metadata,

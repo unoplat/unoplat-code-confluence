@@ -26,6 +26,7 @@ from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agent
     build_development_workflow_prompt,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
+    inspect_engineering_workflow_section,
     validate_engineering_development_workflow_output,
 )
 from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.capabilities.readonly_console import (
@@ -160,7 +161,11 @@ def _build_development_workflow_deps(
         repository_workflow_run_id="repo-run-1",
         codebase_workflow_run_id="codebase-run-1",
         agent_name="development_workflow_guide",
-        allow_no_change_output=allow_no_change_output,
+        engineering_section_sha256=(
+            inspect_engineering_workflow_section(str(tmp_path)).section_sha256
+            if allow_no_change_output
+            else None
+        ),
     )
 
 
@@ -178,7 +183,7 @@ def _build_development_workflow_test_agent(
 
 
 @pytest.mark.anyio
-async def test_development_workflow_agent_accepts_full_output_without_previous_snapshot(
+async def test_development_workflow_agent_accepts_full_output_without_valid_section(
     tmp_path: Path,
 ) -> None:
     deps = _build_development_workflow_deps(tmp_path, allow_no_change_output=False)
@@ -213,7 +218,7 @@ async def test_development_workflow_agent_accepts_full_output_without_previous_s
 
 
 @pytest.mark.anyio
-async def test_development_workflow_agent_accepts_no_change_when_previous_snapshot_exists(
+async def test_development_workflow_agent_accepts_no_change_when_section_is_untouched(
     tmp_path: Path,
 ) -> None:
     deps = _build_development_workflow_deps(tmp_path, allow_no_change_output=True)
@@ -314,7 +319,7 @@ async def test_development_workflow_agent_retries_no_change_with_commands(
 
 
 @pytest.mark.anyio
-async def test_development_workflow_agent_retries_no_change_without_previous_snapshot(
+async def test_development_workflow_agent_retries_no_change_without_valid_section(
     tmp_path: Path,
 ) -> None:
     deps = _build_development_workflow_deps(tmp_path, allow_no_change_output=False)
@@ -339,7 +344,7 @@ async def test_development_workflow_agent_retries_no_change_without_previous_sna
             )
 
     assert any(
-        "previous structured engineering_workflow data is unavailable" in str(part)
+        "section is missing or invalid" in str(part)
         for message in messages
         for part in message.parts
     )

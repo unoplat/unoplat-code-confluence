@@ -15,6 +15,7 @@ with workflow.unsafe.imports_passed_through():
     import asyncio
 
     from loguru import logger
+    from unoplat_code_confluence_commons.workflow_models import workflow_failure_entry
 
     from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
         GitRefInfo,
@@ -98,7 +99,7 @@ async def collect_codebase_child_results(
         ]
     ],
     codebase_statistics_map: dict[str, UsageStatistics],
-) -> tuple[list[dict[str, str]], list[ArchitectureEvidenceSummary]]:
+) -> tuple[list[dict[str, object]], list[ArchitectureEvidenceSummary]]:
     """Collect child results, including only successful current Architecture evidence."""
     results_list: list[CodebaseAgentWorkflowResult | BaseException] = (
         await asyncio.gather(
@@ -107,7 +108,7 @@ async def collect_codebase_child_results(
         )
     )
 
-    child_errors: list[dict[str, str]] = []
+    child_errors: list[dict[str, object]] = []
     successful_evidence: list[ArchitectureEvidenceSummary] = []
 
     for (codebase_name, _), result in zip(child_handles, results_list):
@@ -119,12 +120,7 @@ async def collect_codebase_child_results(
                 codebase_name,
                 result,
             )
-            child_errors.append(
-                {
-                    "codebase": codebase_name,
-                    "error": str(result),
-                }
-            )
+            child_errors.append(workflow_failure_entry(result, codebase=codebase_name))
             codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
         else:
             logger.debug("[workflow] Child workflow completed for {}", codebase_name)

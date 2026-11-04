@@ -35,21 +35,6 @@ def _to_json_value(value: object) -> object:
     return str(value)
 
 
-def _to_json_dict(value: dict[object, object]) -> dict[str, object]:
-    """Coerce a dict into JSON-safe values.
-
-    Args:
-        value: Dictionary to coerce
-
-    Returns:
-        Dict with string keys and JSON-safe values
-    """
-    normalized = json.loads(json.dumps(value, default=str))
-    if isinstance(normalized, dict):
-        return normalized
-    return {"value": normalized}
-
-
 def _serialize_node(node: BaseModel) -> dict[str, object]:
     """Best-effort serialization of an agent node for logging."""
     try:
@@ -245,44 +230,6 @@ def extract_model_error_from_exception(
     if exception.__cause__ is not None:
         return extract_model_error_from_exception(exception.__cause__, context=context)
 
-    return None
-
-
-def extract_model_error_from_details(details: object) -> dict[str, object] | None:
-    """Extract model error details from ApplicationError.details payloads.
-
-    Args:
-        details: ApplicationError.details payload
-
-    Returns:
-        Model error details dict when present
-    """
-    if isinstance(details, dict):
-        details_dict: dict[object, object] = {
-            key: value for key, value in details.items()
-        }
-        if "model_error_details" in details_dict and isinstance(
-            details_dict["model_error_details"], dict
-        ):
-            return _to_json_dict(details_dict["model_error_details"])
-        if "model_error" in details_dict and isinstance(
-            details_dict["model_error"], dict
-        ):
-            return _to_json_dict(details_dict["model_error"])
-    if isinstance(details, (list, tuple)):
-        for raw_item in details:
-            if isinstance(raw_item, dict):
-                item_dict: dict[object, object] = {
-                    key: value for key, value in raw_item.items()
-                }
-                if "model_error_details" in item_dict and isinstance(
-                    item_dict["model_error_details"], dict
-                ):
-                    return _to_json_dict(item_dict["model_error_details"])
-                if "model_error" in item_dict and isinstance(
-                    item_dict["model_error"], dict
-                ):
-                    return _to_json_dict(item_dict["model_error"])
     return None
 
 

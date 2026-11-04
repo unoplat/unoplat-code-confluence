@@ -1,207 +1,95 @@
-from datetime import datetime, timezone
-from typing import Optional
+"""Ingestion parent lifecycle writes and cross-service checkout admission."""
+
+import asyncio
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from temporalio import activity
+from temporalio.client import Client, WorkflowExecutionStatus
+from temporalio.service import RPCError
 from unoplat_code_confluence_commons.base_models import (
     CodebaseConfigSQLModel as CodebaseConfig,
-    Repository,
-    RepositoryWorkflowOperation,
-    RepositoryWorkflowRun,
+)
+from unoplat_code_confluence_commons.repository_checkout_coordination import (
+    repository_lock_key,
+    session_advisory_lock,
+    update_repository_run_status,
 )
 from unoplat_code_confluence_commons.workflow_envelopes import (
     ParentWorkflowDbActivityEnvelope,
 )
-from unoplat_code_confluence_commons.workflow_models import (
-    ErrorReport,
-    JobStatus,
-)
+from unoplat_code_confluence_commons.workflow_models import JobStatus
 
-from code_confluence_flow_bridge.logging.trace_utils import (
-    seed_and_bind_logger_from_trace_id,
-)
-from code_confluence_flow_bridge.processor.db.postgres.db import get_session_cm
+from code_confluence_flow_bridge.processor.db.postgres.db import get_engine_for_loop
+
+TEMPORAL_TERMINAL_STATUSES = {
+    WorkflowExecutionStatus.COMPLETED: JobStatus.COMPLETED,
+    WorkflowExecutionStatus.FAILED: JobStatus.FAILED,
+    WorkflowExecutionStatus.CANCELED: JobStatus.CANCELLED,
+    WorkflowExecutionStatus.TERMINATED: JobStatus.CANCELLED,
+    WorkflowExecutionStatus.TIMED_OUT: JobStatus.TIMED_OUT,
+}
 
 
 class ParentWorkflowDbActivity:
-    """Activity for database operations related to parent workflow status tracking."""
+    """Keep SUBMITTED parents queued until the repository slot is available."""
+
+    def __init__(self, temporal_client: Client | None = None) -> None:
+        self._temporal_client = temporal_client
+
+    async def _confirm_terminal(
+        self, workflow_id: str, run_id: str
+    ) -> JobStatus | None:
+        if self._temporal_client is None:
+            return None
+        try:
+            description = await asyncio.wait_for(
+                self._temporal_client.get_workflow_handle(
+                    workflow_id, run_id=run_id
+                ).describe(),
+                timeout=10,
+            )
+        except (RPCError, TimeoutError):
+            return None
+        if description.run_id != run_id or description.status is None:
+            return None
+        return TEMPORAL_TERMINAL_STATUSES.get(description.status)
 
     @activity.defn(name="update-repository-workflow-status")
     async def update_repository_workflow_status(
         self, envelope: ParentWorkflowDbActivityEnvelope
-    ) -> None:
-        """Update the repository with parent workflow status information.
-
-        Args:
-            envelope: Envelope containing all necessary parameters for updating repository workflow status
-        """
-        # Extract parameters from envelope
-        repository_name: str = envelope.repository_name
-        repository_owner_name: str = envelope.repository_owner_name
-        workflow_id: Optional[str] = envelope.workflow_id
-        workflow_run_id: str = envelope.workflow_run_id
-        trace_id: Optional[str] = envelope.trace_id
-        status: JobStatus = JobStatus(
-            envelope.status
-        )  # Convert string to JobStatus enum
-        error_report: Optional[ErrorReport] = envelope.error_report
-        repository_provider = envelope.provider_key
-        operation: RepositoryWorkflowOperation = envelope.operation
-
-        activity_id: str = "update_repository_workflow_status"
-        log = seed_and_bind_logger_from_trace_id(
-            trace_id=trace_id,
-            workflow_id=workflow_id,
-            workflow_run_id=workflow_run_id,
-            activity_id=activity_id,
-        )
-        try:
-            log.debug(
-                "Starting update repository workflow status | repository={}/{} | workflow_run_id={} | status={} | error_report_present={}",
-                repository_name,
-                repository_owner_name,
-                workflow_run_id,
-                status.value,
-                bool(error_report),
-            )
-            async with get_session_cm() as session:
-                # First check if repository exists, if not create it
-                _ = await self._get_or_create_repository(
-                    session, repository_name, repository_owner_name, repository_provider
-                )
-                if envelope.repository_metadata:
-                    for cm in envelope.repository_metadata:
-                        existing_config = await session.get(
-                            CodebaseConfig,
-                            (
-                                repository_name,
-                                repository_owner_name,
-                                cm.codebase_folder,
-                            ),
-                        )
-                        plm = cm.programming_language_metadata.model_dump()
-                        if not existing_config:
-                            config = CodebaseConfig(
-                                repository_name=repository_name,
-                                repository_owner_name=repository_owner_name,
-                                codebase_folder=cm.codebase_folder,
-                                root_packages=cm.root_packages,
-                                programming_language_metadata=plm,
+    ) -> bool:
+        """Commit admission/status and codebase configuration before unlocking."""
+        engine, _ = await get_engine_for_loop()
+        async with session_advisory_lock(
+            engine,
+            repository_lock_key(
+                envelope.repository_owner_name, envelope.repository_name
+            ),
+        ) as connection:
+            async with AsyncSession(bind=connection, expire_on_commit=False) as session:
+                async with session.begin():
+                    admitted = await update_repository_run_status(
+                        session, envelope, self._confirm_terminal
+                    )
+                    if admitted and envelope.status == JobStatus.RUNNING.value:
+                        for metadata in envelope.repository_metadata or []:
+                            config = await session.get(
+                                CodebaseConfig,
+                                (
+                                    envelope.repository_name,
+                                    envelope.repository_owner_name,
+                                    metadata.codebase_folder,
+                                ),
                             )
-                            session.add(config)
-                        else:
-                            # Todo: Revisit this later - update existing config
-                            existing_config.root_packages = cm.root_packages
-                            existing_config.programming_language_metadata = plm
-                            session.add(existing_config)
-
-                # Then check if workflow run exists
-                workflow_run = await self._get_workflow_run(
-                    session, repository_name, repository_owner_name, workflow_run_id
-                )
-
-                now = datetime.now(timezone.utc)
-                if not workflow_run:
-                    # Create a new workflow run
-                    workflow_run = RepositoryWorkflowRun(
-                        repository_name=repository_name,
-                        repository_owner_name=repository_owner_name,
-                        repository_workflow_run_id=workflow_run_id,
-                        repository_workflow_id=workflow_id,
-                        operation=operation,
-                        status=status.value,
-                        error_report=error_report.model_dump()
-                        if error_report
-                        else None,
-                        started_at=now,
-                    )
-                    if status == JobStatus.COMPLETED:
-                        workflow_run.completed_at = now
-
-                    # Add the new workflow run
-                    session.add(workflow_run)
-
-                    log.success(
-                        f"Created workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}"
-                    )
-                    log.debug(
-                        "Created workflow run: {} for {}/{}",
-                        workflow_run_id,
-                        repository_name,
-                        repository_owner_name,
-                    )
-                else:
-                    # Update existing workflow run
-                    # Preserve FAILED status even if we're asked to mark it as COMPLETED later
-                    if (
-                        status == JobStatus.COMPLETED
-                        and workflow_run.status == JobStatus.FAILED.value
-                    ):
-                        log.debug(
-                            "Preserving FAILED status on workflow run {} - not overwriting with COMPLETED",
-                            workflow_run_id,
-                        )
-                        # Still update completed_at timestamp even though keeping FAILED status
-                        workflow_run.completed_at = now
-                    else:
-                        # Normal update path
-                        workflow_run.status = status.value
-
-                        if error_report:
-                            workflow_run.error_report = error_report.model_dump()
-
-                        if status == JobStatus.COMPLETED:
-                            workflow_run.completed_at = now
-
-                    # Add the updated workflow run
-                    session.add(workflow_run)
-                    log.success(
-                        f"Updated workflow run: {workflow_run_id} for {repository_name}/{repository_owner_name}"
-                    )
-                    log.debug(
-                        "Updated workflow run: {} for {}/{} with status={}",
-                        workflow_run_id,
-                        repository_name,
-                        repository_owner_name,
-                        status.value,
-                    )
-
-        except Exception as e:
-            log.error(f"Failed to update repository workflow status: {e}")
-            raise
-
-    async def _get_or_create_repository(
-        self,
-        session: AsyncSession,
-        repository_name: str,
-        repository_owner_name: str,
-        repository_provider,
-    ) -> Repository:
-        """Get or create a repository record."""
-        repository = await session.get(
-            Repository, (repository_name, repository_owner_name)
-        )
-
-        if not repository:
-            # Create a new repository
-            repository = Repository(
-                repository_name=repository_name,
-                repository_owner_name=repository_owner_name,
-                repository_provider=repository_provider,
-            )
-            session.add(repository)
-
-        return repository
-
-    async def _get_workflow_run(
-        self,
-        session: AsyncSession,
-        repository_name: str,
-        repository_owner_name: str,
-        workflow_run_id: str,
-    ) -> Optional[RepositoryWorkflowRun]:
-        """Get a workflow run by its keys."""
-        return await session.get(
-            RepositoryWorkflowRun,
-            (repository_name, repository_owner_name, workflow_run_id),
-        )
+                            if config is None:
+                                config = CodebaseConfig(
+                                    repository_name=envelope.repository_name,
+                                    repository_owner_name=envelope.repository_owner_name,
+                                    codebase_folder=metadata.codebase_folder,
+                                )
+                                session.add(config)
+                            config.root_packages = metadata.root_packages
+                            config.programming_language_metadata = (
+                                metadata.programming_language_metadata.model_dump()
+                            )
+                    return admitted

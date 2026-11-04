@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-import traceback
 from typing import Any
 
 from temporalio import workflow
@@ -44,11 +43,8 @@ with workflow.unsafe.imports_passed_through():
         get_cached_usage_limits,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
-        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
-    )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
-        persist_codebase_snapshot_patch,
+        summarize_agent_failure,
     )
 
 
@@ -132,8 +128,6 @@ async def run_dependency_guide_agent(
                 )
                 dependency_agent_stats.append(create_zero_usage_statistics())
 
-        dependency_guide_output = {"dependencies": dependency_entries}
-
         await workflow.execute_activity(
             DependencyGuideCompletionActivity.write_dependency_overview,
             args=[
@@ -143,13 +137,6 @@ async def run_dependency_guide_agent(
             ],
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
-        )
-
-        await persist_codebase_snapshot_patch(
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            codebase_name=codebase_metadata.codebase_name,
-            codebase_patch={"dependency_guide": dependency_guide_output},
         )
 
         await workflow.execute_activity(
@@ -182,17 +169,11 @@ async def run_dependency_guide_agent(
             e,
         )
         logger.exception("[workflow] Full traceback:")
-        dependency_error: dict[str, object] = {
-            "agent": "dependency_guide",
-            "codebase": codebase_metadata.codebase_name,
-            "error": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        dependency_error = enrich_agent_error_with_model_details(
-            dependency_error,
-            e,
-            "dependency_guide",
-            codebase_metadata.codebase_name,
+        agent_errors.append(
+            summarize_agent_failure(
+                e,
+                agent_name="dependency_guide",
+                codebase_name=codebase_metadata.codebase_name,
+            )
         )
-        agent_errors.append(dependency_error)
         agent_stats.append(create_zero_usage_statistics())

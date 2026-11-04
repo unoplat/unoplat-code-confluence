@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import traceback
-
 from pydantic_ai.durable_exec.temporal import TemporalAgent
 from temporalio import workflow
 
@@ -34,8 +32,8 @@ with workflow.unsafe.imports_passed_through():
         get_cached_usage_limits,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
-        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
+        summarize_agent_failure,
     )
 
 _DISCOVERY_LANGUAGES: frozenset[str] = frozenset({"python", "typescript"})
@@ -102,24 +100,11 @@ async def run_call_expression_discovery(
                     operation.feature_operation_key,
                     error,
                 )
-                entry: dict[str, object] = {
-                    "agent": "call_expression_discoverer",
-                    "codebase": codebase_metadata.codebase_name,
-                    "error": str(error),
-                    "traceback": traceback.format_exc(),
-                    "operation_identity": {
-                        "feature_language": capability.feature_language,
-                        "feature_library": capability.feature_library,
-                        "feature_capability_key": capability.feature_capability_key,
-                        "feature_operation_key": operation.feature_operation_key,
-                    },
-                }
                 agent_errors.append(
-                    enrich_agent_error_with_model_details(
-                        entry,
+                    summarize_agent_failure(
                         error,
-                        "call_expression_discoverer",
-                        codebase_metadata.codebase_name,
+                        agent_name="call_expression_discoverer",
+                        codebase_name=codebase_metadata.codebase_name,
                     )
                 )
                 agent_stats.append(create_zero_usage_statistics())

@@ -16,6 +16,10 @@ from unoplat_code_confluence_commons.base_models import (
     Repository,
 )
 from unoplat_code_confluence_commons.credential_enums import CredentialNamespace
+from unoplat_code_confluence_commons.schema_readiness import (
+    SchemaNotReadyError,
+    verify_application_schema,
+)
 
 from code_confluence_flow_bridge.github_app.router import (
     router as github_app_router,
@@ -53,8 +57,8 @@ from code_confluence_flow_bridge.processor.db.postgres.child_workflow_db_activit
     ChildWorkflowDbActivity,
 )
 from code_confluence_flow_bridge.processor.db.postgres.db import (
-    create_db_and_tables,
     dispose_current_engine,
+    get_engine_for_loop,
     get_session,
     get_session_cm,
 )
@@ -266,6 +270,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(
         "Starting code-confluence-flow-bridge service with PostgreSQL storage backend"
     )
+
+    # The migration job owns schema changes. Block requests and Temporal polling
+    # until this engine's connections observe the exact release revision.
+    engine, _ = await get_engine_for_loop()
+    try:
+        schema_revision = await verify_application_schema(engine)
+    except SchemaNotReadyError as exc:
+        logger.error("Application schema is not ready: {}", exc)
+        await dispose_current_engine()
+        raise
+    logger.info("Application schema verified at revision {}", schema_revision)
+
     app.state.temporal_client = await get_temporal_client()
 
     # Initialize shared PythonRipgrepDetector instance
@@ -299,7 +315,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Define activities
     git_activity = GitActivity()
-    parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity()
+    parent_workflow_db_activity: ParentWorkflowDbActivity = ParentWorkflowDbActivity(
+        app.state.temporal_client
+    )
     child_workflow_db_activity = ChildWorkflowDbActivity()
     package_metadata_activity = PackageMetadataActivity()
     confluence_git_graph = ConfluenceGitGraph()
@@ -316,9 +334,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         generic_activity.process_codebase_generic,
         agent_md_update_activity.trigger_agent_md_update,
     ]
-
-    # Create database tables during startup
-    await create_db_and_tables()
 
     # Load framework definitions at startup
     if os.getenv("LOAD_FRAMEWORK_DEFINITIONS", "true").lower() == "true":

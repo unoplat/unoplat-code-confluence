@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 
 from code_confluence_flow_bridge.logging.trace_utils import (
     activity_id_var,
@@ -180,37 +179,6 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 # Create alias for backwards compatibility
 get_session_cm = asynccontextmanager(get_session)
-
-
-async def create_db_and_tables() -> None:
-    """Create database tables using the engine for current event loop.
-
-    This function now works with the per-loop engine pattern, ensuring
-    that database schema creation uses the correct engine for the current
-    event loop. This prevents "Future attached to a different loop" errors
-    during testing or when running in multiple event loops.
-    """
-    # Get engine for current loop
-    engine, _ = await get_engine_for_loop()
-
-    # Create all tables if they are missing
-    async with engine.begin() as conn:
-        try:
-            await conn.run_sync(
-                lambda sync_conn: SQLBase.metadata.create_all(
-                    sync_conn, checkfirst=True
-                )
-            )
-            logger.success("Database tables created successfully")
-        except Exception as e:
-            # Handle index already exists errors gracefully
-            if "already exists" in str(e):
-                logger.warning(
-                    "Database schema creation encountered existing objects: {}", e
-                )
-                # Continue execution - this is expected in test environments
-            else:
-                raise
 
 
 async def dispose_current_engine() -> None:

@@ -12,24 +12,29 @@ import socket
 import subprocess
 import time
 from typing import Dict, Iterator
+from uuid import uuid4
+
+# from tests.utils.db_cleanup import cleanup_postgresql_data
+# Local
+from code_confluence_flow_bridge.main import app
 
 # Third Party
 import docker
-from docker.errors import APIError, NotFound
+from docker.errors import APIError
 from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
 import requests
-
-# from tests.utils.db_cleanup import cleanup_postgresql_data
-# Local
-from code_confluence_flow_bridge.main import app
 from testcontainers.compose import DockerCompose
+from unoplat_code_confluence_commons.schema_readiness import RELEASE_SCHEMA_REVISION
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose-dependencies-test.yml"
+QUERY_ENGINE_ROOT = PROJECT_ROOT.parents[1] / "unoplat-code-confluence-query-engine"
+# Every Docker resource belongs to this run, so cleanup cannot reach a dev stack.
+COMPOSE_PROJECT = f"unoplat-flow-bridge-test-{uuid4().hex[:12]}"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -57,21 +62,19 @@ class DockerComposeWithCleanup(DockerCompose):
             subprocess.call(down_cmd, cwd=context_dir)
 
     def cleanup_volumes(self):
-        """Explicitly clean up named volumes from compose file."""
-        # Actual volume names as they appear in Docker for test compose
-        volume_names = ["postgresql_data", "elasticsearch_data"]
+        """Remove only volumes labelled for this run's compose project."""
+        volumes = self._docker_client.volumes.list(
+            filters={"label": f"com.docker.compose.project={COMPOSE_PROJECT}"}
+        )
 
         cleaned_count = 0
-        for volume_name in volume_names:
+        for volume in volumes:
             try:
-                volume = self._docker_client.volumes.get(volume_name)
                 volume.remove(force=True)
-                logger.info("Removed volume: {}", volume_name)
+                logger.info("Removed volume: {}", volume.name)
                 cleaned_count += 1
-            except NotFound:
-                logger.debug("Volume {} not found (may already be removed)", volume_name)
             except APIError as e:
-                logger.warning("Could not remove volume {}: {}", volume_name, e)
+                logger.warning("Could not remove volume {}: {}", volume.name, e)
 
         logger.info("Cleaned up {} volumes", cleaned_count)
 
@@ -128,6 +131,7 @@ def docker_compose():
     # Set Docker client timeouts to prevent hanging
     os.environ["DOCKER_CLIENT_TIMEOUT"] = "180"
     os.environ["COMPOSE_HTTP_TIMEOUT"] = "180"
+    os.environ["COMPOSE_PROJECT_NAME"] = COMPOSE_PROJECT
 
     # Verify compose file exists
     if not COMPOSE_FILE.exists():
@@ -184,20 +188,6 @@ def docker_compose():
         # Double-check volume cleanup (in case some were missed)
         compose.cleanup_volumes()
 
-        # Additional cleanup using docker client for any dangling resources
-        client = docker.from_env()
-
-        # Prune any remaining dangling volumes
-        try:
-            pruned = client.volumes.prune()
-            if pruned["VolumesDeleted"]:
-                logger.info(
-                    "Pruned {} additional dangling volumes",
-                    len(pruned["VolumesDeleted"]),
-                )
-        except Exception as e:
-            logger.warning("Error pruning volumes: {}", e)
-
         logger.info("Docker compose stopped and all resources cleaned up")
 
 
@@ -208,12 +198,43 @@ def docker_compose():
 
 @pytest.fixture(scope="session")
 def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
-    """Get the exposed ports for each service."""
-    return {
+    """Get the exposed ports and migrate this run's disposable database.
+
+    The explicit drain attestation is true only because the fixture owns this new,
+    empty database. It must never become a default for shared databases.
+    """
+    ports = {
         "postgresql": _get_service_port(docker_compose, "postgresql", 5432),
         "temporal": _get_service_port(docker_compose, "temporal", 7233),
         "elasticsearch": _get_service_port(docker_compose, "elasticsearch", 9200),
     }
+    subprocess.run(
+        [
+            "uv",
+            "run",
+            "--locked",
+            "--group",
+            "migrations",
+            "alembic",
+            "-x",
+            "drained=true",
+            "-x",
+            "discard_legacy_artifacts=true",
+            "upgrade",
+            RELEASE_SCHEMA_REVISION,
+        ],
+        cwd=QUERY_ENGINE_ROOT,
+        env={
+            **os.environ,
+            "ALEMBIC_DATABASE_URL": (
+                f"postgresql://postgres:postgres@localhost:{ports['postgresql']}"
+                "/code_confluence"
+            ),
+            "ALEMBIC_SCHEMA": "public",
+        },
+        check=True,
+    )
+    return ports
 
 
 @pytest.fixture(scope="session")

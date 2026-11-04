@@ -1,40 +1,46 @@
-"""Engineering workflow fetch activities for Temporal workflows."""
+"""Engineering workflow file inspection activity for Temporal workflows."""
 
 from __future__ import annotations
+
+import asyncio
 
 from loguru import logger
 from temporalio import activity
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     EngineeringWorkflow,
+    EngineeringWorkflowSectionInspection,
 )
-from unoplat_code_confluence_query_engine.services.tracking.repository_agent_snapshot_service import (
-    fetch_latest_completed_codebase_engineering_workflow,
+from unoplat_code_confluence_query_engine.services.temporal.agent_assembly.agents.validators.development_workflow_validator import (
+    INSPECT_ENGINEERING_WORKFLOW_SECTION_ACTIVITY,
+    inspect_engineering_workflow_section,
 )
 
 
 class EngineeringWorkflowFetchActivity:
-    """Activity for fetching previous engineering workflow state."""
+    """Activity for inspecting the Engineering Workflow section of AGENTS.md."""
 
-    @activity.defn
-    async def fetch_previous_engineering_workflow(
+    @activity.defn(name=INSPECT_ENGINEERING_WORKFLOW_SECTION_ACTIVITY)
+    async def inspect_engineering_workflow_section(
         self,
-        repository_qualified_name: str,
-        repository_workflow_run_id: str,
-        codebase_name: str,
-    ) -> EngineeringWorkflow | None:
-        """Fetch latest previous structured engineering workflow for a codebase."""
-        if "/" not in repository_qualified_name:
-            logger.warning(
-                "[engineering_workflow_fetch] Invalid repository_qualified_name: {}",
-                repository_qualified_name,
-            )
-            return None
+        codebase_path: str,
+        engineering_workflow: EngineeringWorkflow | None,
+    ) -> EngineeringWorkflowSectionInspection:
+        """Validate the section in the codebase AGENTS.md and digest its exact bytes.
 
-        owner_name, repo_name = repository_qualified_name.split("/", 1)
-        return await fetch_latest_completed_codebase_engineering_workflow(
-            owner_name=owner_name,
-            repo_name=repo_name,
-            codebase_name=codebase_name,
-            exclude_repository_workflow_run_id=repository_workflow_run_id,
+        Args:
+            codebase_path: Absolute path to the codebase root directory.
+            engineering_workflow: Commands that must appear in the section, when known.
+
+        Returns:
+            The section digest, or retry guidance when it cannot be accepted.
+        """
+        inspection = await asyncio.to_thread(
+            inspect_engineering_workflow_section, codebase_path, engineering_workflow
         )
+        logger.info(
+            "[engineering_workflow_fetch] Section valid={} for codebase: {}",
+            inspection.section_sha256 is not None,
+            codebase_path,
+        )
+        return inspection

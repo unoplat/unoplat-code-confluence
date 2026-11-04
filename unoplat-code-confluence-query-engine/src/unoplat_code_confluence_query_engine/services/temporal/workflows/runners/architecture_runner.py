@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-import traceback
 
 from temporalio import workflow
 
@@ -29,13 +28,32 @@ with workflow.unsafe.imports_passed_through():
         get_cached_usage_limits,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
-        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
+        summarize_agent_failure,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         ARCHITECTURE_REPOSITORY_ACTIVITY,
         ArchitectureEvidenceSummary,
         RepositoryActivityCompletionEnvelope,
+    )
+
+
+def _has_fresh_external_boundary(
+    successful_evidence: list[ArchitectureEvidenceSummary],
+) -> bool:
+    return any(
+        entry.app_interfaces_generated and entry.has_external_boundary
+        for entry in successful_evidence
+    )
+
+
+def architecture_agent_will_run(
+    temporal_agents: TemporalAgentRegistry,
+    successful_evidence: list[ArchitectureEvidenceSummary],
+) -> bool:
+    """Return whether run_architecture_agent runs the agent rather than skipping it."""
+    return temporal_agents.architecture is not None and _has_fresh_external_boundary(
+        successful_evidence
     )
 
 
@@ -51,7 +69,7 @@ async def run_architecture_agent(
     fresh_evidence = [
         entry for entry in successful_evidence if entry.app_interfaces_generated
     ]
-    if not any(entry.has_external_boundary for entry in fresh_evidence):
+    if not _has_fresh_external_boundary(successful_evidence):
         await _complete_architecture_activity(
             repository_qualified_name, repository_workflow_run_id
         )
@@ -71,11 +89,10 @@ async def run_architecture_agent(
     try:
         repository_root = resolve_common_repository_root(metadata)
     except Exception as error:
-        return {
-            "agent": ARCHITECTURE_REPOSITORY_ACTIVITY,
-            "error": str(error),
-            "traceback": traceback.format_exc(),
-        }
+        raise_if_temporal_cancellation(error)
+        return summarize_agent_failure(
+            error, agent_name=ARCHITECTURE_REPOSITORY_ACTIVITY
+        )
 
     deps = ArchitectureAgentDependencies(
         repository_qualified_name=repository_qualified_name,
@@ -108,13 +125,8 @@ async def run_architecture_agent(
         return None
     except Exception as error:
         raise_if_temporal_cancellation(error)
-        details: dict[str, object] = {
-            "agent": "architecture",
-            "error": str(error),
-            "traceback": traceback.format_exc(),
-        }
-        return enrich_agent_error_with_model_details(
-            details, error, "architecture", repository_qualified_name
+        return summarize_agent_failure(
+            error, agent_name=ARCHITECTURE_REPOSITORY_ACTIVITY
         )
     finally:
         deps.release_backend()

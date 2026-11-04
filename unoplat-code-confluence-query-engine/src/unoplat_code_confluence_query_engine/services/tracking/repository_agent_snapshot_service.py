@@ -8,23 +8,18 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import TypedDict
 
 from loguru import logger
-from sqlalchemy import and_, bindparam, func, select, text, update
-from sqlalchemy.dialects.postgresql import JSONB, insert
+from sqlalchemy import func, select, update
+from sqlalchemy.dialects.postgresql import insert
 from unoplat_code_confluence_commons.repo_models import (
     RepositoryAgentCodebaseProgress,
     RepositoryAgentEvent,
     RepositoryAgentMdSnapshot,
-    RepositoryWorkflowOperation,
-    RepositoryWorkflowRun,
 )
-from unoplat_code_confluence_commons.workflow_models import JobStatus
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
-from unoplat_code_confluence_query_engine.models.output.agent_md_output import (
-    RepositoryAgentMdOutputSnapshot,
-)
-from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
-    EngineeringWorkflow,
+from unoplat_code_confluence_query_engine.models.events.agent_events import (
+    AgentEventPhase,
+    PersistedAgentEvent,
 )
 
 ZERO_DECIMAL = Decimal("0")
@@ -85,102 +80,6 @@ def _normalize_completed_namespaces(completed_namespaces: Set[str]) -> list[str]
     return sorted(completed_namespaces)
 
 
-def _normalize_tool_args(
-    tool_args: Mapping[str, object] | None,
-) -> dict[str, object] | None:
-    if tool_args is None:
-        return None
-    return dict(tool_args)
-
-
-def _extract_engineering_workflow_payload(
-    repository_agent_md_snapshot: RepositoryAgentMdOutputSnapshot,
-    codebase_name: str,
-) -> EngineeringWorkflow | None:
-    """Return the engineering workflow for one codebase from a repository snapshot."""
-    codebase_snapshot = repository_agent_md_snapshot.codebases.get(codebase_name)
-    if codebase_snapshot is None:
-        return None
-    return codebase_snapshot.engineering_workflow
-
-
-async def fetch_latest_completed_codebase_engineering_workflow(
-    *,
-    owner_name: str,
-    repo_name: str,
-    codebase_name: str,
-    exclude_repository_workflow_run_id: str,
-) -> EngineeringWorkflow | None:
-    """Fetch the latest previous structured engineering workflow for carry-forward.
-
-    Only the newest completed repository snapshot is considered. If that snapshot
-    does not contain this codebase or its engineering workflow, historical rows
-    are intentionally ignored and ``None`` is returned.
-    """
-    async with get_startup_session() as session:
-        stmt = (
-            select(RepositoryAgentMdSnapshot)
-            .join(
-                RepositoryWorkflowRun,
-                and_(
-                    RepositoryWorkflowRun.repository_owner_name
-                    == RepositoryAgentMdSnapshot.repository_owner_name,
-                    RepositoryWorkflowRun.repository_name
-                    == RepositoryAgentMdSnapshot.repository_name,
-                    RepositoryWorkflowRun.repository_workflow_run_id
-                    == RepositoryAgentMdSnapshot.repository_workflow_run_id,
-                ),
-            )
-            .where(
-                RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                RepositoryAgentMdSnapshot.repository_name == repo_name,
-                RepositoryAgentMdSnapshot.repository_workflow_run_id
-                != exclude_repository_workflow_run_id,
-                RepositoryWorkflowRun.status == JobStatus.COMPLETED.value,
-                RepositoryWorkflowRun.operation.in_(
-                    (
-                        RepositoryWorkflowOperation.AGENTS_GENERATION,
-                        RepositoryWorkflowOperation.AGENT_MD_UPDATE,
-                    )
-                ),
-            )
-            .order_by(
-                RepositoryWorkflowRun.completed_at.desc().nulls_last(),
-                RepositoryWorkflowRun.started_at.desc(),
-                RepositoryWorkflowRun.repository_workflow_run_id.desc(),
-            )
-        )
-        result = await session.execute(stmt.limit(1))
-        snapshot = result.scalar_one_or_none()
-        if snapshot is None:
-            return None
-
-        repository_agent_md_snapshot: RepositoryAgentMdOutputSnapshot = (
-            RepositoryAgentMdOutputSnapshot.model_validate(snapshot.agent_md_output)
-        )
-        engineering_workflow_payload = _extract_engineering_workflow_payload(
-            repository_agent_md_snapshot,
-            codebase_name,
-        )
-        if engineering_workflow_payload is None:
-            return None
-
-        try:
-            return EngineeringWorkflow.model_validate(engineering_workflow_payload)
-        except Exception as validation_error:
-            logger.error(
-                "Invalid previous engineering_workflow for {}/{} codebase={} run_id={}: {}",
-                owner_name,
-                repo_name,
-                codebase_name,
-                snapshot.repository_workflow_run_id,
-                validation_error,
-            )
-            raise
-
-    return None
-
-
 class RepositoryAgentSnapshotWriter:
     """Persist agent lifecycle events and progress snapshots."""
 
@@ -189,7 +88,6 @@ class RepositoryAgentSnapshotWriter:
         *,
         owner_name: str,
         repo_name: str,
-        repository_qualified_name: str,
         repository_workflow_run_id: str,
         codebase_names: Sequence[str],
         repository_activity_names: Sequence[str] = (),
@@ -202,12 +100,8 @@ class RepositoryAgentSnapshotWriter:
                 repository_workflow_run_id=repository_workflow_run_id,
                 overall_progress=ZERO_DECIMAL,
                 latest_event_at=None,
-                agent_md_output={
-                    "repository": repository_qualified_name,
-                    "codebases": {},
-                    "repository_activity_progress": {
-                        name: 0 for name in repository_activity_names
-                    },
+                repository_activity_progress={
+                    name: 0 for name in repository_activity_names
                 },
             )
             snapshot_stmt = snapshot_stmt.on_conflict_do_nothing(
@@ -257,16 +151,23 @@ class RepositoryAgentSnapshotWriter:
         repo_name: str,
         codebase_name: str,
         agent_name: str,
-        phase: str,
-        message: str | None,
+        phase: AgentEventPhase,
         tool_name: str | None = None,
         tool_call_id: str | None = None,
-        tool_args: Mapping[str, object] | None = None,
-        tool_result_content: str | None = None,
         completion_namespaces: set[str],
         repository_workflow_run_id: str,
     ) -> int:
-        """Atomically allocate an event id, persist the event, and update progress."""
+        """Atomically allocate an event id, persist the event, and update progress.
+
+        Only ``PersistedAgentEvent`` fields reach the row. The legacy tool body
+        columns are left NULL.
+        """
+        persisted_event = PersistedAgentEvent(
+            agent_name=agent_name,
+            phase=phase,
+            tool_name=tool_name,
+            tool_call_id=tool_call_id,
+        )
         event_timestamp = datetime.now(timezone.utc)
 
         async with get_startup_session() as session:
@@ -299,8 +200,11 @@ class RepositoryAgentSnapshotWriter:
 
             allocated_event_id = progress_row.next_event_id
             completed_namespaces = set(progress_row.completed_namespaces)
-            if phase == "result" and agent_name in completion_namespaces:
-                completed_namespaces.add(agent_name)
+            if (
+                persisted_event.phase == "result"
+                and persisted_event.agent_name in completion_namespaces
+            ):
+                completed_namespaces.add(persisted_event.agent_name)
 
             normalized_completed_namespaces = _normalize_completed_namespaces(
                 completed_namespaces
@@ -317,13 +221,11 @@ class RepositoryAgentSnapshotWriter:
                     repository_workflow_run_id=repository_workflow_run_id,
                     codebase_name=codebase_name,
                     event_id=allocated_event_id,
-                    event=agent_name,
-                    phase=phase,
-                    message=message,
-                    tool_name=tool_name,
-                    tool_call_id=tool_call_id,
-                    tool_args=_normalize_tool_args(tool_args),
-                    tool_result_content=tool_result_content,
+                    event=persisted_event.agent_name,
+                    phase=persisted_event.phase,
+                    message=persisted_event.message,
+                    tool_name=persisted_event.tool_name,
+                    tool_call_id=persisted_event.tool_call_id,
                     created_at=event_timestamp,
                 )
             )
@@ -364,9 +266,7 @@ class RepositoryAgentSnapshotWriter:
                     f"run_id={repository_workflow_run_id}"
                 )
 
-            activities = dict(
-                snapshot.agent_md_output.get("repository_activity_progress", {})
-            )
+            activities = dict(snapshot.repository_activity_progress)
             codebase_count_result = await session.execute(
                 select(func.count()).select_from(RepositoryAgentCodebaseProgress).where(
                     RepositoryAgentCodebaseProgress.repository_owner_name == owner_name,
@@ -417,15 +317,13 @@ class RepositoryAgentSnapshotWriter:
                 .with_for_update()
             )
             snapshot = snapshot_result.scalar_one()
-            output = dict(snapshot.agent_md_output)
-            activities = dict(output.get("repository_activity_progress", {}))
+            activities = dict(snapshot.repository_activity_progress)
             if activity_name not in activities:
                 raise ValueError(
                     f"Repository activity was not initialized: {activity_name}"
                 )
             activities[activity_name] = 100
-            output["repository_activity_progress"] = activities
-            snapshot.agent_md_output = output
+            snapshot.repository_activity_progress = activities
 
             codebase_sum_result = await session.execute(
                 select(func.sum(RepositoryAgentCodebaseProgress.progress)).where(
@@ -453,70 +351,15 @@ class RepositoryAgentSnapshotWriter:
             )
             snapshot.modified_at = datetime.now(timezone.utc)
 
-    async def patch_codebase_output(
-        self,
-        *,
-        owner_name: str,
-        repo_name: str,
-        repository_workflow_run_id: str,
-        codebase_name: str,
-        codebase_patch: dict[str, object],
-    ) -> None:
-        """Atomically merge a patch into one codebase's agent_md_output object."""
-        async with get_startup_session() as session:
-            stmt = text(
-                """
-                UPDATE repository_agent_md_snapshot
-                SET agent_md_output = jsonb_set(
-                    agent_md_output,
-                    ARRAY['codebases', :codebase_name]::text[],
-                    COALESCE(
-                        agent_md_output #> ARRAY['codebases', :codebase_name]::text[],
-                        '{}'::jsonb
-                    ) || :codebase_patch,
-                    true
-                ),
-                modified_at = NOW()
-                WHERE repository_owner_name = :owner_name
-                  AND repository_name = :repo_name
-                  AND repository_workflow_run_id = :repository_workflow_run_id
-                """
-            ).bindparams(bindparam("codebase_patch", type_=JSONB))
-            connection = await session.connection()
-            result = await connection.execute(
-                stmt,
-                {
-                    "owner_name": owner_name,
-                    "repo_name": repo_name,
-                    "repository_workflow_run_id": repository_workflow_run_id,
-                    "codebase_name": codebase_name,
-                    "codebase_patch": codebase_patch,
-                },
-            )
-
-            if result.rowcount == 0:
-                logger.error(
-                    "Snapshot row missing while patching {}/{} codebase={} run_id={}",
-                    owner_name,
-                    repo_name,
-                    codebase_name,
-                    repository_workflow_run_id,
-                )
-                raise ValueError(
-                    f"Snapshot row not found for {owner_name}/{repo_name} "
-                    f"run_id={repository_workflow_run_id}"
-                )
-
     async def complete_run(
         self,
         *,
         owner_name: str,
         repo_name: str,
         repository_workflow_run_id: str,
-        final_payload: dict[str, object] | None = None,
         statistics_payload: dict[str, object] | None = None,
     ) -> None:
-        """Persist final statistics and optionally a legacy final agent output."""
+        """Persist final statistics for a repository run."""
         if statistics_payload:
             logger.info(
                 "Persisting statistics for {}/{} run_id={}: {} keys, has_cost={}",
@@ -534,13 +377,6 @@ class RepositoryAgentSnapshotWriter:
                 repository_workflow_run_id,
             )
 
-        values: dict[str, object] = {
-            "statistics": statistics_payload,
-            "modified_at": func.now(),
-        }
-        if final_payload is not None:
-            values["agent_md_output"] = final_payload
-
         async with get_startup_session() as session:
             stmt = (
                 update(RepositoryAgentMdSnapshot)
@@ -550,12 +386,9 @@ class RepositoryAgentSnapshotWriter:
                     RepositoryAgentMdSnapshot.repository_workflow_run_id
                     == repository_workflow_run_id,
                 )
-                .values(**values)
+                .values(statistics=statistics_payload, modified_at=func.now())
             )
             await session.execute(stmt)
 
 
-__all__ = [
-    "RepositoryAgentSnapshotWriter",
-    "fetch_latest_completed_codebase_engineering_workflow",
-]
+__all__ = ["RepositoryAgentSnapshotWriter"]
