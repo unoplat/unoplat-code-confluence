@@ -19,6 +19,12 @@ import {
 import { CredentialParams, ProviderKey } from "@/types/credential-enums";
 import { providerCatalogSchema } from "@/features/model-config/provider-schema";
 import {
+  artifactReadErrorResponseSchema,
+  repositoryAgentSnapshotMetadataSchema,
+  type ArtifactReadErrorCode,
+  type RepositoryAgentSnapshotMetadata,
+} from "@/features/repository-agent-snapshots/schema";
+import {
   ModelProviderDefinition,
   ProviderCatalogRecord,
 } from "@/features/model-config/types";
@@ -59,7 +65,7 @@ export interface ApiResponse {
 
 // FastAPI standard error response format
 interface FastApiErrorResponse {
-  detail: string;
+  detail: string | { message: string };
 }
 
 // Union type for all possible error response formats
@@ -91,6 +97,14 @@ export const handleApiError = (error: unknown): ApiError => {
     if (responseData && typeof responseData === "object") {
       if ("detail" in responseData && typeof responseData.detail === "string") {
         errorMessage = responseData.detail;
+      } else if (
+        "detail" in responseData &&
+        typeof responseData.detail === "object" &&
+        responseData.detail !== null &&
+        typeof responseData.detail.message === "string"
+      ) {
+        // Typed conflicts use detail: {code, message, retryable} with static text
+        errorMessage = responseData.detail.message;
       } else if (
         "message" in responseData &&
         typeof responseData.message === "string"
@@ -621,8 +635,6 @@ export const deleteRepository = async (
   }
 };
 
-export type RepoAgentSnapshotStatus = "RUNNING" | "COMPLETED" | "ERROR";
-
 export interface RepositoryWorkflowRunResponse {
   repository_workflow_run_id: string;
 }
@@ -640,7 +652,7 @@ export interface RepositoryAgentMdPrRequest {
 }
 
 export interface RepositoryAgentMdPrResponse {
-  status: "modified" | "no_changes";
+  status: "modified" | "no_changes" | "no_artifacts";
   pr_url?: string | null;
   pr_number?: number | null;
   branch_name?: string | null;
@@ -728,55 +740,119 @@ export async function getRepositoryAgentMdPrStatus(
   }
 }
 
-interface RepositoryAgentSnapshotResponse {
-  status: RepoAgentSnapshotStatus;
-  agent_md_output: {
-    repository?: string;
-    codebases?: Record<string, string>;
-  } | null;
-}
-
 /**
- * Repository agent snapshot normalized for frontend consumption.
- */
-export interface RepositoryAgentSnapshot {
-  status: RepoAgentSnapshotStatus;
-  repository?: string;
-  codebases: Record<string, string>; // codebase_name -> JSON string of AgentMdCodebaseOutput
-}
-
-/**
- * Fetch existing repository agent snapshot from the backend
+ * Fetch artifact metadata, progress and statistics for one exact run.
  *
  * @param ownerName - Repository owner name
  * @param repoName - Repository name
- * @returns Promise with repository agent snapshot or null if not found
+ * @param repositoryWorkflowRunId - Exact workflow run ID
+ * @param signal - Cancels the request when the query is no longer needed
+ * @returns Validated metadata, or null if the run has no snapshot row
  */
 export async function getRepositoryAgentSnapshot(
   ownerName: string,
   repoName: string,
-): Promise<RepositoryAgentSnapshot | null> {
+  repositoryWorkflowRunId: string,
+  signal?: AbortSignal,
+): Promise<RepositoryAgentSnapshotMetadata | null> {
   try {
     const params = {
       owner_name: ownerName,
       repo_name: repoName,
+      repository_workflow_run_id: repositoryWorkflowRunId,
     };
-    const response: AxiosResponse<RepositoryAgentSnapshotResponse> =
-      await queryEngineClient.get("/v1/repository-agent-snapshot", {
-        params,
-      });
-    const { status, agent_md_output } = response.data;
-
-    return {
-      status,
-      repository: agent_md_output?.repository,
-      codebases: agent_md_output?.codebases ?? {},
-    };
+    const response: AxiosResponse<unknown> = await queryEngineClient.get(
+      "/v1/repository-agent-snapshot",
+      { params, signal },
+    );
+    return repositoryAgentSnapshotMetadataSchema.parse(response.data);
   } catch (error: unknown) {
+    if (axios.isCancel(error)) {
+      throw error;
+    }
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null;
     }
     throw handleApiError(error);
+  }
+}
+
+export interface RepositoryArtifactReadFailure {
+  code: ArtifactReadErrorCode | "artifact_request_failed";
+  message: string;
+  retryable: boolean;
+}
+
+function parseArtifactErrorBody(body: unknown): unknown {
+  if (typeof body !== "string") {
+    return body;
+  }
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Keeps only the backend's static error contract. Anything else, such as a proxy
+ * error page, becomes fixed text and is never shown to the user.
+ */
+function toRepositoryArtifactReadFailure(
+  error: unknown,
+): RepositoryArtifactReadFailure {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  const parsed = axios.isAxiosError(error)
+    ? artifactReadErrorResponseSchema.safeParse(
+        parseArtifactErrorBody(error.response?.data),
+      )
+    : null;
+  if (parsed?.success) {
+    return parsed.data.detail;
+  }
+  return {
+    code: "artifact_request_failed",
+    message: "The file could not be loaded.",
+    retryable: status === undefined || status >= 500,
+  };
+}
+
+/**
+ * Read one generated file at the commit saved for an exact run.
+ * The server resolves that commit: the client never supplies a SHA.
+ *
+ * @param ownerName - Repository owner name
+ * @param repoName - Repository name
+ * @param repositoryWorkflowRunId - Exact workflow run ID
+ * @param path - Repository-relative path listed in the run's manifest
+ * @param signal - Cancels the request when the selection changes
+ * @returns The verified file text
+ * @throws RepositoryArtifactReadFailure when the file cannot be read
+ */
+export async function getRepositoryAgentArtifact(
+  ownerName: string,
+  repoName: string,
+  repositoryWorkflowRunId: string,
+  path: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  try {
+    const params = {
+      owner_name: ownerName,
+      repo_name: repoName,
+      repository_workflow_run_id: repositoryWorkflowRunId,
+      path,
+    };
+    const response: AxiosResponse<string> = await queryEngineClient.get(
+      "/v1/repository-agent-artifact",
+      { params, signal, responseType: "text" },
+    );
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isCancel(error)) {
+      throw error;
+    }
+    throw toRepositoryArtifactReadFailure(error);
   }
 }
 
