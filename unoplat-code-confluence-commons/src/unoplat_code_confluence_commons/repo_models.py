@@ -479,18 +479,6 @@ class RepositoryAgentEvent(SQLBase):
         default=None,
         comment="Tool call identifier when present",
     )
-    tool_args: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
-        nullable=True,
-        default=None,
-        comment="Structured tool arguments when available",
-    )
-    tool_result_content: Mapped[Optional[str]] = mapped_column(
-        String,
-        nullable=True,
-        default=None,
-        comment="Captured tool result content when available",
-    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),
