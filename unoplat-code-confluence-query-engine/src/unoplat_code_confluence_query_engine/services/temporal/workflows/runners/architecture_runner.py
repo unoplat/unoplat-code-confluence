@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import traceback
 
 from temporalio import workflow
 
@@ -28,8 +29,8 @@ with workflow.unsafe.imports_passed_through():
         get_cached_usage_limits,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
-        summarize_agent_failure,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         ARCHITECTURE_REPOSITORY_ACTIVITY,
@@ -90,9 +91,11 @@ async def run_architecture_agent(
         repository_root = resolve_common_repository_root(metadata)
     except Exception as error:
         raise_if_temporal_cancellation(error)
-        return summarize_agent_failure(
-            error, agent_name=ARCHITECTURE_REPOSITORY_ACTIVITY
-        )
+        return {
+            "agent": ARCHITECTURE_REPOSITORY_ACTIVITY,
+            "error": str(error),
+            "traceback": traceback.format_exc(),
+        }
 
     deps = ArchitectureAgentDependencies(
         repository_qualified_name=repository_qualified_name,
@@ -125,8 +128,13 @@ async def run_architecture_agent(
         return None
     except Exception as error:
         raise_if_temporal_cancellation(error)
-        return summarize_agent_failure(
-            error, agent_name=ARCHITECTURE_REPOSITORY_ACTIVITY
+        details: dict[str, object] = {
+            "agent": "architecture",
+            "error": str(error),
+            "traceback": traceback.format_exc(),
+        }
+        return enrich_agent_error_with_model_details(
+            details, error, "architecture", repository_qualified_name
         )
     finally:
         deps.release_backend()

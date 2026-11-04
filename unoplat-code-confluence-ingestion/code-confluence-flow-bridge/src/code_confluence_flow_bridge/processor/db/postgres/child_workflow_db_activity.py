@@ -15,7 +15,6 @@ from unoplat_code_confluence_commons.workflow_envelopes import (
 from unoplat_code_confluence_commons.workflow_models import (
     ErrorReport,
     JobStatus,
-    persisted_error_report,
 )
 
 from code_confluence_flow_bridge.logging.trace_utils import (
@@ -117,7 +116,9 @@ class ChildWorkflowDbActivity:
                         codebase_workflow_id=workflow_id,
                         repository_workflow_run_id=parent_workflow_run_id,
                         status=status.value,
-                        error_report=persisted_error_report(error_report),
+                        error_report=error_report.model_dump()
+                        if error_report
+                        else None,
                         started_at=now,
                     )
 
@@ -131,7 +132,7 @@ class ChildWorkflowDbActivity:
                     workflow_run.status = status.value
 
                     if error_report:
-                        workflow_run.error_report = persisted_error_report(error_report)
+                        workflow_run.error_report = error_report.model_dump()
 
                     if status == JobStatus.COMPLETED or status == JobStatus.FAILED:
                         workflow_run.completed_at = now
@@ -146,13 +147,15 @@ class ChildWorkflowDbActivity:
             # Re-raise without wrapping to preserve error context
             raise
         except Exception as e:
-            log.error(f"Failed to update codebase workflow status: {e}")
+            error_msg = f"Failed to update codebase workflow status: {e}"
+            log.error(error_msg)
             raise ApplicationError(
-                "Failed to update codebase workflow status",
+                error_msg,
                 {"workflow_id": workflow_id},
                 {"workflow_run_id": workflow_run_id},
                 {"activity_id": activity_id},
                 {"activity_name": "update_codebase_workflow_status"},
+                {"error": str(e)},
                 type="CodebaseStatusUpdateError",
                 non_retryable=False,  # Allow retries
             )

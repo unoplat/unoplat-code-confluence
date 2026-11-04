@@ -24,7 +24,7 @@ ucc service update
 
 Updates the pinned app release to the latest available release.
 
-If a release changes the database schema, or your install predates versioned migrations, the services stay stopped until the database is migrated. Do not use these confirmations to get past this on an install with data, because `ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true` permanently discards old generated content and raw event and error text: follow the [migration guide](../unoplat-code-confluence-query-engine/alembic/README.md).
+If a release changes the database schema, or your install predates versioned migrations, the services stay stopped until the database is migrated. Do not use these confirmations to get past this on an install with data, because `ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true` permanently discards old generated content and raw agent event text: follow the [migration guide](../unoplat-code-confluence-query-engine/alembic/README.md).
 
 ```bash
 ucc service stop

@@ -9,10 +9,7 @@ from unoplat_code_confluence_commons.repo_models import CodebaseWorkflowRun
 from unoplat_code_confluence_commons.workflow_envelopes import (
     CodebaseWorkflowDbActivityEnvelope,
 )
-from unoplat_code_confluence_commons.workflow_models import (
-    JobStatus,
-    persisted_error_report,
-)
+from unoplat_code_confluence_commons.workflow_models import JobStatus
 
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
 
@@ -75,7 +72,11 @@ class CodebaseWorkflowDbActivity:
                     repository_workflow_run_id=envelope.repository_workflow_run_id,
                     status=envelope.status,
                     started_at=now,
-                    error_report=persisted_error_report(envelope.error_report),
+                    error_report=(
+                        envelope.error_report.model_dump()
+                        if envelope.error_report
+                        else None
+                    ),
                 )
                 session.add(new_record)
             else:
@@ -120,9 +121,7 @@ class CodebaseWorkflowDbActivity:
 
                 # Store error report if provided
                 if envelope.error_report:
-                    existing.error_report = persisted_error_report(
-                        envelope.error_report
-                    )
+                    existing.error_report = envelope.error_report.model_dump()
 
         logger.info(
             "[codebase_workflow_db_activity] Successfully updated status for {}/{}/{} run_id={}",

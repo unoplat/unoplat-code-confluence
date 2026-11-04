@@ -1,6 +1,7 @@
 import asyncio
 from datetime import timedelta
 import json
+import traceback
 from typing import Any, Optional, override
 
 from temporalio import workflow
@@ -31,7 +32,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_commons.workflow_models import (
         ErrorReport,
         JobStatus,
-        error_report_from_exception,
     )
 
     from code_confluence_flow_bridge.models.workflow.repo_workflow_base import (
@@ -217,7 +217,32 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     "Exception occurred during workflow execution: %s", e
                 )
 
-                error_report = error_report_from_exception(e)
+                # Build error report
+                root = (
+                    e.cause
+                    if isinstance(e, (ActivityError, ChildWorkflowError))
+                    and getattr(e, "cause", None)
+                    else e
+                )
+                # If the root is an ApplicationError, capture its rich context
+                if isinstance(root, ApplicationError):
+                    metadata = {
+                        "type": root.type,
+                        "details": root.details,
+                        "non_retryable": root.non_retryable,
+                        "next_retry_delay": (
+                            root.next_retry_delay.total_seconds()
+                            if root.next_retry_delay
+                            else None
+                        ),
+                    }
+                else:
+                    metadata = None
+                error_report = ErrorReport(
+                    error_message=str(root),
+                    stack_trace=traceback.format_exc() if root is not None else "",
+                    metadata=metadata,
+                )
 
                 if is_cancellation(e):
                     status = JobStatus.CANCELLED.value
@@ -347,7 +372,32 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     "Exception occurred during child workflow execution: %s", e
                 )
 
-                child_error_report = error_report_from_exception(e)
+                # Build error report
+                root = (
+                    e.cause
+                    if isinstance(e, (ActivityError, ChildWorkflowError))
+                    and getattr(e, "cause", None)
+                    else e
+                )
+                # If the root is an ApplicationError, capture its rich context
+                if isinstance(root, ApplicationError):
+                    metadata = {
+                        "type": root.type,
+                        "details": root.details,
+                        "non_retryable": root.non_retryable,
+                        "next_retry_delay": (
+                            root.next_retry_delay.total_seconds()
+                            if root.next_retry_delay
+                            else None
+                        ),
+                    }
+                else:
+                    metadata = None
+                child_error_report = ErrorReport(
+                    error_message=str(root),
+                    stack_trace=traceback.format_exc() if root is not None else "",
+                    metadata=metadata,
+                )
 
                 # Decide between RETRYING and FAILED
                 child_status = JobStatus.FAILED.value
