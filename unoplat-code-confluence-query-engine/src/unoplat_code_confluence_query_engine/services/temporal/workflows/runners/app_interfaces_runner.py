@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import traceback
 
 from temporalio import workflow
 
@@ -26,8 +27,8 @@ with workflow.unsafe.imports_passed_through():
         TemporalAgentRegistry,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
-        summarize_agent_failure,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.call_expression_discovery_runner import (
         run_call_expression_discovery,
@@ -131,11 +132,17 @@ async def run_app_interfaces_agent(
             e,
         )
         logger.exception("[workflow] Full traceback:")
-        agent_errors.append(
-            summarize_agent_failure(
-                e,
-                agent_name="app_interfaces_agent",
-                codebase_name=codebase_metadata.codebase_name,
-            )
+        app_interfaces_error: dict[str, object] = {
+            "agent": "app_interfaces_agent",
+            "codebase": codebase_metadata.codebase_name,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        app_interfaces_error = enrich_agent_error_with_model_details(
+            app_interfaces_error,
+            e,
+            "app_interfaces_agent",
+            codebase_metadata.codebase_name,
         )
+        agent_errors.append(app_interfaces_error)
         return None

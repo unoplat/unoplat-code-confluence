@@ -330,25 +330,30 @@ def test_existing_baseline_preserves_other_data(
     child_report = query(
         database_url, "SELECT error_report FROM codebase_workflow_run"
     )[0][0]
+    # Error reports keep their full message, stack trace and metadata so users
+    # can still submit complete error details.
     assert json.loads(parent_report) == {
-        "error_message": "A model provider request failed.",
+        "error_message": "raw secret",
+        "stack_trace": "raw secret",
         "metadata": {
-            "code": "model_request_failed",
-            "retryable": False,
-            "failures": [
-                {
-                    "agent": "dependency_guide",
-                    "codebase": "backend",
-                    "code": "workflow_failed",
-                    "status_code": 429,
-                }
+            "type": "ModelHTTPError",
+            "non_retryable": True,
+            "next_retry_delay": "raw secret",
+            "model_error": {"body": "raw secret"},
+            "details": [
+                [
+                    {
+                        "agent": "dependency_guide",
+                        "codebase": "backend",
+                        "status_code": 429,
+                        "traceback": "raw secret",
+                    },
+                    {"agent": "raw secret"},
+                ]
             ],
         },
     }
-    assert json.loads(child_report) == {
-        "error_message": "The workflow failed.",
-        "metadata": {"code": "workflow_failed", "retryable": None, "failures": []},
-    }
+    assert json.loads(child_report) == "raw secret"
     progress_row = query(
         database_url, "SELECT * FROM repository_agent_codebase_progress"
     )[0]

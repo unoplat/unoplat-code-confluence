@@ -15,7 +15,6 @@ with workflow.unsafe.imports_passed_through():
     import asyncio
 
     from loguru import logger
-    from unoplat_code_confluence_commons.workflow_models import workflow_failure_entry
 
     from unoplat_code_confluence_query_engine.models.output.git_ref_info import (
         GitRefInfo,
@@ -120,7 +119,12 @@ async def collect_codebase_child_results(
                 codebase_name,
                 result,
             )
-            child_errors.append(workflow_failure_entry(result, codebase=codebase_name))
+            child_errors.append(
+                {
+                    "codebase": codebase_name,
+                    "error": str(result),
+                }
+            )
             codebase_statistics_map[codebase_name] = create_zero_usage_statistics()
         else:
             logger.debug("[workflow] Child workflow completed for {}", codebase_name)

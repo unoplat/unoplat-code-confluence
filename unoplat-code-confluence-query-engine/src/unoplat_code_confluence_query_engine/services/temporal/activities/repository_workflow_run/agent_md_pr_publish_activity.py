@@ -70,11 +70,7 @@ async def _run_with_heartbeat(operation: Awaitable[_T]) -> _T:
 
 
 def _application_error(error: AgentMdPrError | SQLAlchemyError) -> ApplicationError:
-    """Build a static failure. Callers raise it ``from None``.
-
-    Temporal stores the ``__cause__`` chain in workflow history, and that chain can
-    hold raw provider and database text.
-    """
+    """Wrap a publication failure for Temporal. Callers chain the original cause."""
     if isinstance(error, AgentMdPrError):
         return ApplicationError(
             str(error),
@@ -82,7 +78,7 @@ def _application_error(error: AgentMdPrError | SQLAlchemyError) -> ApplicationEr
             non_retryable=not error.retryable,
         )
     return ApplicationError(
-        "Artifact publication metadata could not be persisted",
+        f"Artifact publication metadata could not be persisted: {error}",
         type="AgentMdPrInternalError",
     )
 
@@ -122,7 +118,7 @@ class AgentMdPrPublishActivity:
                 )
             )
         except (AgentMdPrError, SQLAlchemyError) as publication_error:
-            raise _application_error(publication_error) from None
+            raise _application_error(publication_error) from publication_error
         logger.info(
             "[agent_md_pr_publish] Artifact identity for {}/{} run_id={}: status={}, "
             "commit_sha={}",
@@ -158,7 +154,7 @@ class AgentMdPrPublishActivity:
                 )
             )
         except (AgentMdPrError, SQLAlchemyError) as publication_error:
-            raise _application_error(publication_error) from None
+            raise _application_error(publication_error) from publication_error
         logger.info(
             "[agent_md_pr_publish] PR publish for {}/{} run_id={}: status={}, "
             "pr_url={}, already_existed={}",

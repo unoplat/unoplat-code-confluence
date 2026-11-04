@@ -44,10 +44,7 @@ from unoplat_code_confluence_commons.repo_models import (
 from unoplat_code_confluence_commons.workflow_envelopes import (
     ParentWorkflowDbActivityEnvelope,
 )
-from unoplat_code_confluence_commons.workflow_models import (
-    JobStatus,
-    persisted_error_report,
-)
+from unoplat_code_confluence_commons.workflow_models import JobStatus
 
 import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -274,7 +271,7 @@ async def update_repository_run_status(
     if status.value in TERMINAL_STATUSES:
         run.completed_at = now
     if envelope.error_report is not None:
-        run.error_report = persisted_error_report(envelope.error_report)
+        run.error_report = envelope.error_report.model_dump()
     await session.flush()
     return True
 

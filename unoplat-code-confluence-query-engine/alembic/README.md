@@ -12,7 +12,7 @@ Run commands from `unoplat-code-confluence-query-engine/`.
 - `0002_git_artifacts_expand` adds the four metadata/progress columns, checks and
   active-checkout index, copying progress only. The ORM intentionally no longer maps
   the legacy column, so **`alembic check` reports a difference at this revision**.
-- `0003_git_artifacts_contract` scrubs historical event and error text and drops
+- `0003_git_artifacts_contract` scrubs historical agent event text and drops
   `agent_md_output`. It is the release target and the only revision where
   `alembic check` is expected to pass. It is **irreversible**.
 - **Other application data must be preserved. Historical generated artifacts will
@@ -158,12 +158,13 @@ The flags are attestations, and SQL cannot prove a Temporal drain.
 | `repository_agent_event.message` | Static message for the phase; `Agent event recorded` for an unknown phase |
 | `repository_agent_event.tool_name`, `tool_call_id` | Kept if they meet the runtime pattern, otherwise NULL |
 | `repository_agent_event.event`, `phase` | Kept if they are bounded identifiers, otherwise `unknown` |
-| `error_report` on both workflow run tables | Rebuilt as a static message plus `{code, retryable, failures}`. Malformed reports become a generic summary. SQL NULL and JSON null stay as they are |
 
 **What does not change:** all rows, keys, event IDs and ordering, event `created_at`,
 workflow timestamps, statistics, activity and codebase progress, saved SHA and manifest,
 `artifact_publication_error`, PR metadata, `issue_tracking`, repository, credential and
-configuration records. Nothing else is backfilled, and no Git identity is guessed.
+configuration records, and `error_report` on both workflow run tables (full
+message, stack trace and metadata are kept so users can submit complete errors).
+Nothing else is backfilled, and no Git identity is guessed.
 
 **Recovery.** Before this revision, stay on the expanded schema if any gate is
 unresolved. After it commits, there is no in-place recovery: `alembic downgrade` raises,
@@ -305,7 +306,7 @@ release inputs above, from a stopped application stack.
 
    `alembic check` must pass here. Then start services with
    `APPLICATION_SCHEMA_STAGED_REVISION` and both attestations unset.
-7. **Electric.** The contract changes the snapshot table and rewrites event and error
+7. **Electric.** The contract changes the snapshot table and rewrites event
    rows, and Electric's existing shape logs can still hold pre-scrub text. These stacks
    give Electric no named volume, so recreating the container discards its logs. If your
    deployment persists Electric storage, clear that storage as well. Recreate it before

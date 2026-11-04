@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import timedelta
+import traceback
 from typing import Any, Optional, override
 
 from temporalio import workflow
@@ -12,6 +13,7 @@ from temporalio.common import RetryPolicy
 from temporalio.exceptions import (
     ActivityError,
     ApplicationError,
+    ChildWorkflowError,
     TimeoutError as TemporalTimeoutError,
 )
 from temporalio.worker._interceptor import (
@@ -37,7 +39,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_commons.workflow_models import (
         ErrorReport,
         JobStatus,
-        error_report_from_exception,
     )
 
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow.activity import (
@@ -52,6 +53,10 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.workflow_envelopes import (
         REPOSITORY_ACTIVITY_NAMES,
         AgentSnapshotBeginRunEnvelope,
+    )
+    from unoplat_code_confluence_query_engine.utils.agent_error_logger import (
+        extract_model_error_from_details,
+        extract_model_error_from_exception,
     )
     from unoplat_code_confluence_query_engine.utils.trace_utils import (
         seed_and_bind_logger,
@@ -261,7 +266,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     and e.type == "CheckoutAdmissionTimeout"
                     else JobStatus.ERROR.value
                 )
-                error_report = error_report_from_exception(e)
+                error_report = self._build_error_report(e)
                 bound_logger.error(
                     "[agent_workflow_interceptor] RepositoryAgentWorkflow failed: {}",
                     str(e),
@@ -385,7 +390,7 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 )
             else:
                 status = JobStatus.ERROR.value
-                error_report = error_report_from_exception(e)
+                error_report = self._build_error_report(e)
                 bound_logger.error(
                     "[agent_workflow_interceptor] CodebaseAgentWorkflow failed: {}",
                     str(e),
@@ -418,3 +423,34 @@ class AgentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
         if exc:
             raise exc
         return result
+
+    def _build_error_report(self, exc: BaseException) -> ErrorReport:
+        root: BaseException = exc
+        if isinstance(exc, ActivityError) and exc.cause:
+            root = exc.cause
+        elif isinstance(exc, ChildWorkflowError) and exc.cause:
+            root = exc.cause
+
+        metadata: dict[str, Any] = {}
+
+        if isinstance(root, ApplicationError):
+            metadata = {
+                "type": root.type,
+                "details": root.details,
+                "non_retryable": root.non_retryable,
+                "next_retry_delay": (
+                    root.next_retry_delay.total_seconds() if root.next_retry_delay else None
+                ),
+            }
+
+        model_error_details = extract_model_error_from_exception(root)
+        if not model_error_details and isinstance(root, ApplicationError):
+            model_error_details = extract_model_error_from_details(root.details)
+        if model_error_details:
+            metadata["model_error"] = model_error_details
+
+        return ErrorReport(
+            error_message=str(root),
+            stack_trace=traceback.format_exc(),
+            metadata=metadata if metadata else None,
+        )

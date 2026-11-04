@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+import traceback
 from typing import Any
 
 from temporalio import workflow
@@ -43,8 +44,8 @@ with workflow.unsafe.imports_passed_through():
         get_cached_usage_limits,
     )
     from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
-        summarize_agent_failure,
     )
 
 
@@ -169,11 +170,17 @@ async def run_dependency_guide_agent(
             e,
         )
         logger.exception("[workflow] Full traceback:")
-        agent_errors.append(
-            summarize_agent_failure(
-                e,
-                agent_name="dependency_guide",
-                codebase_name=codebase_metadata.codebase_name,
-            )
+        dependency_error: dict[str, object] = {
+            "agent": "dependency_guide",
+            "codebase": codebase_metadata.codebase_name,
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        dependency_error = enrich_agent_error_with_model_details(
+            dependency_error,
+            e,
+            "dependency_guide",
+            codebase_metadata.codebase_name,
         )
+        agent_errors.append(dependency_error)
         agent_stats.append(create_zero_usage_statistics())
