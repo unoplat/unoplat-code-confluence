@@ -11,9 +11,10 @@ import socket
 import subprocess
 import time
 from typing import Dict, Iterator
+from uuid import uuid4
 
 import docker
-from docker.errors import APIError, NotFound
+from docker.errors import APIError
 from fastapi.testclient import TestClient
 from loguru import logger
 import pytest
@@ -31,7 +32,10 @@ from unoplat_code_confluence_query_engine.main import app
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
-COMPOSE_FILE = PROJECT_ROOT / "local-dependencies-docker-compose.yml"
+# Infrastructure only: no backend image here can run older startup DDL.
+COMPOSE_FILE = PROJECT_ROOT / "local-dependencies-without-flow-bridge-docker-compose.yml"
+# Every Docker resource belongs to this run, so cleanup cannot reach a dev stack.
+COMPOSE_PROJECT = f"unoplat-query-engine-test-{uuid4().hex[:12]}"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -56,24 +60,19 @@ class DockerComposeWithCleanup(DockerCompose):
             subprocess.call(down_cmd, cwd=str(self.context))
 
     def cleanup_volumes(self):
-        """Explicitly clean up named volumes from compose file."""
-        # Volume names as they appear in Docker for the query-engine compose
-        volume_names = [
-            "postgresql_data",
-            "elasticsearch_data"
-        ]
+        """Remove only volumes labelled for this run's compose project."""
+        volumes = self._docker_client.volumes.list(
+            filters={"label": f"com.docker.compose.project={COMPOSE_PROJECT}"}
+        )
 
         cleaned_count = 0
-        for volume_name in volume_names:
+        for volume in volumes:
             try:
-                volume = self._docker_client.volumes.get(volume_name)
                 volume.remove(force=True)
-                logger.info("Removed volume: {}", volume_name)
+                logger.info("Removed volume: {}", volume.name)
                 cleaned_count += 1
-            except NotFound:
-                logger.debug("Volume {} not found (may already be removed)", volume_name)
             except APIError as e:
-                logger.warning("Could not remove volume {}: {}", volume_name, e)
+                logger.warning("Could not remove volume {}: {}", volume.name, e)
 
         logger.info("Cleaned up {} volumes", cleaned_count)
 
@@ -117,6 +116,7 @@ def docker_compose():
     # Set Docker client timeouts to prevent hanging
     os.environ["DOCKER_CLIENT_TIMEOUT"] = "180"
     os.environ["COMPOSE_HTTP_TIMEOUT"] = "180"
+    os.environ["COMPOSE_PROJECT_NAME"] = COMPOSE_PROJECT
 
     # Verify compose file exists
     if not COMPOSE_FILE.exists():
@@ -187,17 +187,6 @@ def docker_compose():
         # Double-check volume cleanup (in case some were missed)
         compose.cleanup_volumes()
 
-        # Additional cleanup using docker client for any dangling resources
-        client = docker.from_env()
-
-        # Prune any remaining dangling volumes
-        try:
-            pruned = client.volumes.prune()
-            if pruned['VolumesDeleted']:
-                logger.info("Pruned {} additional dangling volumes", len(pruned['VolumesDeleted']))
-        except Exception as e:
-            logger.warning("Error pruning volumes: {}", e)
-
         logger.info("Docker compose stopped and all resources cleaned up")
 
 
@@ -228,11 +217,11 @@ def service_ports(docker_compose: DockerCompose) -> Dict[str, int]:
 
 @pytest.fixture(scope="session")
 def test_database_tables(service_ports: Dict[str, int]):
-    """Create database tables for testing."""
-    # Create tables once per test session
+    """Migrate this run's disposable database to the release revision."""
+    # Migrate once per test session
     create_test_tables(service_ports["postgresql"])
     yield
-    # Tables will be cleaned up when docker-compose volumes are removed
+    # The schema is removed with this run's compose project volumes
 
 @pytest_asyncio.fixture(scope="session")
 async def app_settings(service_ports):

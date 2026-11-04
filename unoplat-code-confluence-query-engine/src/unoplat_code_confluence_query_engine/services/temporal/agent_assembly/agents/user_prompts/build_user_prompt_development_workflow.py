@@ -52,12 +52,12 @@ def build_development_workflow_instructions() -> str:
         "Follow this decision procedure in order:\n"
         "1. Read the exact AGENTS.md path supplied in the user prompt and inspect only the existing ## Engineering Workflow section if it exists.\n"
         "2. Verify current package-manager related config/scripts plus lint and type-check config/script sources.\n"
-        '3. Decision point — before invoking any write tool: if the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. If and only if the user says no-change output is allowed for this run, return {"status":"'
+        '3. Decision point — before invoking any write tool: if the user says no-change output is allowed for this run and the existing section already correctly reflects your verified evidence, do not call edit_file or write_file. Return {"status":"'
         f"{ENGINEERING_WORKFLOW_NO_CHANGE}"
-        '"} with no commands field. If the user says full structured output is required, return {"status":"'
-        f"{ENGINEERING_WORKFLOW_FULL_OUTPUT}"
-        '","commands":[...]} instead without rewriting the already-correct section.\n'
-        "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return full_output with commands.\n"
+        '"} with no commands field.\n'
+        "4. Otherwise, update only ## Engineering Workflow using edit_file or write_file and return "
+        f'{{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}}. '
+        "When the user says the section is missing or invalid, regenerate it from verified repository evidence.\n"
         f"Once you invoke edit_file or write_file in this run, status={ENGINEERING_WORKFLOW_NO_CHANGE} is no longer valid; return status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with the commands you wrote.\n"
         "</existing_section_update_policy>\n"
         f"{get_engineering_citation_instructions()}"
@@ -83,8 +83,9 @@ def build_development_workflow_prompt(
     if allow_no_change_output:
         return (
             base_prompt
-            + "No-change output is allowed for this run because previous structured engineering_workflow data is available to carry forward. "
-            "If — and only if — the existing AGENTS.md ## Engineering Workflow section is already correct "
+            + "No-change output is allowed for this run because the existing ## Engineering Workflow section passed validation. "
+            "Check that section against current repository evidence. "
+            "If — and only if — it is already correct "
             "before you make any edits, return exactly "
             f'{{"status":"{ENGINEERING_WORKFLOW_NO_CHANGE}"}} with no commands field. If you invoke edit_file or write_file in this run, return '
             f'{{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}} instead.'
@@ -92,9 +93,9 @@ def build_development_workflow_prompt(
 
     return (
         base_prompt
-        + "Full structured output is required for this run because previous structured engineering_workflow data is unavailable. "
-        "If the existing AGENTS.md ## Engineering Workflow section is already correct before you make any edits, do not rewrite it, but return full_output with commands inferred from verified repository evidence and the existing section. "
-        f'Do not return status={ENGINEERING_WORKFLOW_NO_CHANGE}. Return {{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}}. If you invoke edit_file or write_file in this run, return full_output with the commands you wrote.'
+        + "Full structured output is required for this run because the existing ## Engineering Workflow section is missing or invalid. "
+        "Regenerate that section from verified repository evidence and keep all content outside it intact. "
+        f'Do not return status={ENGINEERING_WORKFLOW_NO_CHANGE}. Return {{"status":"{ENGINEERING_WORKFLOW_FULL_OUTPUT}","commands":[...]}} with the commands you wrote.'
     )
 
 

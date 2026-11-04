@@ -49,10 +49,10 @@ class EngineeringWorkflow(BaseModel):
 
 
 ENGINEERING_WORKFLOW_FULL_OUTPUT = "full_output"
-"""Agent response status indicating commands are present and should be persisted."""
+"""Agent response status indicating the section was written from returned commands."""
 
 ENGINEERING_WORKFLOW_NO_CHANGE = "no_change"
-"""Agent response status indicating previous structured workflow should be carried forward."""
+"""Agent response status indicating the existing AGENTS.md section stays untouched."""
 
 EngineeringWorkflowAgentStatus: TypeAlias = Literal["full_output", "no_change"]
 """Allowed development workflow agent response statuses."""
@@ -64,8 +64,8 @@ class EngineeringWorkflowAgentResponse(BaseModel):
     status: EngineeringWorkflowAgentStatus = Field(
         ...,
         description=(
-            "full_output when commands are included for persistence; "
-            "no_change only when prior structured workflow may be carried forward"
+            "full_output when commands are included and match the AGENTS.md section; "
+            "no_change only when the existing valid section is correct and untouched"
         ),
     )
     commands: Optional[List[EngineeringWorkflowCommand]] = Field(
@@ -81,3 +81,18 @@ class EngineeringWorkflowAgentResponse(BaseModel):
 
 EngineeringWorkflowAgentOutput: TypeAlias = EngineeringWorkflowAgentResponse
 """Development workflow agent output: single explicit response model."""
+
+
+class EngineeringWorkflowSectionInspection(BaseModel):
+    """File-backed result of inspecting the owned AGENTS.md section."""
+
+    section_sha256: Optional[str] = Field(
+        default=None,
+        description="SHA-256 of the exact section bytes when the section is valid",
+    )
+    validation_error: Optional[str] = Field(
+        default=None,
+        description="Retry guidance for the agent when the section cannot be accepted",
+    )
+
+    model_config = ConfigDict(extra="forbid")

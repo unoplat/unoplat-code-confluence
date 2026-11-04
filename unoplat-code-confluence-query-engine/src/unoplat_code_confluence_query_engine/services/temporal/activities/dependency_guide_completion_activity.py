@@ -41,7 +41,6 @@ class DependencyGuideCompletionActivity:
             codebase_name=codebase_name,
             agent_name="dependency_guide",
             phase="result",
-            message="Dependency guide completed",
             completion_namespaces=set(get_completion_namespaces(programming_language)),
             repository_workflow_run_id=repository_workflow_run_id,
         )

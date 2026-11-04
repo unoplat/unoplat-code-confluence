@@ -48,7 +48,6 @@ services:
 
   # Elasticsearch service for Temporal
   elasticsearch:
-    container_name: temporal-elasticsearch-test
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
@@ -78,7 +77,6 @@ services:
 
   # Temporal server
   temporal:
-    container_name: temporal-test
     depends_on:
       - postgresql
       - elasticsearch
@@ -114,7 +112,6 @@ services:
 
   # Temporal Admin Tools
   temporal-admin-tools:
-    container_name: temporal-admin-tools-test
     depends_on:
       - temporal
     environment:
@@ -133,7 +130,6 @@ services:
 
   # Temporal UI
   temporal-ui:
-    container_name: temporal-ui-test
     depends_on:
       - temporal
     environment:
@@ -154,7 +150,6 @@ services:
 networks:
   code-confluence-test-network:
     driver: bridge
-    name: code-confluence-test-network
 
 volumes:
   postgresql_data:

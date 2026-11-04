@@ -1,7 +1,11 @@
 from temporalio import workflow
 from temporalio.client import WorkflowFailureError
 from temporalio.exceptions import ActivityError, ApplicationError
-from temporalio.workflow import ChildWorkflowHandle, ParentClosePolicy
+from temporalio.workflow import (
+    ActivityCancellationType,
+    ChildWorkflowHandle,
+    ParentClosePolicy,
+)
 
 with workflow.unsafe.imports_passed_through():
     import asyncio
@@ -81,7 +85,9 @@ class RepoWorkflow:
                 activity=GitActivity.process_git_activity,
                 args=[git_activity_envelope],
                 start_to_close_timeout=timedelta(minutes=10),
+                heartbeat_timeout=timedelta(seconds=30),
                 retry_policy=ActivityRetriesConfig.DEFAULT,
+                cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
             )
 
             # 2. Then insert the git repo into relational tables
@@ -138,14 +144,14 @@ class RepoWorkflow:
                         trace_id=trace_id,
                         parent_workflow_run_id=workflow_run_id,
                     )
-                    child_handle: ChildWorkflowHandle[CodebaseChildWorkflow, None] = (
-                        await workflow.start_child_workflow(
-                            CodebaseChildWorkflow.run,
-                            args=[child_workflow_envelope],
-                            id=child_workflow_id,
-                            # use default TERMINATE policy (omit or set explicitly)
-                            parent_close_policy=ParentClosePolicy.TERMINATE,
-                        )
+                    child_handle: ChildWorkflowHandle[
+                        CodebaseChildWorkflow, None
+                    ] = await workflow.start_child_workflow(
+                        CodebaseChildWorkflow.run,
+                        args=[child_workflow_envelope],
+                        id=child_workflow_id,
+                        # use default TERMINATE policy (omit or set explicitly)
+                        parent_close_policy=ParentClosePolicy.TERMINATE,
                     )
                     child_handles.append(child_handle)
                 except WorkflowFailureError as wf:
@@ -168,12 +174,16 @@ class RepoWorkflow:
 
             any_failed = any(isinstance(r, BaseException) for r in results)
             if any_failed:
-                workflow.logger.warning(
-                    "One or more codebase child workflows failed for repository %s",
-                    repo_request.repository_git_url,
+                # All children are joined before the parent releases admission.
+                raise ApplicationError(
+                    "One or more codebase child workflows failed",
+                    type="CodebaseWorkflowError",
+                    non_retryable=True,
                 )
 
             if info.workflow_id.startswith("refresh-"):
+                # The trigger returns the queued run ID, never waits for admission.
+                # This parent still owns the checkout until its interceptor exits.
                 try:
                     workflow.logger.info(
                         "Triggering post-refresh AGENTS.md update for %s/%s",

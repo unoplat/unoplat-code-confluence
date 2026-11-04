@@ -16,6 +16,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.services.temporal.interceptors.agent_workflow import (
         DB_ACTIVITY_RETRY_POLICY,
     )
+    from unoplat_code_confluence_query_engine.services.temporal.utils import (
+        raise_if_temporal_cancellation,
+    )
 
 
 async def resolve_repository_git_ref(
@@ -31,6 +34,7 @@ async def resolve_repository_git_ref(
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
     except Exception as e:
+        raise_if_temporal_cancellation(e)
         logger.warning(
             "[workflow] Git ref resolution failed, proceeding without freshness metadata: {}",
             e,

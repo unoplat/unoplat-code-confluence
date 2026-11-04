@@ -29,7 +29,7 @@ TEST_CODEBASE_2 = "frontend"
 class SnapshotData(TypedDict):
     overall_progress: Decimal | None
     latest_event_at: datetime | None
-    agent_md_output: dict[str, object]
+    repository_activity_progress: dict[str, object]
     statistics: dict[str, object] | None
     created_at: datetime
     modified_at: datetime
@@ -115,7 +115,7 @@ def get_snapshot_data(
             SELECT
                 overall_progress,
                 latest_event_at,
-                agent_md_output,
+                repository_activity_progress,
                 statistics,
                 created_at,
                 modified_at
@@ -131,7 +131,7 @@ def get_snapshot_data(
         return {
             "overall_progress": row[0],
             "latest_event_at": row[1],
-            "agent_md_output": row[2],
+            "repository_activity_progress": row[2],
             "statistics": row[3],
             "created_at": row[4],
             "modified_at": row[5],
@@ -295,7 +295,6 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
     )
@@ -318,12 +317,7 @@ async def test_begin_run_creates_snapshot_row(seeded_db, writer):
         assert snapshot["overall_progress"] == Decimal("0.00")
         assert snapshot["latest_event_at"] is None
 
-        # Check agent_md_output has the initialized repository snapshot shape
-        assert snapshot["agent_md_output"] == {
-            "repository": f"{TEST_OWNER}/{TEST_REPO}",
-            "codebases": {},
-            "repository_activity_progress": {},
-        }
+        assert snapshot["repository_activity_progress"] == {}
         assert snapshot["statistics"] is None
 
         progress_rows = list_codebase_progress_rows(
@@ -362,7 +356,6 @@ async def test_begin_run_upserts_existing_row(seeded_db, writer):
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
     )
@@ -394,7 +387,6 @@ async def test_begin_run_upserts_existing_row(seeded_db, writer):
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
     )
@@ -439,7 +431,6 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
     )
@@ -462,7 +453,8 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
         codebase_name=TEST_CODEBASE_1,
         agent_name="processing_step",
         phase="result",
-        message="Step completed",
+        tool_name="final_result",
+        tool_call_id="not a valid call id",
         completion_namespaces={"processing_step", "final_review"},
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
     )
@@ -481,8 +473,8 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
         assert events[0]["event_id"] == 1
         assert events[0]["event"] == "processing_step"
         assert events[0]["phase"] == "result"
-        assert events[0]["message"] == "Step completed"
-        assert events[0]["tool_name"] is None
+        assert events[0]["message"] == "Agent step completed"
+        assert events[0]["tool_name"] == "final_result"
         assert events[0]["tool_call_id"] is None
         assert events[0]["tool_args"] is None
         assert events[0]["tool_result_content"] is None
@@ -519,14 +511,16 @@ async def test_append_event_updates_progress_and_timestamp(seeded_db, writer):
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_patch_codebase_output_atomically_merges_sections(seeded_db, writer):
-    """Test that patch_codebase_output merges one codebase object without overwriting siblings."""
+async def test_metadata_only_run_preserves_sibling_progress_and_statistics(
+    seeded_db, writer
+):
+    """Test that metadata-only updates keep sibling codebase progress rows intact."""
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1, TEST_CODEBASE_2],
+        repository_activity_names=["architecture"],
     )
 
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -537,42 +531,20 @@ async def test_patch_codebase_output_atomically_merges_sections(seeded_db, write
             TEST_WORKFLOW_RUN_ID,
         )
         assert initial_snapshot is not None
+        assert initial_snapshot["repository_activity_progress"] == {"architecture": 0}
         initial_modified_at = initial_snapshot["modified_at"]
 
-    await writer.patch_codebase_output(
+    await writer.complete_repository_activity(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        codebase_name=TEST_CODEBASE_1,
-        codebase_patch={
-            "codebase_name": TEST_CODEBASE_1,
-            "programming_language_metadata": {
-                "primary_language": "python",
-                "package_manager": "uv",
-            },
-            "engineering_workflow": None,
-            "dependency_guide": None,
-            "business_logic": None,
-        },
+        activity_name="architecture",
     )
-    await writer.patch_codebase_output(
+    await writer.complete_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        codebase_name=TEST_CODEBASE_1,
-        codebase_patch={
-            "engineering_workflow": {"commands": ["uv run pytest"]},
-        },
-    )
-    await writer.patch_codebase_output(
-        owner_name=TEST_OWNER,
-        repo_name=TEST_REPO,
-        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        codebase_name=TEST_CODEBASE_2,
-        codebase_patch={
-            "codebase_name": TEST_CODEBASE_2,
-            "dependency_guide": {"dependencies": []},
-        },
+        statistics_payload={"total_requests": 1},
     )
 
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -584,48 +556,37 @@ async def test_patch_codebase_output_atomically_merges_sections(seeded_db, write
         )
         assert snapshot is not None
         assert snapshot["modified_at"] > initial_modified_at
+        assert snapshot["repository_activity_progress"] == {"architecture": 100}
+        assert snapshot["overall_progress"] == Decimal("33.33")
+        assert snapshot["statistics"] == {"total_requests": 1}
 
-        agent_md_output = snapshot["agent_md_output"]
-        assert agent_md_output["repository"] == f"{TEST_OWNER}/{TEST_REPO}"
-        codebases = agent_md_output["codebases"]
-        assert codebases[TEST_CODEBASE_1] == {
-            "codebase_name": TEST_CODEBASE_1,
-            "programming_language_metadata": {
-                "primary_language": "python",
-                "package_manager": "uv",
-            },
-            "engineering_workflow": {"commands": ["uv run pytest"]},
-            "dependency_guide": None,
-            "business_logic": None,
-        }
-        assert codebases[TEST_CODEBASE_2] == {
-            "codebase_name": TEST_CODEBASE_2,
-            "dependency_guide": {"dependencies": []},
-        }
+        progress_rows = list_codebase_progress_rows(
+            session,
+            TEST_OWNER,
+            TEST_REPO,
+            TEST_WORKFLOW_RUN_ID,
+        )
+        assert [row["codebase_name"] for row in progress_rows] == [
+            TEST_CODEBASE_1,
+            TEST_CODEBASE_2,
+        ]
+        for row in progress_rows:
+            assert row["next_event_id"] == 1
+            assert row["event_count"] == 0
+            assert row["progress"] == Decimal("0.00")
 
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_complete_run_updates_statistics_without_overwriting_output(
+async def test_complete_run_updates_statistics_without_overwriting_progress(
     seeded_db, writer
 ):
-    """Test that complete_run persists statistics without replacing partial agent_md_output."""
+    """Test that complete_run persists statistics without replacing run progress."""
     await writer.begin_run(
         owner_name=TEST_OWNER,
         repo_name=TEST_REPO,
-        repository_qualified_name=f"{TEST_OWNER}/{TEST_REPO}",
         repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
         codebase_names=[TEST_CODEBASE_1],
-    )
-    await writer.patch_codebase_output(
-        owner_name=TEST_OWNER,
-        repo_name=TEST_REPO,
-        repository_workflow_run_id=TEST_WORKFLOW_RUN_ID,
-        codebase_name=TEST_CODEBASE_1,
-        codebase_patch={
-            "codebase_name": TEST_CODEBASE_1,
-            "engineering_workflow": {"commands": ["uv run pytest"]},
-        },
     )
 
     with get_sync_postgres_session(seeded_db["postgresql"]) as session:
@@ -637,7 +598,10 @@ async def test_complete_run_updates_statistics_without_overwriting_output(
         )
         assert initial_snapshot is not None
         initial_modified_at = initial_snapshot["modified_at"]
-        initial_agent_md_output = initial_snapshot["agent_md_output"]
+        initial_repository_activity_progress = initial_snapshot[
+            "repository_activity_progress"
+        ]
+        initial_overall_progress = initial_snapshot["overall_progress"]
 
     statistics_payload = {
         "total_requests": 5,
@@ -677,7 +641,11 @@ async def test_complete_run_updates_statistics_without_overwriting_output(
             TEST_WORKFLOW_RUN_ID,
         )
         assert snapshot is not None
-        assert snapshot["agent_md_output"] == initial_agent_md_output
+        assert (
+            snapshot["repository_activity_progress"]
+            == initial_repository_activity_progress
+        )
+        assert snapshot["overall_progress"] == initial_overall_progress
 
         assert snapshot["statistics"] is not None
         statistics = snapshot["statistics"]

@@ -16,7 +16,7 @@ class PrMetadata(BaseModel):
     pr_number: int | None = Field(default=None)
     pr_url: str | None = Field(default=None)
     branch_name: str | None = Field(default=None)
-    status: Literal["modified", "no_changes"] = Field(...)
+    status: Literal["modified", "no_changes", "no_artifacts"] = Field(...)
     changed_files: list[str] = Field(default_factory=list)
     message: str = Field(...)
     created_at: AwareDatetime = Field(

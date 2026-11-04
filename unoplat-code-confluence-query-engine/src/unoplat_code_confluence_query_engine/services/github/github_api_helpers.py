@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from email.message import Message
+from typing import cast
 from urllib.parse import urlparse
 
 from unoplat_code_confluence_commons.credential_enums import ProviderKey
@@ -76,6 +78,23 @@ def extract_http_error_status(error: Exception) -> int | None:
 def is_http_not_found(error: Exception) -> bool:
     """Check whether a ghapi exception represents an HTTP 404."""
     return extract_http_error_status(error) == 404
+
+
+def is_rate_limited_error(error: Exception) -> bool:
+    """Check whether a ghapi exception's headers report provider rate limiting."""
+    headers: object = getattr(error, "headers", None)
+    if isinstance(headers, Message):
+        return (
+            headers.get("Retry-After") is not None
+            or headers.get("X-RateLimit-Remaining") == "0"
+        )
+    if isinstance(headers, Mapping):
+        values = cast(Mapping[str, object], headers)
+        return (
+            values.get("Retry-After") is not None
+            or values.get("X-RateLimit-Remaining") == "0"
+        )
+    return False
 
 
 def _get_string_field(payload: Mapping[str, object], key: str) -> str | None:

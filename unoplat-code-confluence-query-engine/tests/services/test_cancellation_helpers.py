@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from temporalio.exceptions import CancelledError
+from temporalio.exceptions import ActivityError, CancelledError, RetryState
 
 from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers import (
     is_temporal_cancellation_exception,
@@ -10,12 +10,21 @@ from unoplat_code_confluence_query_engine.services.temporal.cancellation_helpers
 
 
 def build_wrapped_temporal_cancelled_exception() -> RuntimeError:
+    # A cancelled publication activity reaches its runner as ActivityError.
     try:
         raise CancelledError()
     except CancelledError as cancelled_error:
         try:
-            raise ValueError("inner") from cancelled_error
-        except ValueError as inner_error:
+            raise ActivityError(
+                "Activity cancelled",
+                scheduled_event_id=1,
+                started_event_id=2,
+                identity="worker",
+                activity_type="save-artifact-identity",
+                activity_id="1",
+                retry_state=RetryState.CANCEL_REQUESTED,
+            ) from cancelled_error
+        except ActivityError as inner_error:
             try:
                 raise RuntimeError("outer") from inner_error
             except RuntimeError as wrapped_error:
