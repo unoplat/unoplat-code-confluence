@@ -8,6 +8,7 @@ import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
 import reactCompiler from 'eslint-plugin-react-compiler'
 import useNoMemo from 'eslint-plugin-use-no-memo'
+import pluginQuery from '@tanstack/eslint-plugin-query'
 
 export default tseslint.config(
   // Ignore patterns
@@ -20,6 +21,7 @@ export default tseslint.config(
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
+      ...pluginQuery.configs['flat/recommended'],
       prettierConfig,
     ],
     files: ['src/**/*.{ts,tsx}'],
@@ -29,6 +31,9 @@ export default tseslint.config(
         ...globals.browser,
       },
       parserOptions: {
+        // Type information for @tanstack/query/no-void-query-fn and no-rest-destructuring
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
         },

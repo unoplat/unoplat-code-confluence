@@ -1,6 +1,7 @@
 import React from "react";
 import {
   keepPreviousData,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
@@ -302,17 +303,15 @@ export function GenerateAgentsDialog({
         job?.repository_name,
         job?.repository_workflow_run_id,
       ],
-      queryFn: () => {
-        if (!job) {
-          return { exists: false, pr_metadata: null };
-        }
-        return getRepositoryAgentMdPrStatus(
-          job.repository_owner_name,
-          job.repository_name,
-          job.repository_workflow_run_id,
-        );
-      },
-      enabled: open && isCompleted && !!job,
+      queryFn: job
+        ? () =>
+            getRepositoryAgentMdPrStatus(
+              job.repository_owner_name,
+              job.repository_name,
+              job.repository_workflow_run_id,
+            )
+        : skipToken,
+      enabled: open && isCompleted,
       staleTime: 30_000,
     });
 
@@ -329,28 +328,29 @@ export function GenerateAgentsDialog({
       job?.repository_owner_name,
       job?.repository_workflow_run_id,
     ],
-    queryFn: async () => {
-      if (!job) return null;
-      const status = await getRepositoryStatus(
-        job.repository_name,
-        job.repository_owner_name,
-        job.repository_workflow_run_id,
-      );
-      // Convert API error report to UI error report if present
-      if (status.error_report) {
-        status.error_report = apiToUiErrorReport(
-          status.error_report as ApiErrorReport,
-          {
-            error_type: "REPOSITORY",
-            repository_name: status.repository_name,
-            repository_owner_name: status.repository_owner_name,
-            parent_workflow_run_id: status.repository_workflow_run_id,
-          },
-        );
-      }
-      return status;
-    },
-    enabled: open && isFailed && !!job, // CONDITIONAL: only fetch when failed
+    queryFn: job
+      ? async () => {
+          const status = await getRepositoryStatus(
+            job.repository_name,
+            job.repository_owner_name,
+            job.repository_workflow_run_id,
+          );
+          // Convert API error report to UI error report if present
+          if (status.error_report) {
+            status.error_report = apiToUiErrorReport(
+              status.error_report as ApiErrorReport,
+              {
+                error_type: "REPOSITORY",
+                repository_name: status.repository_name,
+                repository_owner_name: status.repository_owner_name,
+                parent_workflow_run_id: status.repository_workflow_run_id,
+              },
+            );
+          }
+          return status;
+        }
+      : skipToken,
+    enabled: open && isFailed, // CONDITIONAL: only fetch when failed
     staleTime: 5000,
   });
 

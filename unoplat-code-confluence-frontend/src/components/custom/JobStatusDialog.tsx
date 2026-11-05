@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +56,6 @@ export function JobStatusDialog({
   onOpenChange,
   job,
 }: JobStatusDialogProps): React.ReactElement | null {
-  const [statusError, setStatusError] = useState<string | null>(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] = useState<FeedbackSource | null>(
     null,
@@ -75,44 +74,35 @@ export function JobStatusDialog({
       job?.repository_owner_name,
       job?.repository_workflow_run_id,
     ],
-    queryFn: async () => {
-      console.log(
-        "[Query] JobStatusDialog: fetching repositoryStatus for job:",
-        job,
-      );
-      if (!job) return null;
-      try {
-        const status = await getRepositoryStatus(
-          job.repository_name,
-          job.repository_owner_name,
-          job.repository_workflow_run_id,
-        );
-        console.log(
-          "[Query] JobStatusDialog: raw getRepositoryStatus response:",
-          status,
-        );
-
-        // Convert API error report to UI error report if present
-        if (status.error_report) {
-          status.error_report = apiToUiErrorReport(
-            status.error_report as ApiErrorReport,
-            {
-              error_type: "REPOSITORY",
-              repository_name: status.repository_name,
-              repository_owner_name: status.repository_owner_name,
-              parent_workflow_run_id: status.repository_workflow_run_id,
-            },
+    queryFn: job
+      ? async () => {
+          const status = await getRepositoryStatus(
+            job.repository_name,
+            job.repository_owner_name,
+            job.repository_workflow_run_id,
           );
-        }
+          console.log(
+            "[Query] JobStatusDialog: raw getRepositoryStatus response:",
+            status,
+          );
 
-        return status;
-      } catch (err) {
-        setStatusError("Failed to fetch repository status. Please try again.");
-        console.error("Error fetching repository status:", err);
-        return null;
-      }
-    },
-    enabled: open && !!job,
+          // Convert API error report to UI error report if present
+          if (status.error_report) {
+            status.error_report = apiToUiErrorReport(
+              status.error_report as ApiErrorReport,
+              {
+                error_type: "REPOSITORY",
+                repository_name: status.repository_name,
+                repository_owner_name: status.repository_owner_name,
+                parent_workflow_run_id: status.repository_workflow_run_id,
+              },
+            );
+          }
+
+          return status;
+        }
+      : skipToken,
+    enabled: open,
     staleTime: 5000,
     refetchInterval: 1000 * 10,
     refetchOnMount: "always",
@@ -268,11 +258,11 @@ export function JobStatusDialog({
             <div className="flex h-40 items-center justify-center">
               <div className="border-primary h-10 w-10 animate-spin rounded-full border-b-2" />
             </div>
-          ) : error || statusError ? (
+          ) : error && !repositoryStatus ? (
             <div className="bg-destructive/10 border-destructive/20 mt-4 rounded border p-3">
               <p className="text-destructive font-semibold">Error:</p>
               <p className="text-destructive/80">
-                {statusError || "An error occurred while fetching data."}
+                Failed to fetch repository status. Please try again.
               </p>
             </div>
           ) : repositoryStatus ? (

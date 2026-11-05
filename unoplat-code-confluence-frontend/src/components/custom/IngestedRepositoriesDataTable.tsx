@@ -70,7 +70,7 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
   });
 
   // Agent MD update mutation - starts unified refresh-then-generate flow
-  const agentMdUpdateMutation = useMutation({
+  const { mutate: submitAgentMdUpdate } = useMutation({
     mutationFn: (repository: IngestedRepository) => updateAgentMd(repository),
     onSuccess: (_data, repository) => {
       toast.success(
@@ -110,14 +110,14 @@ export function IngestedRepositoriesDataTable(): React.ReactElement {
           return;
         }
 
-        agentMdUpdateMutation.mutate(repository);
+        submitAgentMdUpdate(repository);
       } catch {
         toast.error(
           "Unable to verify model provider configuration. Please try again.",
         );
       }
     },
-    [modelConfigQuery.data, agentMdUpdateMutation, queryClient],
+    [modelConfigQuery.data, submitAgentMdUpdate, queryClient],
   );
 
   const columns = useMemo(() => {
