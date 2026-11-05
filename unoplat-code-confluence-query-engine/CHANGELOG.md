@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.49.1...unoplat-code-confluence-query-engine-v0.50.0) (2026-11-05)
+
+
+### Features
+
+* **artifacts:** persist immutable Git-backed run artifacts ([096ef8b](https://github.com/unoplat/unoplat-code-confluence/commit/096ef8be8788b64c3ffed35a81e3710c79c37770))
+* **artifacts:** persist immutable Git-backed run artifacts ([7268215](https://github.com/unoplat/unoplat-code-confluence/commit/7268215d00e6e548012871250224682d60e8c826))
+
+
+### Bug Fixes
+
+* **artifacts:** serve saved commit files from local Git ([71d0115](https://github.com/unoplat/unoplat-code-confluence/commit/71d0115bea747080c36539bebf60c7e4ca7839dd))
+* **workflows:** restore full error reports with stack traces ([7227030](https://github.com/unoplat/unoplat-code-confluence/commit/722703047ecb10007349089810007b73f63bbdeb))
+* **workflows:** restore full error reports with stack traces ([dfacdaa](https://github.com/unoplat/unoplat-code-confluence/commit/dfacdaa16285dd31bdb30c9bb540dcfd4c4d78d9))
+
+
+### Code Refactoring
+
+* **agents:** drop agent event tool payload columns ([be897e8](https://github.com/unoplat/unoplat-code-confluence/commit/be897e835694c90bf100156a569d9ffcdd786893))
+* **agents:** drop agent event tool payload columns ([dd97f9e](https://github.com/unoplat/unoplat-code-confluence/commit/dd97f9e4da77c24195b58f76321ff8109da11a43))
+
+
+### Documentation
+
+* **agents:** remove duplicate project guidance ([60742b8](https://github.com/unoplat/unoplat-code-confluence/commit/60742b826eccf335985c96b81b73fac0bfd5cc9c))
+
 ## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-query-engine-v0.49.0...unoplat-code-confluence-query-engine-v0.49.1) (2026-08-27)
 
 

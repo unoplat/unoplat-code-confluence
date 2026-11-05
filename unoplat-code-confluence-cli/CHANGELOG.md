@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.6.0...unoplat-code-confluence-cli-v0.6.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **workflows:** restore full error reports with stack traces ([7227030](https://github.com/unoplat/unoplat-code-confluence/commit/722703047ecb10007349089810007b73f63bbdeb))
+* **workflows:** restore full error reports with stack traces ([dfacdaa](https://github.com/unoplat/unoplat-code-confluence/commit/dfacdaa16285dd31bdb30c9bb540dcfd4c4d78d9))
+
+
+### Documentation
+
+* **artifacts:** describe schema bootstrap and migration cutover ([60f0d23](https://github.com/unoplat/unoplat-code-confluence/commit/60f0d23e863ec58830edcb7b50faa9faff72bd2e))
+* **artifacts:** describe schema bootstrap and migration cutover ([fd6a062](https://github.com/unoplat/unoplat-code-confluence/commit/fd6a0627d28a1ff4bcd3dc01dc448059d3c4045a))
+
 ## [0.6.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.5.0...unoplat-code-confluence-cli-v0.6.0) (2026-08-21)
 
 

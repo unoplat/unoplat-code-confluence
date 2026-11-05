@@ -1,5 +1,35 @@
 # Changelog
 
+## [1.61.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.60.0...unoplat-code-confluence-frontend-v1.61.0) (2026-11-05)
+
+
+### Features
+
+* **artifacts:** add split viewer with SVG pan and zoom ([8858eea](https://github.com/unoplat/unoplat-code-confluence/commit/8858eeaff03aa6b1f040b2a66d5537e039284afb))
+* **artifacts:** add split viewer with SVG pan and zoom ([8448c40](https://github.com/unoplat/unoplat-code-confluence/commit/8448c40e144966b39622ce8e7fb469bb582a4a77))
+* **artifacts:** view and download files from saved run commits ([644f7f7](https://github.com/unoplat/unoplat-code-confluence/commit/644f7f7170c029a61009b6a132c991b9f27c9c13))
+* **artifacts:** view and download files from saved run commits ([d99e819](https://github.com/unoplat/unoplat-code-confluence/commit/d99e81958f1d696876372b348cc03b6f66c44f26))
+
+
+### Bug Fixes
+
+* **artifacts:** serve saved commit files from local Git ([71d0115](https://github.com/unoplat/unoplat-code-confluence/commit/71d0115bea747080c36539bebf60c7e4ca7839dd))
+* **ui:** match resizable handle orientation to react-resizable-panels v4 ([8ab6df0](https://github.com/unoplat/unoplat-code-confluence/commit/8ab6df0ee108cf5cb3fcf9f940aec32acae28e35))
+* **ui:** match resizable handle orientation to react-resizable-panels v4 ([babf164](https://github.com/unoplat/unoplat-code-confluence/commit/babf1645199a088a1da7c127088deebab16e4e11))
+* **ui:** resolve TanStack Query lint findings and sticky status errors ([2b5d2de](https://github.com/unoplat/unoplat-code-confluence/commit/2b5d2de22d4ad4ea7eeb63ed41282f587039701e))
+* **ui:** resolve TanStack Query lint findings and sticky status errors ([3960eb4](https://github.com/unoplat/unoplat-code-confluence/commit/3960eb4e766503ca0f18dbbd8f92e1986a263536))
+
+
+### Code Refactoring
+
+* **agents:** drop agent event tool payload columns ([be897e8](https://github.com/unoplat/unoplat-code-confluence/commit/be897e835694c90bf100156a569d9ffcdd786893))
+* **agents:** drop agent event tool payload columns ([dd97f9e](https://github.com/unoplat/unoplat-code-confluence/commit/dd97f9e4da77c24195b58f76321ff8109da11a43))
+
+
+### Documentation
+
+* **agents:** remove duplicate project guidance ([60742b8](https://github.com/unoplat/unoplat-code-confluence/commit/60742b826eccf335985c96b81b73fac0bfd5cc9c))
+
 ## [1.60.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-frontend-v1.59.0...unoplat-code-confluence-frontend-v1.60.0) (2026-08-21)
 
 
