@@ -7,9 +7,22 @@ from datetime import UTC, datetime
 from unoplat_code_confluence_cli.backend.flow_bridge_client import FlowBridgeClient
 from unoplat_code_confluence_cli.backend.query_engine_client import QueryEngineClient
 from unoplat_code_confluence_cli.config import CliSettings
-from unoplat_code_confluence_cli.domain.release import AppRelease, ReleaseState, semver_tuple, validate_manifest
-from unoplat_code_confluence_cli.domain.results import AppDownResult, AppRunResult, AppUpdateResult
-from unoplat_code_confluence_cli.errors import CliError, ReleaseError, ServiceReadinessError
+from unoplat_code_confluence_cli.domain.release import (
+    AppRelease,
+    ReleaseState,
+    semver_tuple,
+    validate_manifest,
+)
+from unoplat_code_confluence_cli.domain.results import (
+    AppDownResult,
+    AppRunResult,
+    AppUpdateResult,
+)
+from unoplat_code_confluence_cli.errors import (
+    CliError,
+    ReleaseError,
+    ServiceReadinessError,
+)
 from unoplat_code_confluence_cli.ports.docker_compose import DockerComposeManager
 from unoplat_code_confluence_cli.ports.github_releases import GitHubReleaseGateway
 from unoplat_code_confluence_cli.ports.release_store import ReleaseStore
@@ -41,7 +54,9 @@ class AppService:
         already_reachable = self._flow_bridge.is_reachable()
         state = self._store.read_release_state()
         warnings: list[str] = []
-        emit_progress(progress, "Resolving latest Unoplat Code Confluence app release...")
+        emit_progress(
+            progress, "Resolving latest Unoplat Code Confluence app release..."
+        )
         latest_release = self._resolve_latest_app_release_or_warn(warnings)
         installed_release = False
 
@@ -69,9 +84,19 @@ class AppService:
             latest_release.version
         ) > semver_tuple(state.installed_version)
 
+        emit_progress(progress, f"Using pinned app release {state.installed_tag}.")
+        if has_update:
+            emit_progress(
+                progress,
+                f"App update available: {state.installed_tag} -> {available_tag}. "
+                "Run `ucc service update` to download and apply the new release.",
+            )
+
         if not already_reachable:
             self._docker.ensure_available()
-            emit_progress(progress, "Pulling Docker images for the pinned app release...")
+            emit_progress(
+                progress, "Pulling Docker images for the pinned app release..."
+            )
             self._docker.pull_images()
             emit_progress(progress, "Starting Docker Compose stack...")
             self._docker.start_stack()
@@ -101,7 +126,9 @@ class AppService:
             )
 
         warnings: list[str] = []
-        emit_progress(progress, "Resolving latest Unoplat Code Confluence app release...")
+        emit_progress(
+            progress, "Resolving latest Unoplat Code Confluence app release..."
+        )
         latest_release = self._resolve_latest_app_release_or_warn(warnings)
         if latest_release is None:
             raise ReleaseError(
@@ -109,14 +136,26 @@ class AppService:
                 f"version {state.installed_version} was not changed."
             )
 
-        updated = semver_tuple(latest_release.version) > semver_tuple(state.installed_version)
+        updated = semver_tuple(latest_release.version) > semver_tuple(
+            state.installed_version
+        )
         previous_tag = state.installed_tag
 
         if updated:
-            emit_progress(progress, f"Installing app release {latest_release.tag}...")
-            state = self.install_release(latest_release)
+            release = latest_release
+            emit_progress(progress, f"Installing app release {release.tag}...")
         else:
-            emit_progress(progress, "Installed app release is already up to date.")
+            # An explicit update also repairs stale/missing cached assets, but must
+            # never downgrade if GitHub reports an older release than the local pin.
+            release = AppRelease(
+                version=state.installed_version,
+                tag=state.installed_tag,
+                semver=semver_tuple(state.installed_version),
+            )
+            emit_progress(
+                progress, f"Refreshing cached app assets for {release.tag}..."
+            )
+        state = self.install_release(release)
 
         self._docker.ensure_available()
         emit_progress(progress, "Pulling Docker images for the pinned app release...")
@@ -139,7 +178,9 @@ class AppService:
     def destroy(self, *, progress: ProgressCallback | None = None) -> AppDownResult:
         return self._down(progress=progress, volumes=True)
 
-    def ensure_running(self, *, progress: ProgressCallback | None = None) -> AppRunResult:
+    def ensure_running(
+        self, *, progress: ProgressCallback | None = None
+    ) -> AppRunResult:
         result = self.run(progress=progress)
         self.wait_for_services_ready(progress=progress)
         return result
@@ -162,7 +203,9 @@ class AppService:
         self._store.write_release_state(state)
         return state
 
-    def wait_for_services_ready(self, *, progress: ProgressCallback | None = None) -> None:
+    def wait_for_services_ready(
+        self, *, progress: ProgressCallback | None = None
+    ) -> None:
         self.wait_for_service_ready(
             service_name="Flow Bridge",
             is_ready=self._flow_bridge.is_ready,
@@ -196,7 +239,9 @@ class AppService:
             f"{self._settings.startup_timeout_seconds:.0f}s. Check Docker container logs and retry."
         )
 
-    def _down(self, *, progress: ProgressCallback | None, volumes: bool) -> AppDownResult:
+    def _down(
+        self, *, progress: ProgressCallback | None, volumes: bool
+    ) -> AppDownResult:
         if not self._store.compose_file_exists():
             raise ReleaseError(
                 "No cached Docker Compose file was found. Run `unoplat service run` first to "
@@ -205,7 +250,9 @@ class AppService:
 
         self._docker.ensure_available()
         if volumes:
-            emit_progress(progress, "Stopping Docker Compose stack and deleting volumes...")
+            emit_progress(
+                progress, "Stopping Docker Compose stack and deleting volumes..."
+            )
         else:
             emit_progress(progress, "Stopping Docker Compose stack...")
         self._docker.stop_stack(volumes=volumes)
@@ -217,7 +264,9 @@ class AppService:
             stopped_stack=True,
         )
 
-    def _resolve_latest_app_release_or_warn(self, warnings: list[str]) -> AppRelease | None:
+    def _resolve_latest_app_release_or_warn(
+        self, warnings: list[str]
+    ) -> AppRelease | None:
         try:
             return self._releases.resolve_latest_app_release()
         except CliError as exc:

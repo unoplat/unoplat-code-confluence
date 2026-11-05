@@ -8,23 +8,21 @@ The `ucc` CLI starts and manages the local Unoplat Code Confluence app, adds rep
 ucc service run
 ```
 
-Starts the pinned local app release, installing it on first run.
+Starts the pinned local app release, installing it on first run. Upgrading the `ucc` package does **not** upgrade the installed app. Later runs keep using the cached release snapshot and report newer app releases with the command to apply them.
 
-A one-time job creates the database schema before the services start, and it needs your explicit confirmation. On a new, empty install only, run:
+In app releases that include `application-migrator`, that one-time Alembic job runs before the backends start. The current production Compose defaults both `ALEMBIC_ATTEST_DRAINED` and `ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS` to `true`; the CLI inherits your shell and does not set them itself. A new, empty database can bootstrap with plain `ucc service run`.
 
-```bash
-ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true ucc service run
-```
-
-Without both values, the job stops and the services do not start, with no change to your data. Later runs need no confirmation. `ucc` never sets these for you.
+**Before starting against existing data**, withhold both attestations by setting them to `false` until you have completed the [migration guide's](../unoplat-code-confluence-query-engine/alembic/README.md) backup, schema audit, workflow drain and old-writer retirement. The defaults do not perform those operations, and the contract migration irreversibly discards legacy generated content and raw agent event text. The CLI never audits or stamps an existing database automatically.
 
 ```bash
 ucc service update
 ```
 
-Updates the pinned app release to the latest available release.
+Downloads the latest app release's manifest and full Compose snapshot **before** pulling images and applying the stack. This includes new services such as `application-migrator` and their startup dependencies, not just image tags for existing containers. Explicit updates also re-download the pinned assets when no newer version is available, repairing a stale or missing cache without downgrading.
 
-If a release changes the database schema, or your install predates versioned migrations, the services stay stopped until the database is migrated. Do not use these confirmations to get past this on an install with data, because `ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true` permanently discards old generated content and raw agent event text: follow the [migration guide](../unoplat-code-confluence-query-engine/alembic/README.md).
+The migrator must be included in a **published app release's Compose asset**. A CLI package release or changes to Compose on `dev`/`main` alone do not deliver it. Publish a new app release with the migration-ready backend and matching migrator images; do not patch an old release with incompatible images. If the latest app release predates the migrator, `service update` cannot add it.
+
+Existing unversioned databases must follow the audited adoption procedure in the [migration guide](../unoplat-code-confluence-query-engine/alembic/README.md). Merely pulling the migrator image does not make an existing schema safe to migrate.
 
 ```bash
 ucc service stop
@@ -85,6 +83,8 @@ ucc setup status
 ```
 
 This verifies the repository-provider token through Flow Bridge's `/user-details` endpoint and model-provider configuration through Query Engine's `/v1/model-config` endpoint. The output includes whether the model configuration has a stored credential.
+
+`ucc service status` performs the same checks. By default, status auto-starts the **pinned** app and waits for readiness; it is not an app upgrade. Set `UNOPLAT_CODE_CONFLUENCE_AUTO_START=false` to check an already-running deployment without pulling or starting Docker containers. For older Query Engine releases without `/ready`, readiness falls back to the read-only, database-backed `/v1/flags` endpoint only on HTTP 404. A real unhealthy response is not bypassed.
 
 ```bash
 ucc setup token-repo-provider
