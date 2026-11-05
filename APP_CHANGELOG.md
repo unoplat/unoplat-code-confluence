@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.48.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.47.0...unoplat-code-confluence-v0.48.0) (2026-11-05)
+
+
+### Features
+
+* **artifacts:** add split viewer with SVG pan and zoom ([8858eea](https://github.com/unoplat/unoplat-code-confluence/commit/8858eeaff03aa6b1f040b2a66d5537e039284afb))
+* **artifacts:** add split viewer with SVG pan and zoom ([8448c40](https://github.com/unoplat/unoplat-code-confluence/commit/8448c40e144966b39622ce8e7fb469bb582a4a77))
+* **artifacts:** persist immutable Git-backed run artifacts ([096ef8b](https://github.com/unoplat/unoplat-code-confluence/commit/096ef8be8788b64c3ffed35a81e3710c79c37770))
+* **artifacts:** persist immutable Git-backed run artifacts ([7268215](https://github.com/unoplat/unoplat-code-confluence/commit/7268215d00e6e548012871250224682d60e8c826))
+* **artifacts:** view and download files from saved run commits ([644f7f7](https://github.com/unoplat/unoplat-code-confluence/commit/644f7f7170c029a61009b6a132c991b9f27c9c13))
+* **artifacts:** view and download files from saved run commits ([d99e819](https://github.com/unoplat/unoplat-code-confluence/commit/d99e81958f1d696876372b348cc03b6f66c44f26))
+
+
+### Bug Fixes
+
+* **artifacts:** serve saved commit files from local Git ([71d0115](https://github.com/unoplat/unoplat-code-confluence/commit/71d0115bea747080c36539bebf60c7e4ca7839dd))
+* **ci:** refresh package uv lockfiles before python lock checks run ([82ff724](https://github.com/unoplat/unoplat-code-confluence/commit/82ff72434e0671c3e1caf4f6ad31e86704674fa9))
+* **ui:** match resizable handle orientation to react-resizable-panels v4 ([8ab6df0](https://github.com/unoplat/unoplat-code-confluence/commit/8ab6df0ee108cf5cb3fcf9f940aec32acae28e35))
+* **ui:** match resizable handle orientation to react-resizable-panels v4 ([babf164](https://github.com/unoplat/unoplat-code-confluence/commit/babf1645199a088a1da7c127088deebab16e4e11))
+* **ui:** resolve TanStack Query lint findings and sticky status errors ([2b5d2de](https://github.com/unoplat/unoplat-code-confluence/commit/2b5d2de22d4ad4ea7eeb63ed41282f587039701e))
+* **ui:** resolve TanStack Query lint findings and sticky status errors ([3960eb4](https://github.com/unoplat/unoplat-code-confluence/commit/3960eb4e766503ca0f18dbbd8f92e1986a263536))
+* **workflows:** restore full error reports with stack traces ([7227030](https://github.com/unoplat/unoplat-code-confluence/commit/722703047ecb10007349089810007b73f63bbdeb))
+* **workflows:** restore full error reports with stack traces ([dfacdaa](https://github.com/unoplat/unoplat-code-confluence/commit/dfacdaa16285dd31bdb30c9bb540dcfd4c4d78d9))
+
 ## [0.47.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-v0.46.0...unoplat-code-confluence-v0.47.0) (2026-08-27)
 
 
