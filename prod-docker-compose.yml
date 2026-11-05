@@ -1,13 +1,3 @@
-# Release inputs: published tags before this schema release do not contain its
-# Alembic files or readiness checks. Build all three images from one commit, then
-# supply their tags here. A release commit must replace these variables with
-# literal versions (promote_app_release.yaml rejects unresolved tags). Do not point
-# them at older tags.
-x-query-engine-image: &query-engine-image ghcr.io/unoplat/unoplat-code-confluence-query-engine:${QUERY_ENGINE_RELEASE_TAG:?Set QUERY_ENGINE_RELEASE_TAG to a release built with Alembic packaging}
-# The lightweight migrator image is published with every query-engine release under
-# the same tag, so the job always applies the revisions that release expects.
-x-migrator-image: &migrator-image ghcr.io/unoplat/unoplat-code-confluence-query-engine-migrator:${QUERY_ENGINE_RELEASE_TAG:?Set QUERY_ENGINE_RELEASE_TAG to a release built with Alembic packaging}
-
 services:
   postgresql:
     image: docker.io/library/postgres:17.2
@@ -103,7 +93,7 @@ services:
   # before startup; contract permanently discards legacy generated/event/error text.
   # Set either ALEMBIC_ATTEST_* variable to false to withhold that attestation.
   application-migrator:
-    image: *migrator-image
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine-migrator:0.50.0
     command:
       - alembic
       - -x
@@ -121,7 +111,7 @@ services:
       - temporal-network
     restart: "no"
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:${FLOW_BRIDGE_RELEASE_TAG:?Set FLOW_BRIDGE_RELEASE_TAG to a release built with Alembic readiness}
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.88.0
     environment:
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
@@ -150,7 +140,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: *query-engine-image
+    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.50.0
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
@@ -181,7 +171,7 @@ services:
         condition: service_completed_successfully
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:${FRONTEND_RELEASE_TAG:?Set FRONTEND_RELEASE_TAG to a release using the metadata and artifact APIs}
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.61.0
     depends_on:
       - code-confluence-flow-bridge
     ports:
