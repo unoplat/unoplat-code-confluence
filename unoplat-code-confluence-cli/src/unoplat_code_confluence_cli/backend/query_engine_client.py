@@ -17,6 +17,12 @@ class QueryEngineClient:
         self._http = http
 
     def is_ready(self) -> bool:
+        """Probe readiness, supporting pinned releases without a `/ready` route.
+
+        `/v1/flags` is a read-only, database-backed endpoint available on older
+        releases even before a model is configured. Only a missing readiness
+        route permits fallback; never mask an explicit unhealthy response.
+        """
         try:
             response = self._http.get(
                 base_url=self._settings.query_engine_base_url,
@@ -25,9 +31,20 @@ class QueryEngineClient:
                 action="check Query Engine readiness",
                 allow_statuses=set(range(100, 600)),
             )
+            if response.status_code == 200:
+                return True
+            if response.status_code != 404:
+                return False
+            fallback_response = self._http.get(
+                base_url=self._settings.query_engine_base_url,
+                path="/v1/flags",
+                timeout=self._settings.request_timeout_seconds,
+                action="check Query Engine readiness on older releases",
+                allow_statuses=set(range(100, 600)),
+            )
         except NetworkError:
             return False
-        return response.status_code == 200
+        return fallback_response.status_code == 200
 
     def check_model_provider_config(
         self,
