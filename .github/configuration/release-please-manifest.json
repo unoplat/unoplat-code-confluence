@@ -1,9 +1,9 @@
 {
-  "unoplat-code-confluence-commons": "0.49.1",
-  "unoplat-code-confluence-docs": "0.48.0",
-  "unoplat-code-confluence-query-engine": "0.49.1",
-  "unoplat-code-confluence-cli": "0.6.0",
+  "unoplat-code-confluence-commons": "0.50.0",
+  "unoplat-code-confluence-docs": "0.48.1",
+  "unoplat-code-confluence-query-engine": "0.50.0",
+  "unoplat-code-confluence-cli": "0.6.1",
   ".": "0.9.0",
-  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.87.0",
-  "unoplat-code-confluence-frontend": "1.60.0"
+  "unoplat-code-confluence-ingestion/code-confluence-flow-bridge": "0.88.0",
+  "unoplat-code-confluence-frontend": "1.61.0"
 }

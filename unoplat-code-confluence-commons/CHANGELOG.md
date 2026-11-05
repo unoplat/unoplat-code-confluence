@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.50.0](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.49.1...unoplat-code-confluence-commons-v0.50.0) (2026-11-05)
+
+
+### Features
+
+* **artifacts:** persist immutable Git-backed run artifacts ([096ef8b](https://github.com/unoplat/unoplat-code-confluence/commit/096ef8be8788b64c3ffed35a81e3710c79c37770))
+
+
+### Bug Fixes
+
+* **workflows:** restore full error reports with stack traces ([7227030](https://github.com/unoplat/unoplat-code-confluence/commit/722703047ecb10007349089810007b73f63bbdeb))
+
+
+### Code Refactoring
+
+* **agents:** drop agent event tool payload columns ([be897e8](https://github.com/unoplat/unoplat-code-confluence/commit/be897e835694c90bf100156a569d9ffcdd786893))
+* **agents:** drop agent event tool payload columns ([dd97f9e](https://github.com/unoplat/unoplat-code-confluence/commit/dd97f9e4da77c24195b58f76321ff8109da11a43))
+* **commons:** remove agent event tool payload columns ([8c37d18](https://github.com/unoplat/unoplat-code-confluence/commit/8c37d18e7b8fac0cbf7d021508b070a497908a86))
+
 ## [0.49.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-commons-v0.49.0...unoplat-code-confluence-commons-v0.49.1) (2026-11-04)
 
 
