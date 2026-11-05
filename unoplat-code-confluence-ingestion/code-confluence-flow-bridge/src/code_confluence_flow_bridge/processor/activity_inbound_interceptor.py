@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, cast, override
 
 from temporalio import activity
 from temporalio.activity import Info
@@ -29,6 +29,7 @@ from code_confluence_flow_bridge.processor.db.postgres.parent_workflow_db_activi
 class ActivityStatusInterceptor(Interceptor):
     """Worker interceptor to update activity status (RUNNING/RETRYING) in the DB."""
 
+    @override
     def intercept_activity(
         self, next: ActivityInboundInterceptor
     ) -> ActivityInboundInterceptor:
@@ -43,6 +44,7 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
         self.child_db_activity = ChildWorkflowDbActivity()
         super().__init__(next)
 
+    @override
     async def execute_activity(self, input: ExecuteActivityInput) -> Any:
         log = seed_and_bind_logger_from_trace_id()
         log.debug("Inside Activity Status Inbound Interceptor")
@@ -65,10 +67,10 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
             return await self.next.execute_activity(input)
 
         # Initialize variables
-        trace_id: str
-        repository_name: str
-        repository_owner_name: str
-        parent_workflow_run_id: str
+        trace_id = ""
+        repository_name = ""
+        repository_owner_name = ""
+        parent_workflow_run_id = ""
 
         # Extract information from headers
         try:
@@ -197,7 +199,9 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                             workflow_id=workflow_id,
                             workflow_run_id=workflow_run_id,
                             trace_id=safe_trace_id,
-                            status=status_to_mark.value,
+                            # An activity failure is not a terminal parent outcome.
+                            # Keep the reservation through retries and sibling work.
+                            status=JobStatus.RETRYING.value,
                             repository_metadata=[],
                             error_report=error_report,
                         )
@@ -238,7 +242,7 @@ class ActivityStatusInboundInterceptor(ActivityInboundInterceptor):
                             str(parse_error),
                         )
 
-                    if target_codebase_folder:
+                    if target_codebase_folder and workflow_id and workflow_run_id:
                         try:
                             # Create child workflow envelope for this codebase with RETRYING status
                             child_env = CodebaseWorkflowDbActivityEnvelope(

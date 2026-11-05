@@ -1,5 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { getModelProviders } from "@/lib/api";
+
+const modelProvidersQueryOptions = queryOptions({
+  queryKey: ["model-providers"],
+  queryFn: getModelProviders,
+  staleTime: 5 * 60 * 1000, // 5 minutes - providers don't change often
+  gcTime: 10 * 60 * 1000, // 10 minutes garbage collection time
+  retry: 3,
+  retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+});
 
 /**
  * TanStack Query hook for fetching model providers from the query engine
@@ -8,14 +17,7 @@ import { getModelProviders } from "@/lib/api";
  * @returns Query result with provider definitions array and loading/error states
  */
 export const useModelProviders = () => {
-  return useQuery({
-    queryKey: ["model-providers"],
-    queryFn: getModelProviders,
-    staleTime: 5 * 60 * 1000, // 5 minutes - providers don't change often
-    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection time
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
+  return useQuery(modelProvidersQueryOptions);
 };
 
 /**
@@ -26,13 +28,11 @@ export const useModelProviders = () => {
  * @returns The provider definition or undefined if not found
  */
 export const useModelProvider = (providerKey: string | undefined) => {
-  const { data, ...rest } = useModelProviders();
-
-  return {
-    ...rest,
-    data:
-      providerKey && data
-        ? data.find((provider) => provider.provider_key === providerKey)
+  return useQuery({
+    ...modelProvidersQueryOptions,
+    select: (providers) =>
+      providerKey
+        ? providers.find((provider) => provider.provider_key === providerKey)
         : undefined,
-  };
+  });
 };

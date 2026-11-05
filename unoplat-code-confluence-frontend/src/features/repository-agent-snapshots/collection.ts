@@ -70,6 +70,35 @@ function resolveElectricShapeUrl(): string {
 
 const electricShapeUrl = resolveElectricShapeUrl();
 const collectionGcTime = 1000 * 60 * 2;
+// Bump when projected columns change, so no collection keeps the older row shape.
+const metadataShapeVersion = "v2";
+// Explicit allowlists: a new or legacy column never syncs unless it is named here.
+// Electric requires every primary key column to be listed.
+const snapshotShapeColumns: Array<keyof RepositoryAgentSnapshotRow> = [
+  "repository_name",
+  "repository_owner_name",
+  "repository_workflow_run_id",
+  "artifact_commit_sha",
+  "artifact_publication_error",
+  "repository_activity_progress",
+  "statistics",
+  "overall_progress",
+  "latest_event_at",
+  "created_at",
+  "modified_at",
+];
+const eventShapeColumns: Array<keyof RepositoryAgentEvent> = [
+  "repository_name",
+  "repository_owner_name",
+  "repository_workflow_run_id",
+  "codebase_name",
+  "event_id",
+  "event",
+  "phase",
+  "tool_name",
+  "tool_call_id",
+  "created_at",
+];
 const electricNumericParser = {
   numeric: (value: string): number => Number(value),
 };
@@ -96,7 +125,7 @@ function createSnapshotCollection({
 }: RepositoryAgentSnapshotScope) {
   return createCollection(
     electricCollectionOptions({
-      id: `repository-agent-snapshots-${owner}-${repository}-${runId}`,
+      id: `repository-agent-snapshots-${metadataShapeVersion}-${owner}-${repository}-${runId}`,
       schema: repositoryAgentSnapshotRowSchema,
       getKey: (row: RepositoryAgentSnapshotRow) =>
         `${row.repository_owner_name}/${row.repository_name}/${row.repository_workflow_run_id}`,
@@ -107,6 +136,7 @@ function createSnapshotCollection({
         url: electricShapeUrl,
         params: {
           table: "repository_agent_md_snapshot",
+          columns: snapshotShapeColumns,
           where:
             "repository_owner_name = $1 AND repository_name = $2 AND repository_workflow_run_id = $3",
           params: [owner, repository, runId],
@@ -157,7 +187,7 @@ function createRepositoryAgentEventCollection({
 }: RepositoryAgentCodebaseScope) {
   return createCollection(
     electricCollectionOptions({
-      id: `repository-agent-events-${owner}-${repository}-${runId}-${codebaseName}`,
+      id: `repository-agent-events-${metadataShapeVersion}-${owner}-${repository}-${runId}-${codebaseName}`,
       schema: repositoryAgentEventSchema,
       getKey: (row: RepositoryAgentEvent) =>
         `${row.repository_owner_name}/${row.repository_name}/${row.repository_workflow_run_id}/${row.codebase_name}/${row.event_id}`,
@@ -170,6 +200,7 @@ function createRepositoryAgentEventCollection({
         url: electricShapeUrl,
         params: {
           table: "repository_agent_event",
+          columns: eventShapeColumns,
           where:
             "repository_owner_name = $1 AND repository_name = $2 AND repository_workflow_run_id = $3 AND codebase_name = $4",
           params: [owner, repository, runId, codebaseName],

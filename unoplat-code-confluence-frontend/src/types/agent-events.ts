@@ -20,23 +20,6 @@ export interface AgentEventsAccordionProps {
 }
 
 /**
- * Tool detail item payload used by Flow 2 detail modal.
- */
-export interface ToolDetailItem {
-  callEvent?: RepositoryAgentEvent;
-  resultEvent?: RepositoryAgentEvent;
-}
-
-/**
- * Props for the Flow 2 ToolDetailModal component.
- */
-export interface ToolDetailModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  item: ToolDetailItem | null;
-}
-
-/**
  * Display model for event timeline rows.
  * Tool calls/results can be rendered as a single paired item.
  */
@@ -62,7 +45,6 @@ export type AgentEventDisplayItem =
  */
 export interface AgentEventItemProps {
   item: AgentEventDisplayItem;
-  onViewDetails?: (item: ToolDetailItem) => void;
 }
 
 /**

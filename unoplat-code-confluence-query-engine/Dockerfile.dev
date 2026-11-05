@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Development image for Tilt hot-reload workflow.
+# Development image for Tilt hot-reload workflow. Build from the repository root.
 #
 # - Dependencies are baked into the image first for cache reuse.
 # - Runtime source and MCP config are also copied so the first `tilt up`
@@ -23,6 +23,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
     PATH="/opt/poetry/bin:/app/.venv/bin:$PATH" \
     PYTHONPATH=/app/src \
     MCP_SERVERS_CONFIG_PATH=/app/mcp-servers.json \
@@ -84,15 +85,23 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 # at /usr/local/bin/bun and /usr/local/bin/bunx.
 RUN curl -fsSL https://bun.sh/install | bash
 
-WORKDIR /app
+# Keep the repository layout for uv's relative commons path. Tilt syncs commons
+# source to this editable install. Migrations run from Dockerfile.migrator instead.
+WORKDIR /workspace/unoplat-code-confluence-query-engine
 
 # Install the dependency closure first so source edits do not invalidate it.
-COPY pyproject.toml uv.lock README.md ./
+COPY unoplat-code-confluence-query-engine/pyproject.toml unoplat-code-confluence-query-engine/uv.lock unoplat-code-confluence-query-engine/README.md ./
+COPY unoplat-code-confluence-commons/pyproject.toml unoplat-code-confluence-commons/README.md /workspace/unoplat-code-confluence-commons/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --no-install-package unoplat-code-confluence-commons
+
+COPY unoplat-code-confluence-commons/src /workspace/unoplat-code-confluence-commons/src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project
 
 # Copy runtime source/config so the container is bootable on the initial build.
-COPY . /app
+WORKDIR /app
+COPY unoplat-code-confluence-query-engine/ /app/
 
 RUN mkdir -p /app/logs /opt/unoplat/repositories
 
@@ -100,4 +109,4 @@ EXPOSE 8000
 
 # Watch src/unoplat_code_confluence_query_engine only (not .venv).
 WORKDIR /app/src/unoplat_code_confluence_query_engine
-CMD ["uv", "run", "fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]

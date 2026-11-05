@@ -11,7 +11,6 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
         ENGINEERING_WORKFLOW_FULL_OUTPUT,
         ENGINEERING_WORKFLOW_NO_CHANGE,
-        EngineeringWorkflow,
     )
     from unoplat_code_confluence_query_engine.models.repository.repository_ruleset_metadata import (
         CodebaseMetadata,
@@ -48,9 +47,6 @@ with workflow.unsafe.imports_passed_through():
         enrich_agent_error_with_model_details,
         raise_if_temporal_cancellation,
     )
-    from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.agent_snapshot_patch_runner import (
-        persist_codebase_snapshot_patch,
-    )
 
 
 async def run_development_workflow_agent(
@@ -76,28 +72,21 @@ async def run_development_workflow_agent(
 
     engineering_workflow_deps: AgentDependencies | None = None
     try:
-        previous_engineering_workflow = await workflow.execute_activity(
-            EngineeringWorkflowFetchActivity.fetch_previous_engineering_workflow,
-            args=[
-                repository_qualified_name,
-                repository_workflow_run_id,
-                codebase_metadata.codebase_name,
-            ],
+        section_inspection = await workflow.execute_activity(
+            EngineeringWorkflowFetchActivity.inspect_engineering_workflow_section,
+            args=[codebase_metadata.codebase_path, None],
             start_to_close_timeout=timedelta(seconds=30),
             retry_policy=DB_ACTIVITY_RETRY_POLICY,
         )
-        if previous_engineering_workflow is not None:
-            previous_engineering_workflow = EngineeringWorkflow.model_validate(
-                previous_engineering_workflow
-            )
-        allow_no_change_output = previous_engineering_workflow is not None
+        engineering_section_sha256 = section_inspection.section_sha256
+        allow_no_change_output = engineering_section_sha256 is not None
         engineering_workflow_deps = AgentDependencies(
             repository_qualified_name=repository_qualified_name,
             codebase_metadata=codebase_metadata,
             repository_workflow_run_id=repository_workflow_run_id,
             codebase_workflow_run_id=codebase_workflow_run_id,
             agent_name="development_workflow_guide",
-            allow_no_change_output=allow_no_change_output,
+            engineering_section_sha256=engineering_section_sha256,
         )
         logger.info(
             "[workflow] Running development_workflow_guide for {}",
@@ -124,32 +113,21 @@ async def run_development_workflow_agent(
                 raise TypeError(
                     "development_workflow_guide returned full_output without commands"
                 )
-            engineering_workflow_output = EngineeringWorkflow(
-                commands=agent_output.commands
-            ).model_dump()
         elif agent_output.status == ENGINEERING_WORKFLOW_NO_CHANGE:
-            if previous_engineering_workflow is None:
+            if not allow_no_change_output:
                 raise TypeError(
-                    "development_workflow_guide returned no_change when previous "
-                    "structured engineering_workflow data was unavailable"
+                    "development_workflow_guide returned no_change without a valid "
+                    "existing Engineering Workflow section"
                 )
-            engineering_workflow_output = previous_engineering_workflow.model_dump()
             logger.info(
-                "[workflow] development_workflow_guide reported no change for {}; "
-                "carried forward previous engineering_workflow",
+                "[workflow] development_workflow_guide kept the existing "
+                "Engineering Workflow section for {}",
                 codebase_metadata.codebase_name,
             )
         else:
             raise TypeError(
                 "development_workflow_guide returned unsupported output status"
             )
-
-        await persist_codebase_snapshot_patch(
-            repository_qualified_name=repository_qualified_name,
-            repository_workflow_run_id=repository_workflow_run_id,
-            codebase_name=codebase_metadata.codebase_name,
-            codebase_patch={"engineering_workflow": engineering_workflow_output},
-        )
 
         await workflow.execute_activity(
             EngineeringWorkflowCompletionActivity.emit_engineering_workflow_completion,

@@ -6,13 +6,16 @@ for testing purposes, avoiding async event loop conflicts while maintaining
 proper transaction isolation.
 """
 
+import os
 from contextlib import contextmanager
+from pathlib import Path
+import subprocess
 
 from loguru import logger
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
-from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
+from unoplat_code_confluence_commons.schema_readiness import RELEASE_SCHEMA_REVISION
 
 
 def create_sync_engine(db_url: str):
@@ -94,25 +97,37 @@ def cleanup_postgresql_sync(session: Session) -> None:
 
 
 def create_test_tables(port: int) -> None:
-    """Create database tables for testing using SQLModel metadata."""
-    db_url = (
-        f"postgresql+psycopg2://postgres:postgres@localhost:{port}/code_confluence"
+    """Apply the Alembic release revision to this run's disposable database.
+
+    The explicit drain attestation is true only because the fixture owns this new,
+    empty database. It must never become a default for shared databases.
+    """
+    subprocess.run(
+        [
+            "uv",
+            "run",
+            "--locked",
+            "--group",
+            "migrations",
+            "alembic",
+            "-x",
+            "drained=true",
+            "-x",
+            "discard_legacy_artifacts=true",
+            "upgrade",
+            RELEASE_SCHEMA_REVISION,
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env={
+            **os.environ,
+            "ALEMBIC_DATABASE_URL": (
+                f"postgresql://postgres:postgres@localhost:{port}/code_confluence"
+            ),
+            "ALEMBIC_SCHEMA": "public",
+        },
+        check=True,
     )
-    engine = create_sync_engine(db_url)
-
-    try:
-        # Drop all existing tables to ensure fresh schema
-        SQLBase.metadata.drop_all(engine)
-        logger.debug("Dropped existing test database tables")
-
-        # Create all tables defined in SQLBase metadata
-        SQLBase.metadata.create_all(engine)
-        logger.debug("Created test database tables successfully")
-    except Exception as e:
-        logger.error("Failed to create test tables: {}", e)
-        raise
-    finally:
-        engine.dispose()
+    logger.debug("Migrated test database to {}", RELEASE_SCHEMA_REVISION)
 
 
 @contextmanager

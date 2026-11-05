@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from datetime import timedelta
+import hashlib
 from pathlib import Path
+import re
 
 from markdown_it import MarkdownIt
 from markdown_it.token import Token
 from pydantic_ai import ModelRetry, RunContext
+from temporalio import workflow as temporal_workflow
+from temporalio.common import RetryPolicy
 
 from unoplat_code_confluence_query_engine.models.output.engineering_workflow_output import (
     ENGINEERING_WORKFLOW_FULL_OUTPUT,
@@ -12,6 +17,7 @@ from unoplat_code_confluence_query_engine.models.output.engineering_workflow_out
     EngineeringWorkflow,
     EngineeringWorkflowAgentOutput,
     EngineeringWorkflowAgentResponse,
+    EngineeringWorkflowSectionInspection,
     EngineeringWorkflowStage,
 )
 from unoplat_code_confluence_query_engine.models.runtime.agent_dependencies import (
@@ -23,6 +29,10 @@ from unoplat_code_confluence_query_engine.services.agents_md.managed_block impor
 )
 from unoplat_code_confluence_query_engine.services.agents_md.validation.managed_block_validation import (
     validate_managed_block_markdown,
+)
+from unoplat_code_confluence_query_engine.services.repository.artifact_manifest import (
+    ArtifactValidationError,
+    read_working_artifact,
 )
 from unoplat_code_confluence_query_engine.services.repository.engineering_workflow_service import (
     is_valid_config_file,
@@ -39,9 +49,14 @@ CANONICAL_STAGE_HEADINGS: dict[EngineeringWorkflowStage, str] = {
     EngineeringWorkflowStage.LINT: "Lint",
     EngineeringWorkflowStage.TYPE_CHECK: "Type Check",
 }
+INSPECT_ENGINEERING_WORKFLOW_SECTION_ACTIVITY = "inspect-engineering-workflow-section"
+INSPECTION_TIMEOUT = timedelta(seconds=30)
+INSPECTION_RETRY_POLICY = RetryPolicy(maximum_attempts=3)
+# Matches how markdown-it counts lines, so heading token maps index these lines.
+MARKDOWN_LINE_PATTERN = re.compile(r"[^\r\n]*(?:\r\n?|\n)|[^\r\n]+")
 
 
-def validate_engineering_development_workflow_output(
+async def validate_engineering_development_workflow_output(
     ctx_or_output: RunContext[AgentDependencies] | EngineeringWorkflowAgentOutput,
     output: EngineeringWorkflowAgentOutput | None = None,
 ) -> EngineeringWorkflowAgentOutput:
@@ -67,16 +82,7 @@ def validate_engineering_development_workflow_output(
                 "Do not return commands for no-change output."
             )
         if ctx is not None:
-            markdown_text = _read_agents_md_for_validation(ctx)
-            validate_engineering_workflow_section_markdown(markdown_text)
-            if not ctx.deps.allow_no_change_output:
-                raise ModelRetry(
-                    f"status={ENGINEERING_WORKFLOW_NO_CHANGE} is not valid for this run because "
-                    "previous structured engineering_workflow data is unavailable. Do not "
-                    "rewrite an already-correct AGENTS.md section; return "
-                    f"status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with commands from verified "
-                    "repository evidence instead."
-                )
+            await _validate_no_change_section_is_untouched(ctx)
         return workflow
 
     if workflow.status != ENGINEERING_WORKFLOW_FULL_OUTPUT:
@@ -91,22 +97,105 @@ def validate_engineering_development_workflow_output(
     _validate_engineering_workflow_model(engineering_workflow)
 
     if ctx is not None:
-        markdown_text = _read_agents_md_for_validation(ctx)
-        validate_engineering_workflow_section_markdown(markdown_text, engineering_workflow)
+        inspection = await _inspect_section_for_validator(ctx, engineering_workflow)
+        if inspection.validation_error is not None:
+            raise ModelRetry(inspection.validation_error)
 
     return workflow
 
 
-def _read_agents_md_for_validation(ctx: RunContext[AgentDependencies]) -> str:
-    codebase_path = ctx.deps.codebase_metadata.codebase_path
-    agents_md_path = Path(codebase_path) / "AGENTS.md"
+def inspect_engineering_workflow_section(
+    codebase_path: str,
+    engineering_workflow: EngineeringWorkflow | None = None,
+) -> EngineeringWorkflowSectionInspection:
+    """Validate the owned section with a bounded read and digest its exact bytes.
+
+    Args:
+        codebase_path: Absolute path to the codebase root directory.
+        engineering_workflow: Commands that must appear in the section, when known.
+
+    Returns:
+        The section digest, or retry guidance when AGENTS.md is missing or unsafe or
+        its section is invalid, in which case the section must be regenerated.
+    """
     try:
-        return agents_md_path.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
+        markdown_text = _read_agents_md(codebase_path)
+    except ArtifactValidationError:
+        return EngineeringWorkflowSectionInspection(
+            validation_error=(
+                "AGENTS.md could not be read safely. It must be a regular UTF-8 file "
+                "within the managed artifact size limit at the supplied path."
+            )
+        )
+    if markdown_text is None:
+        return EngineeringWorkflowSectionInspection(
+            validation_error=(
+                "AGENTS.md was not found. The managed block bootstrap must run before "
+                "development_workflow_guide, and the agent must update ## Engineering Workflow."
+            )
+        )
+    try:
+        validate_engineering_workflow_section_markdown(
+            markdown_text, engineering_workflow
+        )
+        section_text = _extract_exact_owned_section(
+            markdown_text, ENGINEERING_WORKFLOW_SECTION
+        )
+    except ModelRetry as error:
+        return EngineeringWorkflowSectionInspection(validation_error=error.message)
+    return EngineeringWorkflowSectionInspection(
+        section_sha256=hashlib.sha256(section_text.encode("utf-8")).hexdigest()
+    )
+
+
+async def _inspect_section_for_validator(
+    ctx: RunContext[AgentDependencies],
+    engineering_workflow: EngineeringWorkflow | None,
+) -> EngineeringWorkflowSectionInspection:
+    """Inspect through a recorded activity so workflow replay never reads the file.
+
+    Pydantic AI runs output validators in workflow code, and they run again on
+    replay. Outside a workflow, the same inspection runs directly.
+    """
+    codebase_path = ctx.deps.codebase_metadata.codebase_path
+    if temporal_workflow.in_workflow():
+        return await temporal_workflow.execute_activity(
+            INSPECT_ENGINEERING_WORKFLOW_SECTION_ACTIVITY,
+            args=[codebase_path, engineering_workflow],
+            result_type=EngineeringWorkflowSectionInspection,
+            start_to_close_timeout=INSPECTION_TIMEOUT,
+            retry_policy=INSPECTION_RETRY_POLICY,
+        )
+    return inspect_engineering_workflow_section(codebase_path, engineering_workflow)
+
+
+async def _validate_no_change_section_is_untouched(
+    ctx: RunContext[AgentDependencies],
+) -> None:
+    """Allow no_change only for a valid section with bytes unchanged in this attempt."""
+    baseline_digest = ctx.deps.engineering_section_sha256
+    if baseline_digest is None:
         raise ModelRetry(
-            "AGENTS.md was not found. The managed block bootstrap must run before "
-            "development_workflow_guide, and the agent must update ## Engineering Workflow."
-        ) from exc
+            f"status={ENGINEERING_WORKFLOW_NO_CHANGE} is not valid for this run because "
+            "the existing ## Engineering Workflow section is missing or invalid. "
+            "Regenerate that section from verified repository evidence and return "
+            f"status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with the commands you wrote."
+        )
+
+    inspection = await _inspect_section_for_validator(ctx, None)
+    if inspection.section_sha256 != baseline_digest:
+        raise ModelRetry(
+            f"status={ENGINEERING_WORKFLOW_NO_CHANGE} is not valid because "
+            "## Engineering Workflow changed during this run or is no longer valid. "
+            "Keep the section valid and return "
+            f"status={ENGINEERING_WORKFLOW_FULL_OUTPUT} with the commands you wrote."
+        )
+
+
+def _read_agents_md(codebase_path: str) -> str | None:
+    """Read the exact codebase AGENTS.md through the bounded artifact reader."""
+    content = read_working_artifact(Path(codebase_path), "AGENTS.md", "markdown")
+    return None if content is None else content.decode("utf-8")
 
 
 def _validate_engineering_workflow_model(output: EngineeringWorkflow) -> None:
@@ -190,7 +279,15 @@ def validate_engineering_workflow_section_markdown(
 
 
 def _extract_owned_section(markdown_text: str, heading: str) -> str:
-    lines = markdown_text.splitlines()
+    section_text = _extract_exact_owned_section(markdown_text, heading).strip()
+    if section_text == heading:
+        raise ModelRetry(f"{heading} is empty. Write the engineering workflow section.")
+    return section_text
+
+
+def _extract_exact_owned_section(markdown_text: str, heading: str) -> str:
+    """Return every character from the heading line up to the next real H2 heading."""
+    lines = MARKDOWN_LINE_PATTERN.findall(markdown_text)
     begin_positions = [
         index for index, line in enumerate(lines) if line.strip() == MANAGED_BLOCK_BEGIN
     ]
@@ -209,11 +306,16 @@ def _extract_owned_section(markdown_text: str, heading: str) -> str:
             "AGENTS.md managed block begin marker must precede end marker."
         )
 
-    heading_positions = [
-        index
-        for index in range(begin_line + 1, end_line)
-        if lines[index].strip() == heading
+    tokens = MarkdownIt("commonmark", {"html": True}).parse(markdown_text)
+    h2_lines = [
+        token.map[0]
+        for token in tokens
+        if token.type == "heading_open"
+        and token.tag == "h2"
+        and token.map is not None
+        and begin_line < token.map[0] < end_line
     ]
+    heading_positions = [index for index in h2_lines if lines[index].strip() == heading]
     if len(heading_positions) != 1:
         raise ModelRetry(
             f"Expected exactly one {heading} section inside the managed block."
@@ -221,18 +323,10 @@ def _extract_owned_section(markdown_text: str, heading: str) -> str:
 
     heading_line = heading_positions[0]
     next_h2_line = next(
-        (
-            index
-            for index in range(heading_line + 1, end_line)
-            if lines[index].startswith("## ")
-        ),
+        (index for index in h2_lines if index > heading_line),
         end_line,
     )
-    section_lines = lines[heading_line:next_h2_line]
-    section_text = "\n".join(section_lines).strip()
-    if section_text == heading:
-        raise ModelRetry(f"{heading} is empty. Write the engineering workflow section.")
-    return section_text
+    return "".join(lines[heading_line:next_h2_line])
 
 
 def _collect_headings(tokens: list[Token], *, level: str) -> list[str]:

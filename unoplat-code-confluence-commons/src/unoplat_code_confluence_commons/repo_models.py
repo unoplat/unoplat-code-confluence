@@ -16,6 +16,7 @@ from sqlalchemy import (
     Numeric,
     String,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -123,6 +124,16 @@ class RepositoryWorkflowRun(SQLBase):
         CheckConstraint(
             "status IN ('SUBMITTED','RUNNING','FAILED','TIMED_OUT','COMPLETED','RETRYING','ERROR','CANCELLED')",
             name="status_check",
+        ),
+        Index(
+            "uq_repository_active_checkout_mutator",
+            "repository_owner_name",
+            "repository_name",
+            unique=True,
+            postgresql_where=text(
+                "status IN ('RUNNING', 'RETRYING') "
+                "AND operation IN ('INGESTION', 'AGENTS_GENERATION', 'AGENT_MD_UPDATE')"
+            ),
         ),
         ForeignKeyConstraint(
             ["repository_name", "repository_owner_name"],
@@ -481,6 +492,29 @@ class RepositoryAgentMdSnapshot(SQLBase):
 
     __tablename__ = "repository_agent_md_snapshot"
     __table_args__ = (
+        CheckConstraint(
+            "artifact_commit_sha IS NULL "
+            "OR artifact_commit_sha ~ '^[0-9a-f]{40}$'",
+            name="ck_artifact_commit_sha_format",
+        ),
+        CheckConstraint(
+            "artifact_manifest IS NULL OR jsonb_typeof(artifact_manifest) = 'array'",
+            name="ck_artifact_manifest_array",
+        ),
+        CheckConstraint(
+            "artifact_commit_sha IS NULL OR "
+            "(artifact_manifest IS NOT NULL AND artifact_manifest <> '[]'::jsonb)",
+            name="ck_artifact_sha_has_manifest",
+        ),
+        CheckConstraint(
+            "jsonb_typeof(repository_activity_progress) = 'object'",
+            name="ck_repository_activity_progress_object",
+        ),
+        CheckConstraint(
+            "artifact_publication_error IS NULL "
+            "OR jsonb_typeof(artifact_publication_error) = 'object'",
+            name="ck_artifact_publication_error_object",
+        ),
         ForeignKeyConstraint(
             ["repository_name", "repository_owner_name"],
             ["repository.repository_name", "repository.repository_owner_name"],
@@ -511,10 +545,30 @@ class RepositoryAgentMdSnapshot(SQLBase):
         primary_key=True,
         comment="The run ID of the repository workflow this snapshot belongs to",
     )
-    agent_md_output: Mapped[Dict[str, Any]] = mapped_column(
+    artifact_commit_sha: Mapped[Optional[str]] = mapped_column(
+        String(40),
+        nullable=True,
+        default=None,
+        comment="Full lowercase GitHub commit SHA; first-write-wins in the service",
+    )
+    artifact_manifest: Mapped[Optional[List[Dict[str, object]]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
+        comment="Content-free artifact inventory; immutable once prepared by the service",
+    )
+    repository_activity_progress: Mapped[Dict[str, object]] = mapped_column(
         JSONB,
         nullable=False,
-        comment="Complete final payload from agent execution containing per-codebase agent data",
+        default=dict,
+        server_default=text("'{}'::jsonb"),
+        comment="Repository-level activity progress without document content",
+    )
+    artifact_publication_error: Mapped[Optional[Dict[str, object]]] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
+        comment="Sanitized publication code, stage, message, and retryability metadata",
     )
     statistics: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSONB,

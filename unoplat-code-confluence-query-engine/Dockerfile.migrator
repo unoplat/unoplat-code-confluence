@@ -1,0 +1,72 @@
+# syntax=docker/dockerfile:1.7
+# Dedicated, lightweight image for the one-shot `application-migrator` job.
+# Build from the repository root so uv can resolve the sibling commons package:
+#   docker build -f unoplat-code-confluence-query-engine/Dockerfile.migrator .
+#
+# It contains Python, the locked `migrations` dependency group (Alembic, SQLAlchemy,
+# asyncpg and commons), the Alembic environment and revisions, and the two
+# query-engine modules env.py imports for ORM metadata. It deliberately has none of
+# the query engine's runtime toolchain (Chromium, Node, Bun, Poetry, D2, compilers)
+# or its API/agent dependencies, so it builds and starts independently of them.
+
+ARG PYTHON_IMAGE=python:3.13-slim
+
+########################################
+# ---------- builder stage ------------
+########################################
+FROM ${PYTHON_IMAGE} AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PROJECT_ENVIRONMENT=/opt/migrator/.venv
+
+COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /bin/uv
+
+# Keep the repository layout for uv's relative commons path. The non-editable
+# install copies commons into the environment, so the runtime needs no source tree.
+WORKDIR /workspace/unoplat-code-confluence-query-engine
+COPY unoplat-code-confluence-query-engine/pyproject.toml unoplat-code-confluence-query-engine/uv.lock ./
+COPY unoplat-code-confluence-commons/pyproject.toml unoplat-code-confluence-commons/README.md /workspace/unoplat-code-confluence-commons/
+COPY unoplat-code-confluence-commons/src /workspace/unoplat-code-confluence-commons/src
+
+# --only-group selects only the migration closure, never the query-engine runtime
+# dependencies or the project itself. --locked fails if uv.lock is stale.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --only-group migrations --no-editable
+
+########################################
+# ---------- runtime stage ------------
+########################################
+FROM ${PYTHON_IMAGE}
+
+ARG APP_USER=migrator
+ARG APP_UID=10001
+RUN useradd --uid ${APP_UID} --no-create-home --shell /usr/sbin/nologin ${APP_USER}
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/migrator/.venv/bin:$PATH"
+
+COPY --from=builder /opt/migrator/.venv /opt/migrator/.venv
+
+WORKDIR /opt/migrator
+COPY unoplat-code-confluence-query-engine/alembic.ini ./
+COPY unoplat-code-confluence-query-engine/alembic ./alembic
+# alembic.ini prepends ./src to sys.path. Only the metadata modules are shipped.
+COPY unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/__init__.py \
+     ./src/unoplat_code_confluence_query_engine/
+COPY unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/__init__.py \
+     ./src/unoplat_code_confluence_query_engine/db/
+COPY unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/__init__.py \
+     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/ai_model_config.py \
+     unoplat-code-confluence-query-engine/src/unoplat_code_confluence_query_engine/db/postgres/migration_metadata.py \
+     ./src/unoplat_code_confluence_query_engine/db/postgres/
+
+USER ${APP_USER}
+
+# Compose supplies the explicit revision and attestations. The default only lists
+# the revision heads shipped in this image and never connects to a database.
+CMD ["alembic", "heads"]

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from loguru import logger
 from temporalio import activity
 
@@ -24,16 +22,13 @@ class BusinessLogicPostProcessActivity:
         agent_output: str,
         codebase_path: str,
         programming_language: str,
-    ) -> dict[str, Any]:
+    ) -> None:
         """Enrich business logic description with data model files from PostgreSQL.
 
         Args:
             agent_output: Plain text description from business_domain_guide
             codebase_path: Path to the codebase for Postgres lookup
             programming_language: Programming language of the codebase
-
-        Returns:
-            BusinessLogicDomain as dict with description and data_models
         """
         logger.info(
             "[business_logic_post_process] Starting post-processing for codebase: {}",
@@ -52,5 +47,3 @@ class BusinessLogicPostProcessActivity:
             "[business_logic_post_process] Post-processing complete: {} data models found",
             len(result.data_models),
         )
-
-        return result.model_dump()

@@ -33,7 +33,7 @@ class AgentDependencies:
     repository_workflow_run_id: str
     codebase_workflow_run_id: str
     agent_name: str
-    allow_no_change_output: bool = True
+    engineering_section_sha256: str | None = None
 
     @cached_property
     def backend(self) -> BackendProtocol:

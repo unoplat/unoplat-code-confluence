@@ -14,6 +14,9 @@ with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
         UsageStatistics,
     )
+    from unoplat_code_confluence_query_engine.services.repository.artifact_paths import (
+        required_generated_artifact_paths,
+    )
     from unoplat_code_confluence_query_engine.services.temporal.statistics_helpers import (
         build_workflow_statistics,
     )
@@ -24,6 +27,7 @@ with workflow.unsafe.imports_passed_through():
         CodebaseAgentWorkflow,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.architecture_runner import (
+        architecture_agent_will_run,
         run_architecture_agent,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_codebase_children_runner import (
@@ -34,7 +38,8 @@ with workflow.unsafe.imports_passed_through():
         resolve_repository_git_ref,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_pr_publish_runner import (
-        publish_repository_agent_md_pr,
+        reconcile_repository_agent_md_pr,
+        save_repository_artifact_identity,
     )
     from unoplat_code_confluence_query_engine.services.temporal.workflows.runners.repository_snapshot_completion_runner import (
         persist_repository_snapshot_completion,
@@ -79,8 +84,9 @@ class RepositoryAgentWorkflow:
             child_handles=child_handles,
             codebase_statistics_map=codebase_statistics_map,
         )
+        temporal_agents = get_temporal_agents()
         architecture_error = await run_architecture_agent(
-            temporal_agents=get_temporal_agents(),
+            temporal_agents=temporal_agents,
             repository_qualified_name=repository_qualified_name,
             repository_workflow_run_id=repository_workflow_run_id,
             successful_evidence=successful_evidence,
@@ -112,13 +118,37 @@ class RepositoryAgentWorkflow:
                 non_retryable=True,
             )
 
-        pr_metadata = await publish_repository_agent_md_pr(
+        # Required: the run cannot succeed until this identity is durably saved.
+        artifact_identity = await save_repository_artifact_identity(
             repository_qualified_name=repository_qualified_name,
+            required_artifact_paths=required_generated_artifact_paths(
+                codebases=[
+                    (
+                        evidence.codebase_metadata.codebase_name,
+                        evidence.app_interfaces_generated,
+                    )
+                    for evidence in successful_evidence
+                ],
+                dependency_guide_enabled=temporal_agents.dependency_guide is not None,
+                business_domain_enabled=temporal_agents.business_domain_guide
+                is not None,
+                architecture_generated=architecture_agent_will_run(
+                    temporal_agents, successful_evidence
+                ),
+            ),
         )
-        if pr_metadata is not None:
-            workflow_statistics_payload["pr_publish"] = pr_metadata.model_dump(
-                mode="json"
+        workflow_statistics_payload["artifact_identity"] = (
+            artifact_identity.model_dump(mode="json")
+        )
+        if artifact_identity.status == "saved":
+            # Optional: a PR failure leaves the saved files available.
+            pr_metadata = await reconcile_repository_agent_md_pr(
+                repository_qualified_name=repository_qualified_name,
             )
+            if pr_metadata is not None:
+                workflow_statistics_payload["pr_publish"] = pr_metadata.model_dump(
+                    mode="json"
+                )
 
         logger.debug("[workflow] RepositoryAgentWorkflow.run END")
         return workflow_statistics_payload

@@ -7,8 +7,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from sqlalchemy import select
-from unoplat_code_confluence_commons.base_models.sql_base import SQLBase
 from unoplat_code_confluence_commons.flags import Flag
+from unoplat_code_confluence_commons.schema_readiness import (
+    SchemaNotReadyError,
+    verify_application_schema,
+)
 import uvicorn
 
 from unoplat_code_confluence_query_engine.api.v1.endpoints import (
@@ -157,13 +160,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize PostgreSQL connections
     await init_db_connections(app.state.settings)
 
-    # Create database tables if they don't exist
     if db.async_engine is None:
         raise RuntimeError("PostgreSQL engine not initialized")
 
-    async with db.async_engine.begin() as conn:
-        await conn.run_sync(SQLBase.metadata.create_all)
-        logger.info("Database tables created/verified")
+    # The migration job owns schema changes. Block requests and Temporal polling
+    # until this engine's connections observe the exact release revision.
+    try:
+        schema_revision = await verify_application_schema(db.async_engine)
+    except SchemaNotReadyError as exc:
+        logger.error("Application schema is not ready: {}", exc)
+        await dispose_db_connections()
+        raise
+    logger.info("Application schema verified at revision {}", schema_revision)
 
     # Register ORM events for hot-reload
     register_orm_events()

@@ -100,6 +100,30 @@ services:
     ports:
       - 8081:8080
 
+  # Singleton schema job. Both cutover attestations default to true.
+  # Existing databases: pause/drain workflows, verify a backup and retire old writers
+  # before startup; contract permanently discards legacy generated/event/error text.
+  # Set either ALEMBIC_ATTEST_* variable to false to withhold that attestation.
+  application-migrator:
+    # Built by Tilt from Dockerfile.migrator; independent of the query-engine dev image.
+    image: unoplat/code-confluence-query-engine-migrator-dev
+    command:
+      - alembic
+      - -x
+      - drained=${ALEMBIC_ATTEST_DRAINED:-true}
+      - -x
+      - discard_legacy_artifacts=${ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS:-true}
+      - upgrade
+      - ${ALEMBIC_TARGET_REVISION:-0003_git_artifacts_contract}
+    environment:
+      - ALEMBIC_DATABASE_URL=postgresql://postgres:postgres@postgresql:5432/code_confluence
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    networks:
+      - temporal-network
+    restart: "no"
+
   code-confluence-flow-bridge:
     # `image:` is matched by docker_build() in the Tiltfile.
     image: unoplat/code-confluence-flow-bridge-dev
@@ -123,6 +147,8 @@ services:
     depends_on:
       temporal:
         condition: service_healthy
+      application-migrator:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
     volumes:
@@ -164,6 +190,8 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
+      application-migrator:
+        condition: service_completed_successfully
 
   unoplat-code-confluence-frontend:
     image: unoplat/code-confluence-frontend-dev
@@ -181,9 +209,9 @@ services:
       - temporal-network
 
 networks:
+  # Project-scoped: a second Compose project cannot resolve this stack's services.
   temporal-network:
     driver: bridge
-    name: temporal-network
 
 volumes:
   postgresql_data:

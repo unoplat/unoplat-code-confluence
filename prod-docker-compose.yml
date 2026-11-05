@@ -1,3 +1,13 @@
+# Release inputs: published tags before this schema release do not contain its
+# Alembic files or readiness checks. Build all three images from one commit, then
+# supply their tags here. A release commit must replace these variables with
+# literal versions (promote_app_release.yaml rejects unresolved tags). Do not point
+# them at older tags.
+x-query-engine-image: &query-engine-image ghcr.io/unoplat/unoplat-code-confluence-query-engine:${QUERY_ENGINE_RELEASE_TAG:?Set QUERY_ENGINE_RELEASE_TAG to a release built with Alembic packaging}
+# The lightweight migrator image is published with every query-engine release under
+# the same tag, so the job always applies the revisions that release expects.
+x-migrator-image: &migrator-image ghcr.io/unoplat/unoplat-code-confluence-query-engine-migrator:${QUERY_ENGINE_RELEASE_TAG:?Set QUERY_ENGINE_RELEASE_TAG to a release built with Alembic packaging}
+
 services:
   postgresql:
     image: docker.io/library/postgres:17.2
@@ -88,8 +98,30 @@ services:
       - temporal-network
     ports:
       - 8081:8080
+  # Singleton schema job. Both cutover attestations default to true.
+  # Existing databases: pause/drain workflows, verify a backup and retire old writers
+  # before startup; contract permanently discards legacy generated/event/error text.
+  # Set either ALEMBIC_ATTEST_* variable to false to withhold that attestation.
+  application-migrator:
+    image: *migrator-image
+    command:
+      - alembic
+      - -x
+      - drained=${ALEMBIC_ATTEST_DRAINED:-true}
+      - -x
+      - discard_legacy_artifacts=${ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS:-true}
+      - upgrade
+      - ${ALEMBIC_TARGET_REVISION:-0003_git_artifacts_contract}
+    environment:
+      - ALEMBIC_DATABASE_URL=postgresql://postgres:postgres@postgresql:5432/code_confluence
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    networks:
+      - temporal-network
+    restart: "no"
   code-confluence-flow-bridge:
-    image: ghcr.io/unoplat/code-confluence-flow-bridge:0.87.0
+    image: ghcr.io/unoplat/code-confluence-flow-bridge:${FLOW_BRIDGE_RELEASE_TAG:?Set FLOW_BRIDGE_RELEASE_TAG to a release built with Alembic readiness}
     environment:
       - TEMPORAL_SERVER_ADDRESS=temporal:7233
       - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8001,http://localhost:5173,http://127.0.0.1:3000
@@ -102,9 +134,12 @@ services:
       - FRAMEWORK_DEFINITIONS_PATH=/app/framework-definitions
       - CODEBASE_PARSER_FILE_PROCESSING_CONCURRENCY=5
       - QUERY_ENGINE_BASE_URL=http://unoplat-code-confluence-query-engine:8000
+      - APPLICATION_SCHEMA_STAGED_REVISION=${APPLICATION_SCHEMA_STAGED_REVISION:-}
     depends_on:
       temporal:
         condition: service_healthy
+      application-migrator:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
     volumes:
@@ -115,7 +150,7 @@ services:
     stdin_open: true
     tty: true
   unoplat-code-confluence-query-engine:
-    image: ghcr.io/unoplat/unoplat-code-confluence-query-engine:0.49.1
+    image: *query-engine-image
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - DB_HOST=postgresql
@@ -128,6 +163,7 @@ services:
       - CODEX_OPENAI_CALLBACK_PORT=1455
       - CODEX_OPENAI_CALLBACK_HOSTS=0.0.0.0
       - CODEX_OPENAI_REDIRECT_URI=http://localhost:1455/auth/callback
+      - APPLICATION_SCHEMA_STAGED_REVISION=${APPLICATION_SCHEMA_STAGED_REVISION:-}
     ports:
       - "127.0.0.1:8001:8000"
       - "127.0.0.1:1455:1455"
@@ -141,9 +177,11 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
+      application-migrator:
+        condition: service_completed_successfully
 
   unoplat-code-confluence-frontend:
-    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:1.60.0
+    image: ghcr.io/unoplat/unoplat-code-confluence-frontend:${FRONTEND_RELEASE_TAG:?Set FRONTEND_RELEASE_TAG to a release using the metadata and artifact APIs}
     depends_on:
       - code-confluence-flow-bridge
     ports:
@@ -152,9 +190,9 @@ services:
       - temporal-network
 
 networks:
+  # Project-scoped: a second Compose project cannot resolve this stack's services.
   temporal-network:
     driver: bridge
-    name: temporal-network
 volumes:
   postgresql_data:
     driver: local

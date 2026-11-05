@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1.7
+# Build from the repository root so uv can resolve the sibling commons package:
+#   docker build -f unoplat-code-confluence-query-engine/Dockerfile .
 
 ########################################
 # ---------- node stage --------------
@@ -15,7 +17,7 @@ WORKDIR /bun-workspace
 
 # Copy any bun-related files if they exist (package.json, bun.lockb)
 # This stage can be extended later for Bun dependency management
-COPY package*.json bun.lockb* ./
+COPY unoplat-code-confluence-query-engine/package*.json unoplat-code-confluence-query-engine/bun.lockb* ./
 # Ensure node_modules directory exists even if no install happens
 RUN mkdir -p /bun-workspace/node_modules
 # Install dependencies if package.json exists
@@ -29,7 +31,8 @@ FROM python:3.13-slim AS builder
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Install build dependencies
 RUN apt-get update && \
@@ -40,19 +43,23 @@ RUN apt-get update && \
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.10.9 /uv /uvx /bin/
 
-WORKDIR /app
-COPY pyproject.toml uv.lock ./
-COPY README.md ./
+# Keep the repository layout for uv's relative commons path. Non-editable installs
+# leave no reference to it, so the runtime image ships only /app. Migrations run
+# from the separate, lightweight Dockerfile.migrator image.
+WORKDIR /workspace/unoplat-code-confluence-query-engine
+COPY unoplat-code-confluence-query-engine/pyproject.toml unoplat-code-confluence-query-engine/uv.lock unoplat-code-confluence-query-engine/README.md ./
+COPY unoplat-code-confluence-commons/pyproject.toml unoplat-code-confluence-commons/README.md /workspace/unoplat-code-confluence-commons/
 
 # Install dependency layer first so source changes do not invalidate it.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project --no-editable --no-dev
+    uv sync --locked --no-install-project --no-install-package unoplat-code-confluence-commons --no-editable --no-dev
 
-COPY src ./src
+COPY unoplat-code-confluence-commons/src /workspace/unoplat-code-confluence-commons/src
+COPY unoplat-code-confluence-query-engine/src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable --no-dev
 
-COPY . /app
+COPY unoplat-code-confluence-query-engine/ /app/
 
 ########################################
 # ---------- runtime stage ------------

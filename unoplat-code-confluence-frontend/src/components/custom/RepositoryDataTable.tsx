@@ -31,7 +31,7 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const addRepositoryMutation = useMutation({
+  const { mutate: submitAddRepository } = useMutation({
     mutationFn: (repo: GitHubRepoSummary) =>
       addRepository({
         repository_git_url: repo.git_url,
@@ -69,8 +69,8 @@ export function RepositoryDataTable({ providerKey }: RepositoryDataTableProps) {
   });
 
   const handleAddRepository = useCallback(
-    (repo: GitHubRepoSummary) => addRepositoryMutation.mutate(repo),
-    [addRepositoryMutation],
+    (repo: GitHubRepoSummary) => submitAddRepository(repo),
+    [submitAddRepository],
   );
 
   const columns = useMemo(

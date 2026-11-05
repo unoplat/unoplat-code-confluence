@@ -72,10 +72,10 @@ jobs:
           
           console.log("Processing paths:", pathsReleased);
           
-          const includeArray = pathsReleased.map((path) => {
+          const includeArray = pathsReleased.flatMap((path) => {
             if (!path.endsWith('code-confluence-flow-bridge') && !path.endsWith('unoplat-code-confluence-frontend') && !path.endsWith('unoplat-code-confluence-query-engine')) {
               console.log(`Skipping non-docker component: ${path}`);
-              return null;
+              return [];
             }
             
             const name = allOutputs[`${path}--name`];
@@ -84,15 +84,27 @@ jobs:
             const image_name = name.split(':')[0].trim();
             const version = tag_name.split('-v')[1];
             
+            // Both backends resolve the sibling commons package, so they build from the repository root.
+            const context = (path === flowBridgePath || path === queryEnginePath) ? '.' : path;
+            const dockerfile = `${path}/Dockerfile`;
+
             console.log(`Processing docker component: ${path} -> ${image_name}:${version}`);
-            return { path, image_name, version };
-          }).filter(item => item !== null);
+            const images = [{ path, image_name, version, context, dockerfile, tag_name }];
+            // The lightweight schema-migration image ships with every query-engine
+            // release under the same tag, built from the same commit.
+            if (path === queryEnginePath) {
+              const migrator_image_name = `${image_name}-migrator`;
+              console.log(`Processing docker component: ${path} -> ${migrator_image_name}:${version}`);
+              images.push({ path, image_name: migrator_image_name, version, context, dockerfile: `${path}/Dockerfile.migrator`, tag_name });
+            }
+            return images;
+          });
           
           const hasDockerImages = includeArray.length > 0;
           // Prevent empty matrix error by adding a sentinel if needed
           const matrixObj = hasDockerImages
             ? { include: includeArray }
-            : { include: [{ path: '__skip__', image_name: '__skip__', version: '0' }] };
+            : { include: [{ path: '__skip__', image_name: '__skip__', version: '0', context: '.', dockerfile: 'Dockerfile', tag_name: '' }] };
 
           console.log("Final Docker Matrix:", matrixObj.include);
           core.setOutput('matrix', JSON.stringify(matrixObj));
@@ -224,10 +236,12 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.dev-pr-merge.outputs.matrix) }}  # noqa: unknown-context
     steps:
+      # Backend images embed the sibling commons package, so build the released
+      # commit rather than whatever dev has moved to.
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: ${{ matrix.tag_name }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -246,7 +260,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.path }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |

@@ -37,15 +37,6 @@ def _seed_framework_data(
     frameworks, features, absolute_paths = loader.parse_json_data(framework_data)
 
     with get_sync_postgres_session(service_ports["postgresql"]) as session:
-        Framework.metadata.create_all(
-            bind=session.get_bind(),
-            tables=[
-                Framework.__table__,
-                FrameworkFeature.__table__,
-                FeatureAbsolutePath.__table__,
-            ],
-            checkfirst=True,
-        )
         session.execute(delete(FeatureAbsolutePath))
         session.execute(delete(FrameworkFeature))
         session.execute(delete(Framework))
