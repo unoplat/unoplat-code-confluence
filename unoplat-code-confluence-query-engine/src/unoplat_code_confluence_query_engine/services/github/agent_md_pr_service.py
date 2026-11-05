@@ -68,6 +68,8 @@ from unoplat_code_confluence_query_engine.services.github.repository_github_clie
     RepositoryCredentialsInvalidError,
     RepositoryCredentialsMissingError,
     create_repository_github_client,
+    git_web_base_url,
+    load_repository_credentials,
 )
 from unoplat_code_confluence_query_engine.services.repository.artifact_manifest import (
     ArtifactValidationError,
@@ -80,6 +82,13 @@ from unoplat_code_confluence_query_engine.services.repository.artifact_manifest 
 )
 from unoplat_code_confluence_query_engine.services.repository.artifact_paths import (
     validate_codebase_name,
+)
+from unoplat_code_confluence_query_engine.services.repository.local_git_artifacts import (
+    LocalGitError,
+    fetch_local_commit,
+    has_local_commit,
+    pin_local_commit,
+    resolve_repository_checkout_root,
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
     fetch_repository_metadata,
@@ -180,6 +189,12 @@ class AgentMdPrMissingArtifactError(AgentMdPrStaleArtifactError):
     """A stage that ran did not leave its required generated file."""
 
     code = "required_artifact_missing"
+
+
+class AgentMdPrLocalSyncError(AgentMdPrError):
+    """The saved commit is not yet in the local clone, so it cannot be viewed."""
+
+    code = "local_sync_failed"
 
 
 @dataclass
@@ -468,6 +483,39 @@ async def _github_client(owner: str, repository: str, provider: ProviderKey) -> 
         ) from error
 
 
+async def _sync_local_commit(
+    owner: str, repository: str, run_id: str, provider: ProviderKey, sha: str
+) -> None:
+    """Make the saved commit readable from the local clone and pin it there.
+
+    The artifact viewer reads only the local object store, so a saved SHA that is
+    not stored locally cannot be viewed. A commit already present is only pinned,
+    which keeps retries cheap and needs no provider call.
+    """
+    try:
+        root = await resolve_repository_checkout_root(owner, repository)
+        if not await _blocking_call(partial(has_local_commit, root, sha)):
+            token, api_host = await load_repository_credentials(provider)
+            remote_url = f"{git_web_base_url(api_host)}/{owner}/{repository}.git"
+            await _blocking_call(
+                partial(
+                    fetch_local_commit, root, sha, remote_url=remote_url, token=token
+                )
+            )
+        await _blocking_call(partial(pin_local_commit, root, sha, run_id))
+    except (
+        RepositoryCredentialsMissingError,
+        RepositoryCredentialsInvalidError,
+    ) as error:
+        raise AgentMdPrConfigurationError(
+            "Configure repository credentials before publishing artifacts"
+        ) from error
+    except LocalGitError as error:
+        raise AgentMdPrLocalSyncError(
+            "The artifact commit could not be stored in the local repository"
+        ) from error
+
+
 async def _checkout_root(owner: str, repository: str, names: tuple[str, ...]) -> Path:
     try:
         metadata = await fetch_repository_metadata(owner, repository)
@@ -636,6 +684,12 @@ async def _ensure_saved_identity(
         attempt.stage = "manifest"
         validate_required_artifacts(manifest, required_paths)
     if state.commit_sha is not None or not manifest.root:
+        if state.commit_sha is not None:
+            # A retry after an earlier local sync failure lands here.
+            attempt.stage = "local_sync"
+            await _sync_local_commit(
+                owner, repository, run_id, state.provider_key, state.commit_sha
+            )
         return _SavedIdentity(state, manifest, state.commit_sha)
     branch = publication_branch_name(run_id)
     attempt.stage = "credentials"
@@ -686,6 +740,11 @@ async def _ensure_saved_identity(
     # committed to PostgreSQL BEFORE any PR work is attempted.
     attempt.stage = "identity"
     await _persist_sha(owner, repository, run_id, manifest, publication.commit_sha)
+    # The SHA is saved first, so a failed fetch is retried without republishing.
+    attempt.stage = "local_sync"
+    await _sync_local_commit(
+        owner, repository, run_id, state.provider_key, publication.commit_sha
+    )
     return _SavedIdentity(state, manifest, publication.commit_sha)
 
 

@@ -26,18 +26,8 @@ class RepositoryCredentialsInvalidError(RepositoryCredentialsError):
     """The stored token cannot be decrypted, or its host configuration is invalid."""
 
 
-async def create_repository_github_client(
-    owner: str, repository: str, provider: ProviderKey
-) -> GhApi:
-    """Build a GitHub client using the credentials stored for a provider.
-
-    Args:
-        owner: Repository owner name.
-        repository: Repository name.
-        provider: Repository provider recorded on the repository row.
-
-    Returns:
-        A client bound to the repository. No request has been sent yet.
+async def load_repository_credentials(provider: ProviderKey) -> tuple[str, str]:
+    """Return the stored repository token and the provider's API host.
 
     Raises:
         RepositoryCredentialsMissingError: No token is stored for the provider.
@@ -58,4 +48,32 @@ async def create_repository_github_client(
         raise RepositoryCredentialsMissingError(
             "Repository credentials are not configured"
         )
+    return pat, host
+
+
+def git_web_base_url(api_host: str) -> str:
+    """Map a GitHub API host to the host that serves Git over HTTPS."""
+    if api_host == "https://api.github.com":
+        return "https://github.com"
+    return api_host.removesuffix("/api/v3")
+
+
+async def create_repository_github_client(
+    owner: str, repository: str, provider: ProviderKey
+) -> GhApi:
+    """Build a GitHub client using the credentials stored for a provider.
+
+    Args:
+        owner: Repository owner name.
+        repository: Repository name.
+        provider: Repository provider recorded on the repository row.
+
+    Returns:
+        A client bound to the repository. No request has been sent yet.
+
+    Raises:
+        RepositoryCredentialsMissingError: No token is stored for the provider.
+        RepositoryCredentialsInvalidError: The stored credential is unusable.
+    """
+    pat, host = await load_repository_credentials(provider)
     return GhApi(owner=owner, repo=repository, token=pat, gh_host=host)

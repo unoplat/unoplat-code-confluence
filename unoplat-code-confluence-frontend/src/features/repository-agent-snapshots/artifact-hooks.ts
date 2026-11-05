@@ -18,7 +18,7 @@ import {
 
 // Stored Git identity comes only from the server, so every refresh reads again.
 const artifactMetadataStaleTime = 0;
-// Each file read makes several provider calls, so limit reads in flight.
+// Limit concurrent reads while assembling the Markdown bundle.
 const markdownBundleReadBatchSize = 4;
 
 export type RepositoryArtifactMetadataState =
@@ -171,6 +171,9 @@ export function useRepositoryArtifactFile({
         signal,
       );
     },
+    // File content at a saved SHA cannot change. Keep manual invalidation and
+    // the default five-minute inactive-cache garbage collection available.
+    staleTime: Infinity,
     enabled: isEnabled,
     retry: false,
   });

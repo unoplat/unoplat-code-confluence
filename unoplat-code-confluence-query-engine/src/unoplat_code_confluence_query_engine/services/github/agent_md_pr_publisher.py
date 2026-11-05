@@ -190,23 +190,6 @@ def _commit_tree_sha(api: GhApi, owner: str, repository: str, sha: str) -> str:
     return validate_commit_sha(_required_str(_field(commit, "tree"), "sha"))
 
 
-def read_remote_artifact(
-    api: GhApi,
-    *,
-    owner_name: str,
-    repo_name: str,
-    commit_sha: str,
-    entry: ArtifactManifestEntry,
-) -> bytes | None:
-    """Read a regular blob at an EXACT SHA, without recursive-tree truncation.
-
-    A missing path or nonregular tree entry returns None. Provider failures are
-    raised, not interpreted as absence. Bytes must satisfy the typed descriptor.
-    """
-    tree_sha = _commit_tree_sha(api, owner_name, repo_name, commit_sha)
-    return _read_remote_tree_artifact(api, owner_name, repo_name, tree_sha, entry, {})
-
-
 def _read_remote_tree_artifact(
     api: GhApi,
     owner: str,

@@ -1,8 +1,9 @@
 """Read-only artifact metadata and exact-commit single-file reads.
 
 Availability is derived once here, so the snapshot and file endpoints cannot
-disagree. Bytes come only from the provider at the run's saved SHA, never from a
-checkout, a branch, or a legacy column.
+disagree. Bytes come only from the run's saved SHA in the local clone's object
+store, never from its working tree, a branch, the provider, or a legacy column.
+Publication fetches that commit into the clone before the run is viewable.
 """
 
 from __future__ import annotations
@@ -10,18 +11,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
-from http.client import HTTPException as HttpProtocolError
 
-from ghapi.core import GhApi
 from loguru import logger
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from unoplat_code_confluence_commons.credential_enums import ProviderKey
 from unoplat_code_confluence_commons.pr_metadata_model import PrMetadata
 from unoplat_code_confluence_commons.repo_models import (
-    Repository,
     RepositoryAgentCodebaseProgress,
     RepositoryAgentMdSnapshot,
     RepositoryWorkflowRun,
@@ -41,18 +38,6 @@ from unoplat_code_confluence_query_engine.models.output.repository_artifacts imp
 from unoplat_code_confluence_query_engine.models.statistics.agent_usage_statistics import (
     WorkflowStatistics,
 )
-from unoplat_code_confluence_query_engine.services.github.agent_md_pr_publisher import (
-    read_remote_artifact,
-)
-from unoplat_code_confluence_query_engine.services.github.github_api_helpers import (
-    extract_http_error_status,
-    is_rate_limited_error,
-)
-from unoplat_code_confluence_query_engine.services.github.repository_github_client import (
-    RepositoryCredentialsInvalidError,
-    RepositoryCredentialsMissingError,
-    create_repository_github_client,
-)
 from unoplat_code_confluence_query_engine.services.repository.artifact_manifest import (
     ArtifactValidationError,
 )
@@ -62,6 +47,13 @@ from unoplat_code_confluence_query_engine.services.repository.artifact_paths imp
 from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
     ACTIVE_AGENT_WORKFLOW_STATUSES,
     get_latest_completed_agent_snapshot,
+)
+from unoplat_code_confluence_query_engine.services.repository.local_git_artifacts import (
+    LocalArtifactCommitMissingError,
+    LocalCheckoutUnavailableError,
+    LocalGitError,
+    read_local_artifact,
+    resolve_repository_checkout_root,
 )
 
 _READ_ERRORS: dict[ArtifactReadErrorCode, tuple[str, bool]] = {
@@ -88,30 +80,15 @@ _READ_ERRORS: dict[ArtifactReadErrorCode, tuple[str, bool]] = {
         "The saved commit has no regular file at that path",
         False,
     ),
-    "credentials_unavailable": (
-        "Configure repository credentials before reading artifacts",
+    "local_checkout_unavailable": (
+        "The repository's local clone is not available",
         False,
     ),
-    "credentials_invalid": (
-        "Repository credentials or GitHub host configuration are invalid",
+    "local_commit_unavailable": (
+        "The saved commit is not in the local repository; retry publication",
         False,
     ),
-    "provider_credentials_rejected": (
-        "GitHub rejected the stored repository credentials",
-        False,
-    ),
-    "provider_permission_denied": (
-        "The stored repository credentials cannot read this repository",
-        False,
-    ),
-    "provider_not_found": (
-        "GitHub could not find the saved commit, or the credentials cannot see it",
-        False,
-    ),
-    "provider_request_rejected": ("GitHub rejected the artifact read", False),
-    "provider_response_invalid": ("GitHub returned an invalid response", False),
-    "provider_rate_limited": ("GitHub rate limited the artifact read", True),
-    "provider_unavailable": ("GitHub is temporarily unavailable", True),
+    "local_read_failed": ("The local repository could not be read", True),
     "metadata_unavailable": ("Artifact metadata is temporarily unavailable", True),
     "artifact_read_failed": ("Artifact read failed unexpectedly", False),
 }
@@ -165,7 +142,6 @@ class _RunArtifactState:
 
 @dataclass(frozen=True)
 class _ArtifactReadTarget:
-    provider_key: ProviderKey
     commit_sha: str
     entry: ArtifactManifestEntry
 
@@ -204,32 +180,17 @@ def derive_artifact_availability(
     return "failed" if has_publication_error else "unavailable"
 
 
-def classify_provider_failure(error: Exception) -> ArtifactReadErrorCode:
-    """Map a provider read failure to a static code, without using its text."""
+def classify_local_read_failure(error: Exception) -> ArtifactReadErrorCode:
+    """Map a local read failure to a static code, without using its text."""
     if isinstance(error, ArtifactValidationError):
         return "artifact_integrity_failed"
-    status = extract_http_error_status(error)
-    if status is None:
-        if isinstance(error, ValueError):
-            return "provider_response_invalid"
-        if isinstance(error, (OSError, HttpProtocolError)):
-            return "provider_unavailable"
-        return "artifact_read_failed"
-    if status == 401:
-        return "provider_credentials_rejected"
-    if status == 403:
-        return (
-            "provider_rate_limited"
-            if is_rate_limited_error(error)
-            else "provider_permission_denied"
-        )
-    if status == 404:
-        return "provider_not_found"
-    if status == 429:
-        return "provider_rate_limited"
-    if status == 408 or status >= 500:
-        return "provider_unavailable"
-    return "provider_request_rejected"
+    if isinstance(error, LocalCheckoutUnavailableError):
+        return "local_checkout_unavailable"
+    if isinstance(error, LocalArtifactCommitMissingError):
+        return "local_commit_unavailable"
+    if isinstance(error, LocalGitError):
+        return "local_read_failed"
+    return "artifact_read_failed"
 
 
 def _parse_publication_error(raw: object) -> ArtifactPublicationError | None:
@@ -398,18 +359,13 @@ async def _load_read_target(
     every exception that crosses it as a database session error.
     """
     async with get_startup_session() as session:
-        repository = await session.get(Repository, (repo_name, owner_name))
-        run = await session.get(
-            RepositoryWorkflowRun, (repo_name, owner_name, run_id)
-        )
+        run = await session.get(RepositoryWorkflowRun, (repo_name, owner_name, run_id))
         snapshot = await _exact_snapshot(session, owner_name, repo_name, run_id)
-        if repository is None or run is None or snapshot is None:
+        if run is None or snapshot is None:
             state = None
-            provider_key = None
         else:
             state = await _run_artifact_state(session, snapshot, run.status)
-            provider_key = repository.repository_provider
-    if state is None or provider_key is None:
+    if state is None:
         raise ArtifactReadError("run_not_found")
     if state.identity is None:
         raise ArtifactReadError("artifact_identity_invalid")
@@ -421,21 +377,8 @@ async def _load_read_target(
         raise ArtifactReadError("artifact_identity_invalid")
     for entry in manifest.root:
         if entry.path == path:
-            return _ArtifactReadTarget(provider_key, commit_sha, entry)
+            return _ArtifactReadTarget(commit_sha, entry)
     raise ArtifactReadError("artifact_not_found")
-
-
-async def _provider_client(
-    owner_name: str, repo_name: str, provider_key: ProviderKey
-) -> GhApi:
-    try:
-        return await create_repository_github_client(
-            owner_name, repo_name, provider_key
-        )
-    except RepositoryCredentialsMissingError:
-        raise ArtifactReadError("credentials_unavailable") from None
-    except RepositoryCredentialsInvalidError:
-        raise ArtifactReadError("credentials_invalid") from None
 
 
 async def read_repository_artifact(
@@ -448,7 +391,8 @@ async def read_repository_artifact(
     """Read one manifest-listed file at the commit saved for an exact run.
 
     This app has no per-user authentication. Access is limited to repositories and
-    runs it tracks, using the provider credentials it stores for that repository.
+    runs it tracks. No provider call is made: publication already fetched the
+    commit into the local clone.
 
     Args:
         owner_name: Repository owner name.
@@ -461,7 +405,7 @@ async def read_repository_artifact(
 
     Raises:
         ArtifactReadError: The read failed. Its detail holds only static text, and
-            the provider exception is deliberately not chained to it.
+            the underlying exception is deliberately not chained to it.
     """
     try:
         artifact_kind(path)
@@ -471,27 +415,23 @@ async def read_repository_artifact(
         target = await _load_read_target(
             owner_name, repo_name, repository_workflow_run_id, path
         )
-        api = await _provider_client(owner_name, repo_name, target.provider_key)
+        root = await resolve_repository_checkout_root(owner_name, repo_name)
+    except LocalCheckoutUnavailableError:
+        raise ArtifactReadError("local_checkout_unavailable") from None
     except (SQLAlchemyError, OSError):
         raise ArtifactReadError("metadata_unavailable") from None
     try:
         content = await asyncio.to_thread(
-            read_remote_artifact,
-            api,
-            owner_name=owner_name,
-            repo_name=repo_name,
-            commit_sha=target.commit_sha,
-            entry=target.entry,
+            read_local_artifact, root, target.commit_sha, target.entry
         )
     except Exception as error:
-        code = classify_provider_failure(error)
-        # Type and status only. Provider messages and bodies are never logged.
+        code = classify_local_read_failure(error)
+        # Type only. Git output can name remotes or paths, so it is never logged.
         logger.warning(
-            "Artifact read failed code={} run_id={} path={} status={} error_type={}",
+            "Artifact read failed code={} run_id={} path={} error_type={}",
             code,
             repository_workflow_run_id,
             path,
-            extract_http_error_status(error),
             type(error).__name__,
         )
         raise ArtifactReadError(code) from None
