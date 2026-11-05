@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.6.1...unoplat-code-confluence-cli-v0.6.2) (2026-11-05)
+
+
+### Bug Fixes
+
+* **cli:** refresh release assets and support legacy readiness ([0bf1775](https://github.com/unoplat/unoplat-code-confluence/commit/0bf177566ee345d4623d092b5c4960585c62f6ee))
+* **cli:** refresh release assets and support legacy readiness ([eb72865](https://github.com/unoplat/unoplat-code-confluence/commit/eb72865697b3def0c06fe8bad1d0346f07953197))
+
 ## [0.6.1](https://github.com/unoplat/unoplat-code-confluence/compare/unoplat-code-confluence-cli-v0.6.0...unoplat-code-confluence-cli-v0.6.1) (2026-11-05)
 
 
