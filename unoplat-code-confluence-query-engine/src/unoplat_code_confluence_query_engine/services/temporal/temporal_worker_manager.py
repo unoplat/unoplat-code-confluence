@@ -298,7 +298,7 @@ class TemporalWorkerManager:
         )
 
         # Create DB activity instances
-        repo_db_activity = RepositoryWorkflowDbActivity()
+        repo_db_activity = RepositoryWorkflowDbActivity(self._client)
         codebase_db_activity = CodebaseWorkflowDbActivity()
         snapshot_activity = RepositoryAgentSnapshotActivity()
         business_logic_post_process_activity = BusinessLogicPostProcessActivity()
@@ -358,14 +358,13 @@ class TemporalWorkerManager:
                 codebase_db_activity.update_codebase_workflow_status,
                 snapshot_activity.persist_agent_snapshot_begin_run,
                 snapshot_activity.persist_agent_snapshot_complete,
-                snapshot_activity.persist_agent_snapshot_codebase_patch,
                 snapshot_activity.complete_repository_activity,
                 business_logic_post_process_activity.post_process_business_logic,
                 dependency_guide_completion_activity.write_dependency_overview,
                 dependency_guide_completion_activity.emit_dependency_guide_completion,
                 dependency_guide_fetch_activity.fetch_codebase_dependencies,
                 dependency_guide_fetch_activity.fetch_dependency_guide_delta,
-                engineering_workflow_fetch_activity.fetch_previous_engineering_workflow,
+                engineering_workflow_fetch_activity.inspect_engineering_workflow_section,
                 engineering_workflow_completion_activity.emit_engineering_workflow_completion,
                 app_interfaces_activity.fetch_call_expression_discovery_targets,
                 app_interfaces_activity.build_app_interfaces,
@@ -374,6 +373,7 @@ class TemporalWorkerManager:
                 git_ref_resolution_activity.resolve_git_ref,
                 managed_block_activity.bootstrap,
                 managed_block_activity.section_has_content,
+                agent_md_pr_publish_activity.save_identity,
                 agent_md_pr_publish_activity.publish_pr,
             ],
             plugins=agent_plugins,

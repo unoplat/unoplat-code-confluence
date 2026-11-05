@@ -39,6 +39,25 @@ with workflow.unsafe.imports_passed_through():
     )
 
 
+def _has_fresh_external_boundary(
+    successful_evidence: list[ArchitectureEvidenceSummary],
+) -> bool:
+    return any(
+        entry.app_interfaces_generated and entry.has_external_boundary
+        for entry in successful_evidence
+    )
+
+
+def architecture_agent_will_run(
+    temporal_agents: TemporalAgentRegistry,
+    successful_evidence: list[ArchitectureEvidenceSummary],
+) -> bool:
+    """Return whether run_architecture_agent runs the agent rather than skipping it."""
+    return temporal_agents.architecture is not None and _has_fresh_external_boundary(
+        successful_evidence
+    )
+
+
 async def run_architecture_agent(
     *,
     temporal_agents: TemporalAgentRegistry,
@@ -51,7 +70,7 @@ async def run_architecture_agent(
     fresh_evidence = [
         entry for entry in successful_evidence if entry.app_interfaces_generated
     ]
-    if not any(entry.has_external_boundary for entry in fresh_evidence):
+    if not _has_fresh_external_boundary(successful_evidence):
         await _complete_architecture_activity(
             repository_qualified_name, repository_workflow_run_id
         )
@@ -71,6 +90,7 @@ async def run_architecture_agent(
     try:
         repository_root = resolve_common_repository_root(metadata)
     except Exception as error:
+        raise_if_temporal_cancellation(error)
         return {
             "agent": ARCHITECTURE_REPOSITORY_ACTIVITY,
             "error": str(error),

@@ -29,11 +29,11 @@ Runs on pull requests to the `dev` or `main` branches that include changes to th
 
 ### Merge with Dev Branch (`publish_release_management.yaml`)
 
-Runs when pull requests into `dev` are merged. It uses Release Please to publish component-level releases and, when Dockerized components are released, builds and pushes container images.
+Runs when pull requests into `dev` are merged. It uses Release Please to publish component-level releases and, when Dockerized components are released, builds and pushes container images. Each image builds from its component's release tag. Flow-bridge and query-engine build from the repository root so they include the sibling commons package from that tag. A query-engine release also publishes the lightweight `unoplat-code-confluence-query-engine-migrator` image (`Dockerfile.migrator`) from the same tag. A commons change alone does not rebuild them: see "Commons changes and backend images" in `unoplat-code-confluence-query-engine/alembic/README.md`.
 
 ### Promote App Release (`promote_app_release.yaml`)
 
-Runs when a pull request merging `dev` into `main` is completed. It invokes Release Please with the `simple` strategy to cut an application-wide release using the root `version.txt` and `APP_CHANGELOG.md`.
+Runs when a pull request merging `dev` into `main` is completed. It invokes Release Please with the `simple` strategy to cut an application-wide release using the root `version.txt` and `APP_CHANGELOG.md`. It fails unless `prod-docker-compose.yml` pins literal component versions and the schema migrator uses the `-migrator` image with the query engine's release tag.
 
 ## Artifacts
 

@@ -75,6 +75,15 @@ async def get_startup_session() -> AsyncGenerator[AsyncSession, None]:
         await session.close()
 
 
+def get_async_engine() -> AsyncEngine:
+    """Return the initialized engine for dedicated advisory-lock connections."""
+    if async_engine is None:
+        raise RuntimeError(
+            "Database connections not initialized. Call init_db_connections() first."
+        )
+    return async_engine
+
+
 async def init_db_connections(settings: EnvironmentSettings) -> None:
     """Initialize database connections using settings and ensure the engine is bound to the current event loop.
 
@@ -86,8 +95,8 @@ async def init_db_connections(settings: EnvironmentSettings) -> None:
     Args:
         settings: Environment settings containing database configuration
 
-    Note: This function does NOT create database tables. Table creation is the
-    responsibility of the ingestion project.
+    Note: This function does NOT create database tables. The Alembic migration
+    job owns the schema; startup only verifies its revision.
     """
     global async_engine, AsyncSessionFactory
 

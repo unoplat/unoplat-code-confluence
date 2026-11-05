@@ -23,7 +23,7 @@ async def persist_repository_snapshot_completion(
     repository_workflow_run_id: str,
     statistics_payload: dict[str, object],
 ) -> None:
-    """Persist final repository workflow statistics without overwriting output."""
+    """Persist final repository workflow statistics."""
     owner_name, repo_name = repository_qualified_name.split("/", maxsplit=1)
     complete_envelope = AgentSnapshotCompleteEnvelope(
         owner_name=owner_name,
@@ -38,6 +38,6 @@ async def persist_repository_snapshot_completion(
         retry_policy=DB_ACTIVITY_RETRY_POLICY,
     )
     logger.info(
-        "[workflow] Agent snapshot output persisted for {}",
+        "[workflow] Agent snapshot statistics persisted for {}",
         repository_qualified_name,
     )

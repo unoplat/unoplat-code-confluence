@@ -1,0 +1,147 @@
+# Container view: how operators use Code Confluence services to ingest repositories
+# and run repository agents. Shared libraries and documentation are omitted because
+# the available evidence does not establish them as independent runtime containers.
+direction: down
+
+classes: {
+  client: {
+    style: {
+      fill: "#EFF6FF"
+      stroke: "#2563EB"
+      stroke-width: 2
+      border-radius: 8
+    }
+  }
+  service: {
+    style: {
+      fill: "#F5F3FF"
+      stroke: "#7C3AED"
+      stroke-width: 2
+      border-radius: 8
+      shadow: true
+    }
+  }
+  datastore: {
+    shape: cylinder
+    style: {
+      fill: "#FFF7ED"
+      stroke: "#B45309"
+      stroke-width: 2
+    }
+  }
+  platform: {
+    style: {
+      fill: "#ECFDF5"
+      stroke: "#047857"
+      stroke-width: 2
+      border-radius: 8
+    }
+  }
+  external: {
+    style: {
+      fill: "#F8FAFC"
+      stroke: "#475569"
+      stroke-width: 2
+      border-radius: 8
+    }
+  }
+  request: {
+    style: {
+      stroke: "#2563EB"
+      stroke-width: 2
+    }
+  }
+  workflow: {
+    style: {
+      stroke: "#7C3AED"
+      stroke-width: 2
+      stroke-dash: 4
+    }
+  }
+  data: {
+    style: {
+      stroke: "#B45309"
+      stroke-width: 2
+    }
+  }
+  integration: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      stroke-dash: 3
+    }
+  }
+}
+
+operators: Operators & developers {
+  shape: person
+  style: {
+    fill: "#FFFFFF"
+    stroke: "#475569"
+    stroke-width: 2
+  }
+}
+
+clients: Client applications {
+  style: {
+    fill: "#F8FBFF"
+    stroke: "#93C5FD"
+    stroke-width: 2
+    border-radius: 10
+  }
+  web_frontend: Web frontend {class: client}
+  cli: CLI {class: client}
+}
+
+services: Repository-owned services {
+  style: {
+    fill: "#FAF8FF"
+    stroke: "#C4B5FD"
+    stroke-width: 2
+    border-radius: 10
+  }
+  flow_bridge: Ingestion & repository API\n(FastAPI) {class: service}
+  query_engine: Query Engine API\n(FastAPI) {class: service}
+}
+
+platform: Shared runtime services {
+  style: {
+    fill: "#F0FDFA"
+    stroke: "#6EE7B7"
+    stroke-width: 2
+    border-radius: 10
+  }
+  temporal: Temporal workflow service {class: platform}
+  postgres: PostgreSQL {class: datastore}
+  electric: Electric data sync {class: platform}
+}
+
+external_systems: External systems {
+  style: {
+    fill: "#F8FAFC"
+    stroke: "#CBD5E1"
+    stroke-width: 2
+    border-radius: 10
+  }
+  github: GitHub {class: external}
+  model_provider: Configured AI model provider {class: external}
+}
+
+operators -> clients.web_frontend: use web application {class: request}
+operators -> clients.cli: run commands {class: request}
+clients.web_frontend -> services.flow_bridge: manage repositories {class: request}
+clients.web_frontend -> services.query_engine: manage agents & configuration {class: request}
+clients.web_frontend -> platform.electric: subscribe to live data {class: integration}
+
+services.flow_bridge -> services.query_engine: request AGENTS.md update {class: request}
+services.flow_bridge -> platform.temporal: start ingestion workflows {class: workflow}
+services.flow_bridge -> platform.postgres: persist repository data {class: data}
+services.flow_bridge -> external_systems.github: query repository provider {class: integration}
+
+services.query_engine -> platform.temporal: start agent workflows {class: workflow}
+services.query_engine -> platform.postgres: persist configuration & snapshots {class: data}
+services.query_engine -> external_systems.github: create issues & pull requests {class: integration}
+services.query_engine -> external_systems.model_provider: run agent inference {class: integration}
+
+platform.temporal -> platform.postgres: persist workflow state {class: data}
+platform.electric -> platform.postgres: replicate PostgreSQL data {class: data}

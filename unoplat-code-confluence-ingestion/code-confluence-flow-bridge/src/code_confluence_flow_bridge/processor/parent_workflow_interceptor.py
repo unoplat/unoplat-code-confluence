@@ -1,17 +1,28 @@
+import asyncio
 from datetime import timedelta
 import json
 import traceback
-from typing import Any, Optional
+from typing import Any, Optional, override
 
 from temporalio import workflow
 from temporalio.api.common.v1 import Payload
-from temporalio.exceptions import ActivityError, ApplicationError, ChildWorkflowError
+from temporalio.common import RetryPolicy
+from temporalio.exceptions import (
+    ActivityError,
+    ApplicationError,
+    CancelledError,
+    ChildWorkflowError,
+    FailureError,
+    TimeoutError as TemporalTimeoutError,
+)
 from temporalio.worker._interceptor import (
     ExecuteWorkflowInput,
     Interceptor,
     WorkflowInboundInterceptor,
+    WorkflowInterceptorClassInput,
+    WorkflowOutboundInterceptor,
 )
-from temporalio.workflow import Info
+from temporalio.workflow import ActivityCancellationType, Info
 
 with workflow.unsafe.imports_passed_through():
     from unoplat_code_confluence_commons.workflow_envelopes import (
@@ -44,10 +55,77 @@ with workflow.unsafe.imports_passed_through():
     )
 
 
+ADMISSION_TIMEOUT = timedelta(hours=6)
+ADMISSION_POLL_INTERVAL = timedelta(seconds=5)
+ADMISSION_RETRY_POLICY = RetryPolicy(
+    initial_interval=timedelta(seconds=1),
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=0,
+)
+TERMINAL_RETRY_POLICY = RetryPolicy(
+    initial_interval=timedelta(seconds=1),
+    maximum_interval=timedelta(seconds=30),
+    maximum_attempts=0,
+)
+
+
+def is_cancellation(exception: BaseException) -> bool:
+    for _ in range(8):
+        if isinstance(exception, (asyncio.CancelledError, CancelledError)):
+            return True
+        if isinstance(exception, FailureError) and exception.cause is not None:
+            exception = exception.cause
+        else:
+            return False
+    return False
+
+
+async def wait_for_checkout_admission(
+    envelope: ParentWorkflowDbActivityEnvelope,
+) -> None:
+    """Keep waiting parents SUBMITTED without holding a connection or lock."""
+    deadline = workflow.now() + ADMISSION_TIMEOUT
+    try:
+        await workflow.execute_activity(
+            ParentWorkflowDbActivity.update_repository_workflow_status,
+            args=[envelope.model_copy(update={"status": JobStatus.SUBMITTED.value})],
+            start_to_close_timeout=timedelta(minutes=1),
+            schedule_to_close_timeout=ADMISSION_TIMEOUT,
+            retry_policy=ADMISSION_RETRY_POLICY,
+            cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+        )
+        while workflow.now() < deadline:
+            admitted = await workflow.execute_activity(
+                ParentWorkflowDbActivity.update_repository_workflow_status,
+                args=[envelope],
+                start_to_close_timeout=timedelta(minutes=1),
+                schedule_to_close_timeout=deadline - workflow.now(),
+                retry_policy=ADMISSION_RETRY_POLICY,
+                cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+            )
+            if admitted:
+                return
+            remaining = deadline - workflow.now()
+            if remaining <= timedelta():
+                break
+            await workflow.sleep(min(ADMISSION_POLL_INTERVAL, remaining))
+    except ActivityError as exc:
+        if not isinstance(exc.cause, TemporalTimeoutError):
+            raise
+    raise ApplicationError(
+        "Checkout admission timed out",
+        type="CheckoutAdmissionTimeout",
+        non_retryable=True,
+    )
+
+
 class ParentWorkflowStatusInterceptor(Interceptor):
     """Worker interceptor to update parent workflow status in the DB."""
 
-    def workflow_interceptor_class(self, input) -> type[WorkflowInboundInterceptor]:
+    @override
+    def workflow_interceptor_class(
+        self, input: WorkflowInterceptorClassInput
+    ) -> type[WorkflowInboundInterceptor]:
         return ParentWorkflowStatusInboundInterceptor
 
 
@@ -60,10 +138,12 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
     # ------------------------------------------------------------------
     # Interceptor chain initialization
     # ------------------------------------------------------------------
-    def init(self, outbound):  # type: ignore[override]
+    @override
+    def init(self, outbound: WorkflowOutboundInterceptor) -> None:
         """Wrap outbound interceptor to forward headers to activities."""
         super().init(ParentWorkflowOutboundInterceptor(outbound))
 
+    @override
     async def execute_workflow(self, input: ExecuteWorkflowInput) -> Any:
         # Unpack envelope and workflow info
         info: Info = workflow.info()
@@ -108,7 +188,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 workflow_run_id,
             )
 
-            # Initial Submitted status
+            # Admission records SUBMITTED before attempting RUNNING.
             running_env = ParentWorkflowDbActivityEnvelope(
                 repository_name=envelope.repo_request.repository_name,
                 repository_owner_name=envelope.repo_request.repository_owner_name,
@@ -119,35 +199,19 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 status=JobStatus.RUNNING.value,
                 provider_key=envelope.repo_request.provider_key,
             )
-            await workflow.execute_activity(
-                activity=ParentWorkflowDbActivity.update_repository_workflow_status,
-                args=[running_env],
-                start_to_close_timeout=timedelta(minutes=1),
-                retry_policy=ActivityRetriesConfig.DEFAULT,
-            )
-            workflow.logger.debug(
-                "Initial RUNNING status recorded for repository %s/%s",
-                envelope.repo_request.repository_name,
-                envelope.repo_request.repository_owner_name,
-            )
-
             status = JobStatus.COMPLETED.value
             error_report: Optional[ErrorReport] = None
             result: Any = None
             exc: Optional[BaseException] = None
             try:
+                await wait_for_checkout_admission(running_env)
                 # Execute the workflow logic
                 workflow.logger.debug("Invoking next interceptor execute_workflow")
                 result = await self.next.execute_workflow(input)
                 workflow.logger.debug(
                     "Workflow logic executed successfully, result: %s", result
                 )
-            except (
-                ActivityError,
-                ChildWorkflowError,
-                ApplicationError,
-                Exception,
-            ) as e:
+            except (asyncio.CancelledError, Exception) as e:
                 exc = e
                 workflow.logger.debug(
                     "Exception occurred during workflow execution: %s", e
@@ -180,8 +244,16 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     metadata=metadata,
                 )
 
-                # Decide between RETRYING and FAILED
-                status = JobStatus.FAILED.value
+                if is_cancellation(e):
+                    status = JobStatus.CANCELLED.value
+                    error_report = None
+                elif (
+                    isinstance(e, ApplicationError)
+                    and e.type == "CheckoutAdmissionTimeout"
+                ):
+                    status = JobStatus.TIMED_OUT.value
+                else:
+                    status = JobStatus.FAILED.value
             finally:
                 workflow.logger.debug("Setting final status %s in DB", status)
                 # Final status write
@@ -196,11 +268,14 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                     error_report=error_report,
                     provider_key=envelope.repo_request.provider_key,
                 )
-                await workflow.execute_activity(
-                    activity=ParentWorkflowDbActivity.update_repository_workflow_status,
-                    args=[final_env],
-                    start_to_close_timeout=timedelta(minutes=1),
-                    retry_policy=ActivityRetriesConfig.DEFAULT,
+                await asyncio.shield(
+                    workflow.execute_activity(
+                        activity=ParentWorkflowDbActivity.update_repository_workflow_status,
+                        args=[final_env],
+                        start_to_close_timeout=timedelta(minutes=1),
+                        retry_policy=TERMINAL_RETRY_POLICY,
+                        cancellation_type=ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
+                    )
                 )
                 workflow.logger.debug("Final status written to DB")
 
@@ -350,30 +425,7 @@ class ParentWorkflowStatusInboundInterceptor(WorkflowInboundInterceptor):
                 )
                 workflow.logger.debug("Final status written to DB for child workflow")
 
-                # If child workflow failed, immediately mark parent workflow as FAILED too
-                if child_status == JobStatus.FAILED.value and parent_workflow_run_id:
-                    workflow.logger.debug(
-                        "Child workflow failed, marking parent workflow %s as FAILED",
-                        parent_workflow_run_id,
-                    )
-                    parent_failed_env = ParentWorkflowDbActivityEnvelope(
-                        repository_name=repository_name,
-                        repository_owner_name=repository_owner_name,
-                        workflow_id=workflow_id,
-                        workflow_run_id=parent_workflow_run_id,
-                        trace_id=child_trace_id,
-                        status=JobStatus.FAILED.value,
-                        error_report=None,
-                    )
-                    await workflow.execute_activity(
-                        activity=ParentWorkflowDbActivity.update_repository_workflow_status,
-                        args=[parent_failed_env],
-                        start_to_close_timeout=timedelta(minutes=1),
-                        retry_policy=ActivityRetriesConfig.DEFAULT,
-                    )
-                    workflow.logger.debug(
-                        "Parent workflow marked as FAILED due to child workflow failure"
-                    )
+                # The parent retains admission until all sibling work has stopped.
 
             if child_exc:
                 workflow.logger.debug(

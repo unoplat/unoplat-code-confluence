@@ -65,6 +65,16 @@ tasks:
     cmds:
       - docker-compose -f local-dependencies-core-docker-compose.yml down --volumes
 
+  migrate-dependencies:
+    desc: Apply an explicit revision to the local dependency database using the query-engine Alembic history (usage - task migrate-dependencies ALEMBIC_TARGET_REVISION=0003_git_artifacts_contract; a first bootstrap of an empty database also needs ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true)
+    requires:
+      vars: [ALEMBIC_TARGET_REVISION]
+    dir: ../../unoplat-code-confluence-query-engine
+    env:
+      ALEMBIC_DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/code_confluence"
+    cmds:
+      - uv run --locked --group migrations alembic -x drained={{.ALEMBIC_ATTEST_DRAINED | default "false"}} -x discard_legacy_artifacts={{.ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS | default "false"}} upgrade {{.ALEMBIC_TARGET_REVISION}}
+
   sync:
     desc: Setup project with dependencies
     dir: .
@@ -154,13 +164,12 @@ tasks:
       - task: run-dev-core
 
   test:
-    desc: Run tests with coverage
+    desc: Run tests with coverage (fixtures own a disposable per-run stack; stop any local stack first)
     dir: .
     cmds:
       # Sync only the test dependencies group before running tests.
       - uv sync --group test
       - uv run --python 3.13 --group test pytest --cov=src/code_confluence_flow_bridge --cov-report=html:coverage_reports tests/ -v
-      - task: stop-dependencies
 
   ci-test:
     desc: Run tests in CI mode using act command with additional environment variable

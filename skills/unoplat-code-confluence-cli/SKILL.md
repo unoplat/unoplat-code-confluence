@@ -104,6 +104,8 @@ ucc service run
 
 This starts the pinned local app release and installs the latest Unoplat Code Confluence app release on first run. The CLI resolves app releases from GitHub tags matching `unoplat-code-confluence-vMAJOR.MINOR.PATCH`; component releases and arbitrary version selection are not part of the CLI workflow. It may fetch GitHub release metadata and pull Docker images.
 
+A new, empty install also needs `ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true ucc service run` so its one-time schema job can run. Ask the user before setting them, and never set them for an install that already has data, because the second one permanently discards old generated content and raw agent event text: the services staying stopped is the safe result, and the fix is the migration guide in `unoplat-code-confluence-query-engine/alembic/README.md`.
+
 Prerequisites:
 
 - Docker daemon / Docker Desktop is running.

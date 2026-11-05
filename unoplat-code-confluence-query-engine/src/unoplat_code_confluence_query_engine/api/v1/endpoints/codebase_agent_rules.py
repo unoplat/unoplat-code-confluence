@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
@@ -26,17 +26,30 @@ from unoplat_code_confluence_query_engine.db.postgres.ai_model_config import (
     AiModelConfig,
 )
 from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
+from unoplat_code_confluence_query_engine.models.output.repository_artifacts import (
+    ArtifactManifestEntry,
+    ArtifactReadErrorCode,
+    RepositoryAgentSnapshotMetadata,
+)
 from unoplat_code_confluence_query_engine.services.github.agent_md_pr_service import (
     AgentMdPrAuthError,
     AgentMdPrConfigurationError,
+    AgentMdPrConflictError,
     AgentMdPrGithubError,
     AgentMdPrInternalError,
     AgentMdPrNotFoundError,
     publish_agent_md_pr,
 )
+from unoplat_code_confluence_query_engine.services.repository.artifact_paths import (
+    ArtifactKind,
+)
+from unoplat_code_confluence_query_engine.services.repository.artifact_read_service import (
+    ArtifactReadError,
+    read_repository_artifact,
+    read_repository_snapshot_metadata,
+)
 from unoplat_code_confluence_query_engine.services.repository.idempotency_service import (
     get_active_agent_workflow_run,
-    get_latest_completed_agent_snapshot,
     resolve_agent_workflow_operation,
 )
 from unoplat_code_confluence_query_engine.services.repository.repository_metadata_service import (
@@ -84,7 +97,7 @@ class RepositoryAgentMdPrRequest(BaseModel):
 class RepositoryAgentMdPrResponse(BaseModel):
     """Response payload for manual AGENTS.md PR endpoint."""
 
-    status: Literal["modified", "no_changes"]
+    status: Literal["modified", "no_changes", "no_artifacts"]
     pr_url: str | None = None
     pr_number: int | None = None
     branch_name: str | None = None
@@ -111,6 +124,51 @@ CANCELLABLE_REPOSITORY_WORKFLOW_OPERATIONS: set[RepositoryWorkflowOperation] = {
     RepositoryWorkflowOperation.AGENTS_GENERATION,
     RepositoryWorkflowOperation.AGENT_MD_UPDATE,
 }
+
+ARTIFACT_MEDIA_TYPES: dict[ArtifactKind, str] = {
+    "markdown": "text/markdown",
+    "d2": "text/plain",
+    "svg": "image/svg+xml",
+}
+
+# Scripts in a generated SVG must not run on this API's origin. D2 output relies on
+# inline styles and embedded data: fonts, so those remain allowed.
+ARTIFACT_CONTENT_SECURITY_POLICY = (
+    "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; "
+    "sandbox"
+)
+
+ARTIFACT_READ_HTTP_STATUS: dict[ArtifactReadErrorCode, int] = {
+    "invalid_artifact_path": 400,
+    "run_not_found": 404,
+    "artifact_not_found": 404,
+    "artifact_identity_pending": 409,
+    "artifact_identity_unavailable": 409,
+    "artifact_identity_invalid": 409,
+    "artifact_integrity_failed": 502,
+    "artifact_missing_at_commit": 502,
+    "local_checkout_unavailable": 503,
+    "local_commit_unavailable": 409,
+    "local_read_failed": 503,
+    "metadata_unavailable": 503,
+    "artifact_read_failed": 500,
+}
+
+
+def _artifact_response_headers(entry: ArtifactManifestEntry) -> dict[str, str]:
+    """Build headers that stop browsers sniffing or rendering artifact bytes inline.
+
+    The filename is safe to interpolate: manifest validation restricts it to the
+    allowlisted artifact names.
+    """
+    filename = entry.path.rsplit("/", 1)[-1]
+    return {
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Content-Security-Policy": ARTIFACT_CONTENT_SECURITY_POLICY,
+        "X-Content-Type-Options": "nosniff",
+    }
+
 
 def _is_terminal_repository_workflow_status(status: str) -> bool:
     return status in TERMINAL_REPOSITORY_WORKFLOW_STATUSES
@@ -410,12 +468,13 @@ async def get_repository_agent_snapshot(
             "COMPLETED agent snapshot for the repository."
         ),
     ),
-) -> dict[str, object]:
-    """Retrieve an agent snapshot output for a repository workflow run.
+) -> RepositoryAgentSnapshotMetadata:
+    """Retrieve artifact metadata and progress for a repository workflow run.
 
     When ``repository_workflow_run_id`` is provided, the endpoint returns that
-    exact snapshot. When it is omitted, the endpoint returns the latest completed
-    agent snapshot for the repository according to ``RepositoryWorkflowRun``.
+    exact run. When it is omitted, the endpoint returns the latest completed agent
+    run, even if another run has files. Generated files are read one at a time from
+    ``GET /v1/repository-agent-artifact``.
 
     Args:
         owner_name: Repository owner name
@@ -423,90 +482,106 @@ async def get_repository_agent_snapshot(
         repository_workflow_run_id: Optional specific workflow run ID to query
 
     Returns:
-        Dictionary with the resolved repository_workflow_run_id and agent_md_output.
+        The resolved run ID, artifact availability and identity, safe publication
+        error, progress and statistics.
     """
     try:
-        async with get_startup_session() as session:
-            if repository_workflow_run_id is not None:
-                stmt = select(RepositoryAgentMdSnapshot).where(
-                    RepositoryAgentMdSnapshot.repository_owner_name == owner_name,
-                    RepositoryAgentMdSnapshot.repository_name == repo_name,
-                    RepositoryAgentMdSnapshot.repository_workflow_run_id
-                    == repository_workflow_run_id,
-                )
-                result = await session.execute(stmt)
-                snapshot = result.scalar_one_or_none()
-
-                if snapshot is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=(
-                            f"No agent snapshot found for repository {owner_name}/{repo_name} "
-                            f"with run_id={repository_workflow_run_id}"
-                        ),
-                    )
-            else:
-                snapshot = await get_latest_completed_agent_snapshot(
-                    session=session,
-                    repository_name=repo_name,
-                    repository_owner_name=owner_name,
-                )
-
-                if snapshot is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=(
-                            "No completed agent snapshot found for repository "
-                            f"{owner_name}/{repo_name}"
-                        ),
-                    )
-
-            logger.info(
-                "Retrieved agent snapshot for repository {}/{} run_id={}",
-                owner_name,
-                repo_name,
-                snapshot.repository_workflow_run_id,
-            )
-            return {
-                "repository_workflow_run_id": snapshot.repository_workflow_run_id,
-                "agent_md_output": snapshot.agent_md_output,
-            }
-
-    except HTTPException:
-        raise
+        metadata = await read_repository_snapshot_metadata(
+            owner_name=owner_name,
+            repo_name=repo_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+        )
     except Exception as error:
         logger.error(
-            "Error retrieving agent snapshot for {}/{} run_id={}: {}",
+            "Error retrieving agent snapshot for {}/{} run_id={}: error_type={}",
             owner_name,
             repo_name,
             repository_workflow_run_id,
-            error,
+            type(error).__name__,
         )
-        raise HTTPException(status_code=500, detail="Internal server error") from error
+        raise HTTPException(status_code=500, detail="Internal server error") from None
+
+    if metadata is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                f"No agent snapshot found for repository {owner_name}/{repo_name} "
+                f"with run_id={repository_workflow_run_id}"
+                if repository_workflow_run_id is not None
+                else "No completed agent snapshot found for repository "
+                f"{owner_name}/{repo_name}"
+            ),
+        )
+
+    logger.info(
+        "Retrieved agent snapshot for repository {}/{} run_id={}",
+        owner_name,
+        repo_name,
+        metadata.repository_workflow_run_id,
+    )
+    return metadata
 
 
-# TODO(not urgent): concurrent-publish race. This manual endpoint and the
-# in-workflow auto-publish activity both call publish_agent_md_pr with the same
-# repository_workflow_run_id. The one-shot guard (pr_metadata IS NULL check) and
-# the _persist_pr_metadata arbitration both sit AFTER the GitHub side effect, so
-# two callers can pass the guard, both run publish_agent_md_artifacts on the same
-# agents-md/<run_id> branch, and the loser surfaces a false 502 from pulls.create
-# (422 "PR already exists") even though a valid PR was created. The frontend
-# "Publish PR" button gates on an eventually-consistent GET status (30s stale),
-# so it does not close the window. Fix server-side: serialize the publish per
-# run_id (e.g. pg advisory lock on the run_id, or row lock before the GitHub
-# call), not in the UI. Low severity: GitHub head->base uniqueness prevents a
-# duplicate PR; only harm is a misleading error on the losing caller.
+@router.get(
+    "/repository-agent-artifact",
+    response_class=Response,
+    dependencies=[Depends(trace_dependency)],
+    responses={
+        200: {
+            "description": "Verified artifact bytes at the run's saved commit",
+            "content": {media_type: {} for media_type in ARTIFACT_MEDIA_TYPES.values()},
+        }
+    },
+)
+async def get_repository_agent_artifact(
+    owner_name: str = Query(..., description="Repository owner name"),
+    repo_name: str = Query(..., description="Repository name"),
+    repository_workflow_run_id: str = Query(
+        ..., description="Repository workflow run ID"
+    ),
+    path: str = Query(..., description="Repository-relative manifest path"),
+) -> Response:
+    """Return one generated file at the commit saved for an exact run.
+
+    The commit always comes from the run's saved identity, so moving a branch cannot
+    change the bytes. Failures use ``detail: {code, message, retryable}``.
+
+    Args:
+        owner_name: Repository owner name
+        repo_name: Repository name
+        repository_workflow_run_id: Exact workflow run ID
+        path: Repository-relative path listed in the run's manifest
+
+    Returns:
+        The verified bytes, served so that a browser will not execute them.
+    """
+    try:
+        artifact = await read_repository_artifact(
+            owner_name=owner_name,
+            repo_name=repo_name,
+            repository_workflow_run_id=repository_workflow_run_id,
+            path=path,
+        )
+    except ArtifactReadError as read_error:
+        raise HTTPException(
+            status_code=ARTIFACT_READ_HTTP_STATUS[read_error.detail.code],
+            detail=read_error.detail.model_dump(),
+        ) from None
+    return Response(
+        content=artifact.content,
+        media_type=ARTIFACT_MEDIA_TYPES[artifact.entry.kind],
+        headers=_artifact_response_headers(artifact.entry),
+    )
+
+
 @router.post("/repository-agent-md-pr")
 async def create_repository_agent_md_pr(
     payload: RepositoryAgentMdPrRequest,
 ) -> RepositoryAgentMdPrResponse:
-    """Publish a PR for codebase-local AGENTS.md outputs (one-shot per run).
+    """Retry publication for a completed generation/update run.
 
-    One-shot semantics: first successful publish for a run returns ``modified``.
-    ALL subsequent calls for the same run return ``no_changes``.
-
-    Manual fallback/retry path for the automatic in-workflow publish.
+    Reuses the saved commit or a proven frozen manifest. Stale or conflicting
+    identities require regeneration and are never replaced by current files.
     """
     try:
         persisted, already_existed = await publish_agent_md_pr(
@@ -518,6 +593,15 @@ async def create_repository_agent_md_pr(
         raise HTTPException(
             status_code=404, detail=str(not_found_error)
         ) from not_found_error
+    except AgentMdPrConflictError as conflict_error:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": conflict_error.code,
+                "message": str(conflict_error),
+                "retryable": conflict_error.retryable,
+            },
+        ) from conflict_error
     except AgentMdPrConfigurationError as config_error:
         raise HTTPException(status_code=400, detail=str(config_error)) from config_error
     except AgentMdPrAuthError as auth_error:
@@ -538,7 +622,7 @@ def _build_pr_response(
     already_existed: bool,
 ) -> RepositoryAgentMdPrResponse:
     """Build API response from persist result, enforcing one-shot semantics."""
-    if already_existed:
+    if already_existed and persisted.status != "no_artifacts":
         return RepositoryAgentMdPrResponse(
             status="no_changes",
             pr_url=persisted.pr_url,

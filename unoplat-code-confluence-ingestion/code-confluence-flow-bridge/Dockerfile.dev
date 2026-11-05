@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# Development image for Tilt hot-reload workflow.
+# Development image for Tilt hot-reload workflow. Build from the repository root.
 #
 # - Dependencies are baked into the image first for good layer reuse.
 # - Runtime source is also copied so the very first `tilt up` can boot before
@@ -14,6 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     PYTHONPATH=/app
 
@@ -22,15 +23,23 @@ RUN apt-get update && \
         git build-essential libpq-dev ripgrep \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Keep the repository layout for uv's relative commons path. Tilt syncs commons
+# source to this editable install.
+WORKDIR /workspace/unoplat-code-confluence-ingestion/code-confluence-flow-bridge
 
 # Install the dependency closure first so source edits do not invalidate it.
-COPY pyproject.toml uv.lock README.md ./
+COPY unoplat-code-confluence-ingestion/code-confluence-flow-bridge/pyproject.toml unoplat-code-confluence-ingestion/code-confluence-flow-bridge/uv.lock unoplat-code-confluence-ingestion/code-confluence-flow-bridge/README.md ./
+COPY unoplat-code-confluence-commons/pyproject.toml unoplat-code-confluence-commons/README.md /workspace/unoplat-code-confluence-commons/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-install-project --no-install-package unoplat-code-confluence-commons
+
+COPY unoplat-code-confluence-commons/src /workspace/unoplat-code-confluence-commons/src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project
 
 # Copy runtime source so the container is bootable on the initial Tilt build.
-COPY . /app
+WORKDIR /app
+COPY unoplat-code-confluence-ingestion/code-confluence-flow-bridge/ /app/
 
 # Ensure the data dir that the app writes to exists.
 RUN mkdir -p /opt/unoplat/repositories
@@ -39,4 +48,4 @@ EXPOSE 8000
 
 # Work from the package dir so `fastapi dev` watches src/ only (not .venv).
 WORKDIR /app/src/code_confluence_flow_bridge
-CMD ["uv", "run", "fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "dev", "main.py", "--host", "0.0.0.0", "--port", "8000"]

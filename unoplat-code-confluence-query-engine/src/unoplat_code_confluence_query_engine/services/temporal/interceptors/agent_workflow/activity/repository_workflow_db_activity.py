@@ -1,166 +1,72 @@
-"""Temporal activity for updating RepositoryWorkflowRun status in PostgreSQL."""
+"""Repository parent lifecycle writes and cross-service checkout admission."""
 
-from datetime import datetime, timezone
+import asyncio
 
-from loguru import logger
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from temporalio import activity
-from unoplat_code_confluence_commons.repo_models import (
-    Repository,
-    RepositoryWorkflowRun,
+from temporalio.client import Client, WorkflowExecutionStatus
+from temporalio.service import RPCError
+from unoplat_code_confluence_commons.repository_checkout_coordination import (
+    repository_lock_key,
+    session_advisory_lock,
+    update_repository_run_status,
 )
 from unoplat_code_confluence_commons.workflow_envelopes import (
     ParentWorkflowDbActivityEnvelope,
 )
 from unoplat_code_confluence_commons.workflow_models import JobStatus
 
-from unoplat_code_confluence_query_engine.db.postgres.db import get_startup_session
+from unoplat_code_confluence_query_engine.db.postgres import db
+
+TEMPORAL_TERMINAL_STATUSES = {
+    WorkflowExecutionStatus.COMPLETED: JobStatus.COMPLETED,
+    WorkflowExecutionStatus.FAILED: JobStatus.FAILED,
+    WorkflowExecutionStatus.CANCELED: JobStatus.CANCELLED,
+    WorkflowExecutionStatus.TERMINATED: JobStatus.CANCELLED,
+    WorkflowExecutionStatus.TIMED_OUT: JobStatus.TIMED_OUT,
+}
 
 
 class RepositoryWorkflowDbActivity:
-    """Activity class for repository workflow status database operations."""
+    """Serialize parent status writes with ingestion and artifact capture."""
+
+    def __init__(self, temporal_client: Client | None = None) -> None:
+        self._temporal_client = temporal_client
+
+    async def _confirm_terminal(
+        self, workflow_id: str, run_id: str
+    ) -> JobStatus | None:
+        if self._temporal_client is None:
+            return None
+        try:
+            description = await asyncio.wait_for(
+                self._temporal_client.get_workflow_handle(
+                    workflow_id, run_id=run_id
+                ).describe(),
+                timeout=10,
+            )
+        except (RPCError, TimeoutError):
+            # Missing history or an unreachable server is not proof of termination.
+            return None
+        if description.run_id != run_id or description.status is None:
+            return None
+        return TEMPORAL_TERMINAL_STATUSES.get(description.status)
 
     @activity.defn(name="update-repository-agent-workflow-status")
     async def update_repository_workflow_status(
         self, envelope: ParentWorkflowDbActivityEnvelope
-    ) -> None:
-        """Update or create RepositoryWorkflowRun status in PostgreSQL.
-
-        Logic:
-        1. Query for existing record by (repo_name, repo_owner, run_id)
-        2. If not exists: CREATE with status, started_at=now()
-        3. If exists:
-           - If current status is FAILED and new status is COMPLETED: DO NOT update
-           - Otherwise: UPDATE status, set completed_at if COMPLETED/FAILED
-        4. Store error_report if provided
-
-        Args:
-            envelope: Repository workflow DB envelope with status and metadata
-        """
-        logger.info(
-            "[repository_workflow_db_activity] Updating status for {}/{} run_id={} to {}",
-            envelope.repository_owner_name,
-            envelope.repository_name,
-            envelope.workflow_run_id,
-            envelope.status,
-        )
-
-        async with get_startup_session() as session:
-            repository = await session.get(
-                Repository,
-                (envelope.repository_name, envelope.repository_owner_name),
-            )
-            if repository is None:
-                repository = Repository(
-                    repository_name=envelope.repository_name,
-                    repository_owner_name=envelope.repository_owner_name,
-                    repository_provider=envelope.provider_key,
-                )
-                session.add(repository)
-                logger.debug(
-                    "[repository_workflow_db_activity] Created Repository row for {}/{} provider={}",
-                    envelope.repository_owner_name,
-                    envelope.repository_name,
-                    envelope.provider_key,
-                )
-
-            # Query for existing record
-            stmt = select(RepositoryWorkflowRun).where(
-                RepositoryWorkflowRun.repository_name == envelope.repository_name,
-                RepositoryWorkflowRun.repository_owner_name
-                == envelope.repository_owner_name,
-                RepositoryWorkflowRun.repository_workflow_run_id
-                == envelope.workflow_run_id,
-            )
-            result = await session.execute(stmt)
-            existing = result.scalar_one_or_none()
-
-            now = datetime.now(timezone.utc)
-            workflow_id = envelope.workflow_id
-
-            if workflow_id is None:
-                raise ValueError(
-                    "ParentWorkflowDbActivityEnvelope.workflow_id is required"
-                )
-
-            if existing is None:
-                # CREATE new record
-                logger.debug(
-                    "[repository_workflow_db_activity] Creating new RepositoryWorkflowRun record"
-                )
-                new_record = RepositoryWorkflowRun(
-                    repository_name=envelope.repository_name,
-                    repository_owner_name=envelope.repository_owner_name,
-                    repository_workflow_run_id=envelope.workflow_run_id,
-                    repository_workflow_id=workflow_id,
-                    operation=envelope.operation,
-                    status=envelope.status,
-                    started_at=now,
-                    error_report=(
-                        envelope.error_report.model_dump()
-                        if envelope.error_report
-                        else None
-                    ),
-                )
-                session.add(new_record)
-            else:
-                # UPDATE existing record
-                # Status preservation: FAILED/ERROR status should never be overwritten with COMPLETED
-                if (
-                    existing.status
-                    in (
-                        JobStatus.FAILED.value,
-                        JobStatus.ERROR.value,
-                        JobStatus.CANCELLED.value,
+    ) -> bool:
+        """Return False for a queued admission request; commit before unlocking."""
+        if db.async_engine is None:
+            raise RuntimeError("Database connections not initialized")
+        async with session_advisory_lock(
+            db.async_engine,
+            repository_lock_key(
+                envelope.repository_owner_name, envelope.repository_name
+            ),
+        ) as connection:
+            async with AsyncSession(bind=connection, expire_on_commit=False) as session:
+                async with session.begin():
+                    return await update_repository_run_status(
+                        session, envelope, self._confirm_terminal
                     )
-                    and envelope.status == JobStatus.COMPLETED.value
-                ):
-                    logger.warning(
-                        "[repository_workflow_db_activity] Preserving {} status - "
-                        "ignoring COMPLETED update for {}/{} run_id={}",
-                        existing.status,
-                        envelope.repository_owner_name,
-                        envelope.repository_name,
-                        envelope.workflow_run_id,
-                    )
-                    return
-
-                logger.debug(
-                    "[repository_workflow_db_activity] Updating existing record from {} to {}",
-                    existing.status,
-                    envelope.status,
-                )
-
-                if existing.repository_workflow_id != workflow_id:
-                    logger.warning(
-                        "[repository_workflow_db_activity] Correcting repository_workflow_id for {}/{} run_id={} from {} to {}",
-                        envelope.repository_owner_name,
-                        envelope.repository_name,
-                        envelope.workflow_run_id,
-                        existing.repository_workflow_id,
-                        workflow_id,
-                    )
-                    existing.repository_workflow_id = workflow_id
-
-                existing.status = envelope.status
-
-                # Set completed_at for terminal states
-                if envelope.status in (
-                    JobStatus.COMPLETED.value,
-                    JobStatus.FAILED.value,
-                    JobStatus.TIMED_OUT.value,
-                    JobStatus.ERROR.value,
-                    JobStatus.CANCELLED.value,
-                ):
-                    existing.completed_at = now
-
-                # Store error report if provided
-                if envelope.error_report:
-                    existing.error_report = envelope.error_report.model_dump()
-
-        logger.info(
-            "[repository_workflow_db_activity] Successfully updated status for {}/{} run_id={}",
-            envelope.repository_owner_name,
-            envelope.repository_name,
-            envelope.workflow_run_id,
-        )

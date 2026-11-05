@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.88.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.87.0...code-confluence-flow-bridge-v0.88.0) (2026-11-05)
+
+
+### Features
+
+* **artifacts:** persist immutable Git-backed run artifacts ([096ef8b](https://github.com/unoplat/unoplat-code-confluence/commit/096ef8be8788b64c3ffed35a81e3710c79c37770))
+* **artifacts:** persist immutable Git-backed run artifacts ([7268215](https://github.com/unoplat/unoplat-code-confluence/commit/7268215d00e6e548012871250224682d60e8c826))
+
+
+### Bug Fixes
+
+* **workflows:** restore full error reports with stack traces ([7227030](https://github.com/unoplat/unoplat-code-confluence/commit/722703047ecb10007349089810007b73f63bbdeb))
+* **workflows:** restore full error reports with stack traces ([dfacdaa](https://github.com/unoplat/unoplat-code-confluence/commit/dfacdaa16285dd31bdb30c9bb540dcfd4c4d78d9))
+
+
+### Code Refactoring
+
+* **agents:** drop agent event tool payload columns ([be897e8](https://github.com/unoplat/unoplat-code-confluence/commit/be897e835694c90bf100156a569d9ffcdd786893))
+* **agents:** drop agent event tool payload columns ([dd97f9e](https://github.com/unoplat/unoplat-code-confluence/commit/dd97f9e4da77c24195b58f76321ff8109da11a43))
+
+
+### Documentation
+
+* **agents:** remove duplicate project guidance ([60742b8](https://github.com/unoplat/unoplat-code-confluence/commit/60742b826eccf335985c96b81b73fac0bfd5cc9c))
+* **artifacts:** describe schema bootstrap and migration cutover ([60f0d23](https://github.com/unoplat/unoplat-code-confluence/commit/60f0d23e863ec58830edcb7b50faa9faff72bd2e))
+* **artifacts:** describe schema bootstrap and migration cutover ([fd6a062](https://github.com/unoplat/unoplat-code-confluence/commit/fd6a0627d28a1ff4bcd3dc01dc448059d3c4045a))
+
 ## [0.87.0](https://github.com/unoplat/unoplat-code-confluence/compare/code-confluence-flow-bridge-v0.86.0...code-confluence-flow-bridge-v0.87.0) (2026-08-21)
 
 

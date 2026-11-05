@@ -41,7 +41,6 @@ class EngineeringWorkflowCompletionActivity:
             codebase_name=codebase_name,
             agent_name="development_workflow_guide",
             phase="result",
-            message="Development workflow guide completed",
             completion_namespaces=set(get_completion_namespaces(programming_language)),
             repository_workflow_run_id=repository_workflow_run_id,
         )

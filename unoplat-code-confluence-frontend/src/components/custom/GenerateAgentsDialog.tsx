@@ -1,6 +1,7 @@
 import React from "react";
 import {
   keepPreviousData,
+  skipToken,
   useMutation,
   useQuery,
   useQueryClient,
@@ -29,11 +30,15 @@ import { GenerateAgentsProgressLive } from "@/components/custom/GenerateAgentsPr
 import { Button } from "@/components/ui/button";
 import { GenerateAgentsPreview } from "@/components/custom/GenerateAgentsPreview";
 import { AgentStatisticsDisplay } from "@/components/custom/AgentStatisticsDisplay";
-import { codebasesToMarkdown } from "@/lib/agent-md-to-markdown";
+import { ArtifactAvailabilityNotice } from "@/components/custom/ArtifactAvailabilityNotice";
 import {
   useRepositoryAgentCodebaseProgress,
   useRepositoryAgentSnapshot,
 } from "@/features/repository-agent-snapshots/hooks";
+import {
+  getRepositoryArtifactMetadataQueryKey,
+  useRepositoryArtifactMetadata,
+} from "@/features/repository-agent-snapshots/artifact-hooks";
 import type { RepositoryAgentMdPrStatusResponse } from "@/lib/api";
 import {
   cancelRepositoryAgentRun,
@@ -102,7 +107,8 @@ function isAgentWorkflowOperation(
  *
  * Data Sources:
  * - Status: job.status from REST API (already available from table row)
- * - Snapshot metadata/output: Electric SQL real-time sync via useRepositoryAgentSnapshot
+ * - Live snapshot progress/statistics: Electric SQL real-time sync via useRepositoryAgentSnapshot
+ * - Artifact availability/manifest: REST via useRepositoryArtifactMetadata
  * - Live progress rows: Electric SQL real-time sync via useRepositoryAgentCodebaseProgress
  * - Event history: Electric SQL on-demand live history per active codebase
  */
@@ -111,7 +117,10 @@ export function GenerateAgentsDialog({
   onOpenChange,
   job,
 }: GenerateAgentsDialogProps): React.ReactElement | null {
-  const [isPreviewOpen, setIsPreviewOpen] = React.useState<boolean>(false);
+  // Stores which run and commit was opened, so a new scope can never inherit it
+  const [previewOpenScopeKey, setPreviewOpenScopeKey] = React.useState<
+    string | null
+  >(null);
   const [feedbackDialogOpen, setFeedbackDialogOpen] =
     React.useState<boolean>(false);
   const [feedbackSource, setFeedbackSource] =
@@ -161,6 +170,16 @@ export function GenerateAgentsDialog({
           job?.repository_name,
           job?.repository_workflow_run_id,
         ],
+      });
+    },
+    // Publication can save identity or record an error, even when it fails
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: getRepositoryArtifactMetadataQueryKey({
+          owner: variables.owner_name,
+          repository: variables.repo_name,
+          runId: variables.repository_workflow_run_id,
+        }),
       });
     },
   });
@@ -238,20 +257,6 @@ export function GenerateAgentsDialog({
   const isAnyLiveError = isLiveError || isProgressError;
   const liveStatus = isProgressError ? "progress error" : snapshotLiveStatus;
 
-  // Derive preview content from Electric SQL snapshot
-  const previewCodebases = parsedSnapshot?.markdownByCodebase;
-  const hasPreviewContent =
-    previewCodebases && Object.keys(previewCodebases).length > 0;
-
-  const previewContent = React.useMemo(() => {
-    if (!job || !hasPreviewContent || !previewCodebases) {
-      return null;
-    }
-    return codebasesToMarkdown(previewCodebases, {
-      title: `AGENTS.md - ${job.repository_owner_name}/${job.repository_name}`,
-    });
-  }, [job, hasPreviewContent, previewCodebases]);
-
   // Derive status from actualJob (fresh cache data or prop fallback)
   const jobStatus = actualJob?.status ?? "SUBMITTED";
   const isRunning = isInFlightJobStatus(jobStatus);
@@ -265,6 +270,30 @@ export function GenerateAgentsDialog({
     isRunning &&
     (actualJob.is_cancellable ?? true);
 
+  const artifactMetadata = useRepositoryArtifactMetadata({
+    scope: open ? scope : null,
+    isRunActive: isRunning,
+    runStatus: jobStatus,
+    liveRefreshKey: parsedSnapshot?.artifactRefreshKey ?? null,
+  });
+  const artifactAvailability =
+    artifactMetadata.status === "ready" ? artifactMetadata.availability : null;
+  const availableArtifacts =
+    artifactAvailability?.availability === "available"
+      ? artifactAvailability
+      : null;
+  const previewScopeKey =
+    job && availableArtifacts
+      ? JSON.stringify([
+          job.repository_owner_name,
+          job.repository_name,
+          job.repository_workflow_run_id,
+          availableArtifacts.commitSha,
+        ])
+      : null;
+  const isPreviewOpen =
+    previewScopeKey !== null && previewOpenScopeKey === previewScopeKey;
+
   // Persisted PR status — query when dialog open + job completed
   const { data: persistedPrStatus } =
     useQuery<RepositoryAgentMdPrStatusResponse>({
@@ -274,17 +303,15 @@ export function GenerateAgentsDialog({
         job?.repository_name,
         job?.repository_workflow_run_id,
       ],
-      queryFn: () => {
-        if (!job) {
-          return { exists: false, pr_metadata: null };
-        }
-        return getRepositoryAgentMdPrStatus(
-          job.repository_owner_name,
-          job.repository_name,
-          job.repository_workflow_run_id,
-        );
-      },
-      enabled: open && isCompleted && !!job,
+      queryFn: job
+        ? () =>
+            getRepositoryAgentMdPrStatus(
+              job.repository_owner_name,
+              job.repository_name,
+              job.repository_workflow_run_id,
+            )
+        : skipToken,
+      enabled: open && isCompleted,
       staleTime: 30_000,
     });
 
@@ -301,28 +328,29 @@ export function GenerateAgentsDialog({
       job?.repository_owner_name,
       job?.repository_workflow_run_id,
     ],
-    queryFn: async () => {
-      if (!job) return null;
-      const status = await getRepositoryStatus(
-        job.repository_name,
-        job.repository_owner_name,
-        job.repository_workflow_run_id,
-      );
-      // Convert API error report to UI error report if present
-      if (status.error_report) {
-        status.error_report = apiToUiErrorReport(
-          status.error_report as ApiErrorReport,
-          {
-            error_type: "REPOSITORY",
-            repository_name: status.repository_name,
-            repository_owner_name: status.repository_owner_name,
-            parent_workflow_run_id: status.repository_workflow_run_id,
-          },
-        );
-      }
-      return status;
-    },
-    enabled: open && isFailed && !!job, // CONDITIONAL: only fetch when failed
+    queryFn: job
+      ? async () => {
+          const status = await getRepositoryStatus(
+            job.repository_name,
+            job.repository_owner_name,
+            job.repository_workflow_run_id,
+          );
+          // Convert API error report to UI error report if present
+          if (status.error_report) {
+            status.error_report = apiToUiErrorReport(
+              status.error_report as ApiErrorReport,
+              {
+                error_type: "REPOSITORY",
+                repository_name: status.repository_name,
+                repository_owner_name: status.repository_owner_name,
+                parent_workflow_run_id: status.repository_workflow_run_id,
+              },
+            );
+          }
+          return status;
+        }
+      : skipToken,
+    enabled: open && isFailed, // CONDITIONAL: only fetch when failed
     staleTime: 5000,
   });
 
@@ -443,24 +471,6 @@ export function GenerateAgentsDialog({
     });
   };
 
-  const handleDownloadAll = (): void => {
-    if (!previewContent) {
-      return;
-    }
-
-    const blob = new Blob([previewContent], {
-      type: "text/markdown;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "AGENTS.md";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleCreateOrUpdatePr = (): void => {
     if (!actualJob || createPrMutation.isPending || persistedPrResult) {
       return;
@@ -489,6 +499,7 @@ export function GenerateAgentsDialog({
     if (!nextOpen) {
       createPrMutation.reset();
       cancelRunMutation.reset();
+      setPreviewOpenScopeKey(null);
     }
     onOpenChange(nextOpen);
   };
@@ -716,6 +727,8 @@ export function GenerateAgentsDialog({
             </>
           )}
 
+          <ArtifactAvailabilityNotice metadata={artifactMetadata} />
+
           {/* Footer Actions */}
           <div className="mt-1 flex items-center justify-between gap-3">
             {/* Left side: Status + Actions based on job state */}
@@ -789,7 +802,9 @@ export function GenerateAgentsDialog({
                     </Button>
                   ) : prResult ? (
                     <Button size="sm" variant="outline" disabled>
-                      No Changes
+                      {prResult.status === "no_artifacts"
+                        ? "No Artifacts"
+                        : "No Changes"}
                     </Button>
                   ) : (
                     <Button
@@ -843,21 +858,26 @@ export function GenerateAgentsDialog({
             {/* Right side: Preview Result */}
             <Button
               size="sm"
-              disabled={!hasPreviewContent || isRunning}
-              onClick={() => setIsPreviewOpen(true)}
+              disabled={previewScopeKey === null}
+              onClick={() => setPreviewOpenScopeKey(previewScopeKey)}
             >
               Preview Result
             </Button>
           </div>
 
           {/* Preview Dialog */}
-          {hasPreviewContent && previewCodebases && (
+          {scope && availableArtifacts && previewScopeKey && (
             <GenerateAgentsPreview
-              codebases={previewCodebases}
+              key={previewScopeKey}
+              scope={scope}
+              commitSha={availableArtifacts.commitSha}
+              manifest={availableArtifacts.manifest}
               repositoryName={`${job.repository_owner_name}/${job.repository_name}`}
               open={isPreviewOpen}
-              onOpenChange={setIsPreviewOpen}
-              onDownloadAll={handleDownloadAll}
+              onOpenChange={(nextOpen) =>
+                setPreviewOpenScopeKey(nextOpen ? previewScopeKey : null)
+              }
+              generatedAt={parsedSnapshot?.updatedAt}
             />
           )}
         </DialogContent>

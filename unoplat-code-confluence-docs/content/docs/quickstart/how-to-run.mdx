@@ -55,9 +55,13 @@ ucc --help
 
 ## 2. Start the local app
 
+A one-time job creates the database schema before the services start. On a new, empty install, confirm that nothing is running against the database:
+
 ```bash
-ucc service run
+ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true ucc service run
 ```
+
+Later starts use `ucc service run`. Without both confirmations, the job stops and the services do not start, with no change to your data. Do not use them to upgrade an install with data, because they permanently discard old generated content and raw agent event text: follow the [migration guide](https://github.com/unoplat/unoplat-code-confluence/blob/main/unoplat-code-confluence-query-engine/alembic/README.md).
 
 On the **first run** this resolves the latest Unoplat Code Confluence app release, pins it, and installs the local Docker Compose stack. On later runs it starts the pinned release and *only reports* whether a newer one is available — it never upgrades on its own.
 

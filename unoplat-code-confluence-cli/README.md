@@ -10,11 +10,21 @@ ucc service run
 
 Starts the pinned local app release, installing it on first run.
 
+A one-time job creates the database schema before the services start, and it needs your explicit confirmation. On a new, empty install only, run:
+
+```bash
+ALEMBIC_ATTEST_DRAINED=true ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true ucc service run
+```
+
+Without both values, the job stops and the services do not start, with no change to your data. Later runs need no confirmation. `ucc` never sets these for you.
+
 ```bash
 ucc service update
 ```
 
 Updates the pinned app release to the latest available release.
+
+If a release changes the database schema, or your install predates versioned migrations, the services stay stopped until the database is migrated. Do not use these confirmations to get past this on an install with data, because `ALEMBIC_ATTEST_DISCARD_LEGACY_ARTIFACTS=true` permanently discards old generated content and raw agent event text: follow the [migration guide](../unoplat-code-confluence-query-engine/alembic/README.md).
 
 ```bash
 ucc service stop
