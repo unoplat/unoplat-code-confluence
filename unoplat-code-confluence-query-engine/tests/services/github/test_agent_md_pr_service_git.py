@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 import threading
+from unittest.mock import AsyncMock, Mock
 
 from git import Actor, Repo
 import pytest
@@ -19,12 +20,14 @@ from unoplat_code_confluence_query_engine.models.output.repository_artifacts imp
 from unoplat_code_confluence_query_engine.services.github import agent_md_pr_service
 from unoplat_code_confluence_query_engine.services.github.agent_md_pr_service import (
     AgentMdPrGithubError,
+    AgentMdPrLocalSyncError,
     AgentMdPrMissingArtifactError,
     _RunArtifacts,
     publish_agent_md_pr,
     reconcile_agent_md_pr_after_generation,
     save_artifact_identity_after_generation,
 )
+from unoplat_code_confluence_query_engine.services.repository import local_git_artifacts
 from unoplat_code_confluence_query_engine.services.repository.artifact_manifest import (
     capture_managed_artifacts,
     manifest_from_capture,
@@ -73,6 +76,7 @@ class _Recorder:
     pr_writes: list[tuple[PrMetadata, str | None]] = field(default_factory=list)
     calls: list[str] = field(default_factory=list)
     reconciled_shas: list[str] = field(default_factory=list)
+    synced_shas: list[str] = field(default_factory=list)
 
 
 def _state(
@@ -138,6 +142,24 @@ class _ServiceSeams:
         sha: str,
     ) -> None:
         self.recorder.shas.append(sha)
+
+    async def sync_local_commit(
+        self,
+        owner: str,
+        repository: str,
+        run_id: str,
+        provider: ProviderKey,
+        sha: str,
+    ) -> None:
+        assert (owner, repository, run_id, provider) == (
+            OWNER,
+            REPOSITORY,
+            RUN_ID,
+            self.state.provider_key,
+        )
+        # Local sync must never precede the durable save of a new identity.
+        assert sha in self.recorder.shas or sha == self.state.commit_sha
+        self.recorder.synced_shas.append(sha)
 
     async def persist_pr(
         self,
@@ -213,11 +235,43 @@ def _patch_service(
         "_github_client": seams.github_client,
         "_persist_manifest": seams.persist_manifest,
         "_persist_sha": seams.persist_sha,
+        "_sync_local_commit": seams.sync_local_commit,
         "_persist_pr_metadata": seams.persist_pr,
         "_persist_error": seams.persist_error,
         "reconcile_artifact_pr": seams.reconcile,
     }.items():
         monkeypatch.setattr(agent_md_pr_service, name, replacement)
+
+
+@pytest.fixture
+def remote_commit(tmp_path: Path) -> tuple[Path, str]:
+    remote_base = tmp_path / "remotes"
+    remote_root = remote_base / OWNER / f"{REPOSITORY}.git"
+    with Repo.init(remote_root) as repo:
+        _commit_files(repo, remote_root, {"architecture.d2": "remote d2"})
+        return remote_base, repo.head.commit.hexsha
+
+
+def _patch_local_sync(
+    monkeypatch: pytest.MonkeyPatch, root: Path, remote_base: Path
+) -> Mock:
+    """Keep real Git operations with a local remote and no database or credentials."""
+    operations = Mock()
+    operations.checkout_root = AsyncMock(return_value=root)
+    operations.credentials = AsyncMock(
+        return_value=("test-token", "https://api.github.com")
+    )
+    operations.fetch = Mock(wraps=local_git_artifacts.fetch_local_commit)
+    operations.pin = Mock(wraps=local_git_artifacts.pin_local_commit)
+    for name, replacement in {
+        "resolve_repository_checkout_root": operations.checkout_root,
+        "load_repository_credentials": operations.credentials,
+        "git_web_base_url": Mock(return_value=str(remote_base)),
+        "fetch_local_commit": operations.fetch,
+        "pin_local_commit": operations.pin,
+    }.items():
+        monkeypatch.setattr(agent_md_pr_service, name, replacement)
+    return operations
 
 
 def _save_identity(required: tuple[str, ...] = ()) -> ArtifactIdentityResult:
@@ -284,7 +338,9 @@ def test_cancellation_during_commit_releases_lock_without_recording_failure(
     recorder = _Recorder()
     commit = _BlockingCommit()
     _patch_service(monkeypatch, recorder, root, _state(()))
-    monkeypatch.setattr(agent_md_pr_service, "recover_artifact_commit", _no_remote_commit)
+    monkeypatch.setattr(
+        agent_md_pr_service, "recover_artifact_commit", _no_remote_commit
+    )
     monkeypatch.setattr(agent_md_pr_service, "publish_artifact_commit", commit)
 
     lock_held = asyncio.run(_cancel_during_commit(commit, recorder))
@@ -294,6 +350,7 @@ def test_cancellation_during_commit_releases_lock_without_recording_failure(
     assert recorder.shas == []
     assert recorder.errors == []
     assert recorder.reconciled_shas == []
+    assert recorder.synced_shas == []
 
 
 def test_missing_required_output_fails_before_manifest_freeze(
@@ -354,6 +411,7 @@ def test_valid_empty_inventory_records_explicit_no_artifacts(
     assert result == ArtifactIdentityResult(status="no_artifacts")
     assert recorder.manifests == [ArtifactManifest([])]
     assert recorder.shas == []
+    assert recorder.synced_shas == []
     assert recorder.credential_reads == 0
     assert [(meta.status, sha) for meta, sha in recorder.pr_writes] == [
         ("no_artifacts", None)
@@ -378,6 +436,7 @@ def test_pre_sha_failure_raises_safe_error_without_saving_identity(
     assert raised.value.retryable is True
     assert len(recorder.manifests) == 1
     assert recorder.shas == []
+    assert recorder.synced_shas == []
     assert recorder.reconciled_shas == []
     assert [(error.stage, error.retryable) for error in recorder.errors] == [
         ("recovery", True)
@@ -422,6 +481,7 @@ def test_unchanged_inventory_saves_verified_default_branch_sha(
         "architecture.svg",
     ]
     assert recorder.shas == [SAVED_SHA]
+    assert recorder.synced_shas == [SAVED_SHA]
     # The required phase ends at the durable save; PR work is a separate phase.
     assert recorder.reconciled_shas == []
     assert recorder.pr_writes == []
@@ -434,6 +494,7 @@ def test_unchanged_inventory_saves_verified_default_branch_sha(
     assert _save_identity(("architecture.d2", "architecture.svg")) == result
     assert frozen_recorder.manifests == []
     assert frozen_recorder.shas == [SAVED_SHA]
+    assert frozen_recorder.synced_shas == [SAVED_SHA]
 
 
 def test_post_sha_pr_failure_records_safe_error_and_retains_identity(
@@ -492,6 +553,7 @@ def test_saved_identity_wins_on_retry_without_recapture(
     assert automatic == ArtifactIdentityResult(status="saved", commit_sha=SAVED_SHA)
     assert recorder.errors == []
     assert recorder.credential_reads == 0
+    assert recorder.synced_shas == [SAVED_SHA]
 
     metadata, _ = asyncio.run(
         publish_agent_md_pr(
@@ -506,3 +568,125 @@ def test_saved_identity_wins_on_retry_without_recapture(
     assert recorder.shas == []
     assert recorder.manifests == []
     assert recorder.calls == []
+    assert recorder.synced_shas == [SAVED_SHA, SAVED_SHA]
+
+
+def test_local_sync_pins_existing_commit_without_credentials_or_fetch(
+    git_repo: tuple[Path, Repo],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, repo = git_repo
+    _commit_files(repo, root, {"architecture.d2": "local d2"})
+    sha = repo.head.commit.hexsha
+    operations = _patch_local_sync(monkeypatch, root, root / "unused-remote")
+    operations.credentials.side_effect = AssertionError("Credentials are not needed")
+    operations.fetch.side_effect = AssertionError(
+        "An existing commit must not be fetched"
+    )
+
+    asyncio.run(
+        agent_md_pr_service._sync_local_commit(
+            OWNER, REPOSITORY, RUN_ID, ProviderKey.GITHUB_OPEN, sha
+        )
+    )
+
+    operations.checkout_root.assert_awaited_once_with(OWNER, REPOSITORY)
+    operations.credentials.assert_not_awaited()
+    operations.fetch.assert_not_called()
+    operations.pin.assert_called_once_with(root, sha, RUN_ID)
+    assert repo.commit(f"refs/unoplat/artifacts/{RUN_ID}").hexsha == sha
+
+
+def test_local_sync_fetches_missing_commit_then_pins_without_changing_checkout(
+    git_repo: tuple[Path, Repo],
+    remote_commit: tuple[Path, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, repo = git_repo
+    _commit_files(repo, root, {"architecture.d2": "local d2"})
+    original_sha = repo.head.commit.hexsha
+    remote_base, sha = remote_commit
+    operations = _patch_local_sync(monkeypatch, root, remote_base)
+    assert not local_git_artifacts.has_local_commit(root, sha)
+
+    asyncio.run(
+        agent_md_pr_service._sync_local_commit(
+            OWNER, REPOSITORY, RUN_ID, ProviderKey.GITHUB_OPEN, sha
+        )
+    )
+
+    operations.credentials.assert_awaited_once_with(ProviderKey.GITHUB_OPEN)
+    operations.fetch.assert_called_once_with(
+        root,
+        sha,
+        remote_url=f"{remote_base}/{OWNER}/{REPOSITORY}.git",
+        token="test-token",
+    )
+    operations.pin.assert_called_once_with(root, sha, RUN_ID)
+    assert local_git_artifacts.has_local_commit(root, sha)
+    assert repo.commit(f"refs/unoplat/artifacts/{RUN_ID}").hexsha == sha
+    assert repo.head.commit.hexsha == original_sha
+    assert (root / "architecture.d2").read_text(encoding="utf-8") == "local d2"
+
+
+def test_local_sync_failure_retains_identity_and_retry_does_not_republish(
+    git_repo: tuple[Path, Repo],
+    remote_commit: tuple[Path, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, repo = git_repo
+    _commit_files(
+        repo, root, {"architecture.d2": "remote d2", "unrelated.txt": "local only"}
+    )
+    remote_base, sha = remote_commit
+    recorder = _Recorder()
+    sync_local_commit = agent_md_pr_service._sync_local_commit
+    _patch_service(monkeypatch, recorder, root, _state(()))
+    monkeypatch.setattr(agent_md_pr_service, "_sync_local_commit", sync_local_commit)
+    monkeypatch.setattr(
+        agent_md_pr_service,
+        "recover_artifact_commit",
+        Mock(return_value=_publication(sha, "modified")),
+    )
+    monkeypatch.setattr(agent_md_pr_service, "publish_artifact_commit", _reject_call)
+    operations = _patch_local_sync(monkeypatch, root, remote_base)
+    assert not local_git_artifacts.has_local_commit(root, sha)
+    operations.fetch.side_effect = local_git_artifacts.LocalGitError(RAW_PROVIDER_TEXT)
+
+    with pytest.raises(AgentMdPrLocalSyncError) as raised:
+        _save_identity()
+
+    assert raised.value.retryable is True
+    assert recorder.shas == [sha]
+    assert len(recorder.manifests) == 1
+    assert recorder.reconciled_shas == []
+    assert recorder.lock_released is True
+    assert [(error.code, error.stage) for error in recorder.errors] == [
+        ("local_sync_failed", "local_sync")
+    ]
+    assert RAW_PROVIDER_TEXT not in str(raised.value)
+    assert RAW_PROVIDER_TEXT not in recorder.errors[0].message
+    operations.pin.assert_not_called()
+
+    # Model a fresh attempt reading the identity saved before the failed fetch.
+    _patch_service(monkeypatch, recorder, root, _state((), recorder.manifests[0], sha))
+    monkeypatch.setattr(agent_md_pr_service, "_sync_local_commit", sync_local_commit)
+    for name in (
+        "capture_managed_artifacts",
+        "revalidate_manifest",
+        "recover_artifact_commit",
+        "publish_artifact_commit",
+        "_github_client",
+    ):
+        monkeypatch.setattr(agent_md_pr_service, name, _reject_call)
+    operations.fetch.side_effect = None
+
+    assert _save_identity() == ArtifactIdentityResult(status="saved", commit_sha=sha)
+
+    assert recorder.shas == [sha]
+    assert len(recorder.manifests) == 1
+    assert len(recorder.errors) == 1
+    assert recorder.credential_reads == 1
+    assert operations.fetch.call_count == 2
+    operations.pin.assert_called_once_with(root, sha, RUN_ID)
+    assert repo.commit(f"refs/unoplat/artifacts/{RUN_ID}").hexsha == sha
