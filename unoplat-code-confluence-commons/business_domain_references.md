@@ -1,7 +1,7 @@
 # Business Domain References
 
 ## Domain Summary
-This package supports Code Confluence, a repository-ingestion and code-intelligence platform for analyzing source code across configured codebases. Its models represent repositories, codebases, source files, language/package metadata, framework feature definitions and detected feature spans, plus query configuration and detection confidence. It also orchestrates and audits repository and codebase workflows, agent progress and events, AGENTS.md publication snapshots, credentials, and feature flags.
+This package supports Code Confluence, a repository ingestion and code-intelligence platform. Its models represent Git repositories, codebases, source files, dependencies, framework feature definitions, and detected code locations. They also track processing workflows, agent progress and events, and AGENTS.md publication metadata.
 
 ## Data Model References
 ### `/opt/unoplat/repositories/unoplat-code-confluence/unoplat-code-confluence-commons/src/unoplat_code_confluence_commons/base_models/data_model_position.py`
